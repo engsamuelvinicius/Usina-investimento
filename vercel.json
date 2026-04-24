@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/UFV_Badaruco_v5.html" }
+  ]
+}
