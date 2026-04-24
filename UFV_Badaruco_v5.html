@@ -735,6 +735,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     <button class="tab-btn" id="tab-pagamentos" onclick="switchTab('pagamentos',this)">Pagamentos</button>
     <button class="tab-btn" id="tab-creditos" onclick="switchTab('creditos',this)">Créditos</button>
     <button class="tab-btn" id="tab-fatura" onclick="switchTab('fatura',this)">Fatura PDF</button>
+    <button class="tab-btn" id="tab-cobranças" onclick="switchTab('cobranças',this)">Cobranças</button>
     <button class="tab-btn" id="tab-invest" onclick="switchTab('invest',this)">Investimento</button>
     <button class="tab-btn" id="tab-config" onclick="switchTab('config',this)" style="display:flex;align-items:center;gap:5px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -832,8 +833,21 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     <table><thead><tr><th>Item</th><th style="text-align:right">Com solar</th><th style="text-align:right">Sem solar</th><th style="text-align:right">Diferença</th></tr></thead><tbody id="tbl-comp-body"></tbody></table>
   </div>
 
+  <div id="sec-cobranças" class="sec"><div id="cobranças-content"></div></div>
   <div id="sec-invest" class="sec"><div id="playback-content"></div></div>
   <div id="sec-config" class="sec"><div id="config-content"></div></div>
+</div>
+
+<!-- MODAL COBRANÇA -->
+<div id="modalCobranca" class="modal-bg">
+  <div class="modal" style="max-width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div id="modal-cob-titulo" style="font-size:16px;font-weight:700;font-family:'Syne',sans-serif"></div>
+      <button class="btn-s" onclick="fecharModal('modalCobranca')" style="padding:4px 10px">✕</button>
+    </div>
+    <input type="hidden" id="modal-cob-idx">
+    <div id="modal-cob-body"></div>
+  </div>
 </div>
 
 <!-- MODAL LANÇAR MÊS -->
@@ -1784,6 +1798,18 @@ function renderConfiguracoes(){
     + '<button class="btn-p" onclick="salvarDadosConta()" style="width:auto;padding:8px 20px">Salvar dados</button>';
   el.appendChild(secConta);
 
+  // ── ASAAS / PAGAMENTOS ──
+  var secAsaas = document.createElement('div');
+  secAsaas.className = 'cfg-section';
+  secAsaas.innerHTML = '<div class="cfg-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Integração de Pagamentos (Asaas)</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:12px">Cole a sua chave de API do Asaas. O dinheiro vai direto para a sua conta.</div>'
+    + '<div class="fr"><label>Chave de API</label><input type="password" id="cfg-asaas-key" placeholder="$aas_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><input type="checkbox" id="cfg-asaas-sandbox" checked><label for="cfg-asaas-sandbox" style="font-size:12px;color:var(--text2);cursor:pointer">Usar sandbox (ambiente de testes)</label></div>'
+    + '<div id="cfg-asaas-status" style="font-size:12px;color:var(--text2);margin-bottom:10px">○ Não configurado</div>'
+    + '<button class="btn-p" id="btn-salvar-asaas" onclick="salvarConfigAsaas()" style="width:auto;padding:8px 20px">Conectar</button>'
+    + '<div style="margin-top:10px;font-size:11px;color:var(--text2)">Não tem conta? <a href="https://asaas.com/cadastrar" target="_blank" rel="noopener" style="color:var(--green)">Criar conta gratuita no Asaas ↗</a></div>';
+  el.appendChild(secAsaas);
+
   previewCalc();
 }
 
@@ -2523,6 +2549,7 @@ function switchTab(tab,btn){
   if(tab==='invest')renderInvestimento();
   if(tab==='fatura')popularMesFatura();
   if(tab==='creditos')renderListaAjustes();
+  if(tab==='cobranças')renderCobranças();
   if(tab==='config'){renderConfiguracoes();_toggleState={ip:null,fiob:null};setTimeout(previewCalc,100);}
 }
 function fecharModal(id){document.getElementById(id).classList.remove('open');}
@@ -2939,6 +2966,311 @@ function confirmarExcluirCliente(cid){
   toast('Cliente removido.');
 }
 
+
+// === COBRANÇAS / ASAAS ===
+
+async function getToken(){
+  if(!firebaseOK||!fbAuth||!fbAuth.currentUser) return null;
+  try{ return await fbAuth.currentUser.getIdToken(); }catch(e){ return null; }
+}
+
+function _statusCobLabel(s){
+  var map={
+    PENDING:{label:'Aguardando',cls:'by'},
+    RECEIVED:{label:'Pago',cls:'bv'},
+    CONFIRMED:{label:'Confirmado',cls:'bv'},
+    OVERDUE:{label:'Vencido',cls:'br'},
+    REFUNDED:{label:'Estornado',cls:'bb'},
+    CANCELED:{label:'Cancelado',cls:'bb'},
+  };
+  return map[s]||{label:s||'—',cls:'bb'};
+}
+
+function _proximoDia10(mesLabel){
+  try{
+    var parts=mesLabel.split('/');
+    var mAbbr=parts[0]; var ano=parseInt(parts[1]);
+    var mIdx=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].indexOf(mAbbr);
+    if(mIdx<0) return '';
+    var d=new Date(ano,mIdx+1,10);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-10';
+  }catch(e){ return ''; }
+}
+
+function renderCobranças(){
+  var u=usinaAtual; if(!u) return;
+  var el=document.getElementById('cobranças-content'); if(!el) return;
+
+  if(!firebaseOK){
+    el.innerHTML='<div class="nota" style="margin-top:8px">Cobranças requerem login com Firebase (conta online). Faça login com sua conta para usar esta funcionalidade.</div>';
+    return;
+  }
+
+  var meses=(u.meses||[]);
+  if(!meses.length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text2);font-size:13px">Nenhum mês lançado ainda. Lance um mês primeiro.</div>';
+    return;
+  }
+
+  var mesOpts=meses.map(function(m,i){
+    return '<option value="'+i+'">'+m.label+'</option>';
+  }).reverse().join('');
+
+  el.innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'
+    +'<select id="sel-cob-mes" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)" onchange="renderListaCobranças()">'+mesOpts+'</select>'
+    +'<button class="btn-p" onclick="gerarCobranças()" id="btn-gerar-cob">Gerar cobranças do mês</button>'
+    +'<button class="btn-s" onclick="renderListaCobranças()">↻ Atualizar</button>'
+    +'</div><div id="cob-lista"></div>';
+
+  renderListaCobranças();
+}
+
+function renderListaCobranças(){
+  var u=usinaAtual; if(!u) return;
+  var el=document.getElementById('cob-lista'); if(!el) return;
+  var sel=document.getElementById('sel-cob-mes'); if(!sel) return;
+  var idxMes=parseInt(sel.value);
+  var mesLabel=(u.meses[idxMes]||{}).label||'';
+  var cobranças=(u.cobranças||[]).filter(function(c){ return c.mes===mesLabel; });
+
+  if(!cobranças.length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text2);font-size:13px">Nenhuma cobrança gerada para <strong>'+mesLabel+'</strong>.<br>Clique em "Gerar cobranças do mês" para criar.</div>';
+    return;
+  }
+
+  var allCob=u.cobranças||[];
+  var rows=cobranças.map(function(c){
+    var st=_statusCobLabel(c.status);
+    var idx=allCob.indexOf(c);
+    return '<tr>'
+      +'<td>'+c.clienteNome+'</td>'
+      +'<td>'+c.mes+'</td>'
+      +'<td style="text-align:right">R$ '+(c.valor||0).toFixed(2).replace('.',',')+'</td>'
+      +'<td style="text-align:center">'+c.vencimento+'</td>'
+      +'<td style="text-align:center"><span class="badge '+st.cls+'">'+st.label+'</span></td>'
+      +'<td style="text-align:right;white-space:nowrap">'
+      +'<button class="btn-e" onclick="verCobranca('+idx+')">Ver</button> '
+      +'<button class="btn-s" onclick="atualizarStatusCobranca('+idx+')" title="Atualizar status">↻</button>'
+      +'</td></tr>';
+  }).join('');
+
+  el.innerHTML='<div style="overflow-x:auto"><table>'
+    +'<thead><tr><th>Cliente</th><th>Mês</th><th style="text-align:right">Valor</th><th style="text-align:center">Vencimento</th><th style="text-align:center">Status</th><th style="text-align:right">Ações</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div>';
+}
+
+async function gerarCobranças(){
+  var u=usinaAtual; if(!u) return;
+  var token=await getToken();
+  if(!token){ toast('Login Firebase necessário para gerar cobranças.','warn'); return; }
+
+  var sel=document.getElementById('sel-cob-mes'); if(!sel) return;
+  var idxMes=parseInt(sel.value);
+  var mes=u.meses[idxMes];
+  if(!mes){ toast('Selecione um mês.','warn'); return; }
+
+  var btn=document.getElementById('btn-gerar-cob');
+  btn.disabled=true; btn.textContent='Gerando...';
+
+  if(!u.cobranças) u.cobranças=[];
+  var clientes=(u.clientes||[]).filter(function(c){ return !c.previsto; });
+  var erros=[]; var ok=0;
+
+  for(var i=0;i<clientes.length;i++){
+    var cl=clientes[i];
+    var jaExiste=u.cobranças.find(function(c){ return c.clienteId===cl.id&&c.mes===mes.label; });
+    if(jaExiste){ ok++; continue; }
+
+    var pag=((mes.pagamentos||{})[cl.id])||{};
+    var valor=parseFloat(pag.valorTotal||0);
+    if(valor<=0){ erros.push(cl.nome+' (sem valor lançado)'); continue; }
+
+    // Criar cliente Asaas
+    var custId=cl.asaasId||'';
+    if(!custId){
+      try{
+        var cr=await fetch('/api/criar-cliente',{
+          method:'POST',
+          headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+          body:JSON.stringify({nome:cl.nome,email:cl.email||'',fone:cl.telefone||''})
+        });
+        var crj=await cr.json();
+        if(crj.id){ custId=crj.id; cl.asaasId=custId; }
+        else{ erros.push(cl.nome+' ('+(crj.erro||'erro cliente')+')'); continue; }
+      }catch(e){ erros.push(cl.nome+' (erro rede)'); continue; }
+    }
+
+    // Gerar cobrança PIX
+    var venc=_proximoDia10(mes.label);
+    try{
+      var cobr=await fetch('/api/gerar-cobranca',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          clienteAsaasId:custId,
+          valor:valor,
+          vencimento:venc,
+          descricao:'Energia solar — '+u.nome+' — '+mes.label,
+          usinaId:u.id,
+          clienteId:cl.id,
+          mes:mes.label
+        })
+      });
+      var cobj=await cobr.json();
+      if(cobj.id){
+        u.cobranças.push({
+          asaasId:cobj.id,
+          clienteId:cl.id,
+          clienteNome:cl.nome,
+          clienteTelefone:cl.telefone||'',
+          mes:mes.label,
+          valor:cobj.valor||valor,
+          status:cobj.status||'PENDING',
+          pixQrCode:cobj.pixQrCode||'',
+          pixCopiaECola:cobj.pixCopiaECola||'',
+          invoiceUrl:cobj.invoiceUrl||'',
+          vencimento:venc,
+          criadoEm:new Date().toLocaleDateString('pt-BR')
+        });
+        ok++;
+      } else { erros.push(cl.nome+' ('+(cobj.erro||'erro cobrança')+')'); }
+    }catch(e){ erros.push(cl.nome+' (erro rede)'); }
+  }
+
+  persistirUsinas();
+  btn.disabled=false; btn.textContent='Gerar cobranças do mês';
+
+  if(ok>0) toast(ok+' cobrança(s) gerada(s)'+(erros.length?' | '+erros.length+' erro(s)':'')+'.',erros.length?'warn':undefined);
+  else if(erros.length) toast('Erros: '+erros.slice(0,3).join(', '),'warn');
+
+  renderListaCobranças();
+}
+
+async function atualizarStatusCobranca(idx){
+  var u=usinaAtual; if(!u||!u.cobranças||!u.cobranças[idx]) return;
+  var token=await getToken();
+  if(!token){ toast('Login Firebase necessário.','warn'); return; }
+  var cob=u.cobranças[idx];
+  try{
+    var resp=await fetch('/api/status-cobranca?id='+cob.asaasId,{headers:{'Authorization':'Bearer '+token}});
+    var json=await resp.json();
+    if(json.status){
+      cob.status=json.status;
+      persistirUsinas();
+      renderListaCobranças();
+      toast('Status: '+_statusCobLabel(json.status).label);
+    } else { toast(json.erro||'Erro ao atualizar.','warn'); }
+  }catch(e){ toast('Erro: '+e.message,'warn'); }
+}
+
+function verCobranca(idx){
+  var u=usinaAtual; if(!u||!u.cobranças||!u.cobranças[idx]) return;
+  var cob=u.cobranças[idx];
+  var st=_statusCobLabel(cob.status);
+
+  var qrHtml=cob.pixQrCode
+    ?'<div style="text-align:center;margin:14px 0"><img src="data:image/png;base64,'+cob.pixQrCode+'" style="width:180px;height:180px;border:1px solid var(--border);border-radius:var(--r)" alt="QR Code PIX"><div style="font-size:11px;color:var(--text2);margin-top:4px">QR Code PIX</div></div>'
+    :'';
+
+  document.getElementById('modal-cob-titulo').textContent=cob.clienteNome+' — '+cob.mes;
+  document.getElementById('modal-cob-idx').value=idx;
+  document.getElementById('modal-cob-body').innerHTML=
+    '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px">'
+    +'<div><div style="font-size:11px;color:var(--text2)">Valor</div><div style="font-size:22px;font-weight:700;font-family:\'Syne\',sans-serif">R$ '+(cob.valor||0).toFixed(2).replace('.',',')+'</div></div>'
+    +'<div><div style="font-size:11px;color:var(--text2)">Vencimento</div><div style="font-size:14px;font-weight:500">'+cob.vencimento+'</div></div>'
+    +'<div><div style="font-size:11px;color:var(--text2)">Status</div><span class="badge '+st.cls+'">'+st.label+'</span></div>'
+    +'</div>'
+    +qrHtml
+    +(cob.pixCopiaECola?'<button class="btn-s" style="width:100%;margin-bottom:8px" onclick="copiarPix('+idx+')">Copiar código PIX (copia e cola)</button>':'')
+    +'<div class="fr" style="margin-bottom:8px"><label>WhatsApp do cliente</label><input type="tel" id="cob-fone" placeholder="Ex: 11999999999" value="'+(cob.clienteTelefone||'')+'"></div>'
+    +'<button class="btn-p" id="btn-wpp-cob" style="width:100%;margin-bottom:8px" onclick="enviarWhatsAppCobranca()">Enviar por WhatsApp</button>'
+    +(cob.invoiceUrl?'<a href="'+cob.invoiceUrl+'" target="_blank" rel="noopener" class="btn-s" style="display:block;text-align:center;text-decoration:none;padding:5px 10px">Abrir link da fatura ↗</a>':'');
+
+  document.getElementById('modalCobranca').classList.add('open');
+}
+
+function copiarPix(idx){
+  var u=usinaAtual; if(!u||!u.cobranças||!u.cobranças[idx]) return;
+  var cob=u.cobranças[idx]; if(!cob.pixCopiaECola) return;
+  navigator.clipboard.writeText(cob.pixCopiaECola)
+    .then(function(){ toast('Código PIX copiado!'); })
+    .catch(function(){ toast('Não foi possível copiar automaticamente.','warn'); });
+}
+
+async function enviarWhatsAppCobranca(){
+  var idxEl=document.getElementById('modal-cob-idx'); if(!idxEl) return;
+  var idx=parseInt(idxEl.value);
+  var u=usinaAtual; if(!u||!u.cobranças||!u.cobranças[idx]) return;
+  var cob=u.cobranças[idx];
+
+  var foneEl=document.getElementById('cob-fone');
+  var telefone=(foneEl?foneEl.value:'').trim().replace(/\D/g,'');
+  if(!telefone){ toast('Informe o WhatsApp do cliente.','warn'); return; }
+
+  cob.clienteTelefone=telefone;
+  persistirUsinas();
+
+  var token=await getToken();
+  if(!token){ toast('Login Firebase necessário.','warn'); return; }
+
+  var msg='Olá, '+cob.clienteNome+'!\n\n'
+    +'Sua fatura de energia solar referente a '+cob.mes+' está disponível.\n\n'
+    +'💰 Valor: R$ '+(cob.valor||0).toFixed(2).replace('.',',')+'\n'
+    +'📅 Vencimento: '+cob.vencimento+'\n\n'
+    +(cob.invoiceUrl?'🔗 Acesse aqui: '+cob.invoiceUrl+'\n\n':'')
+    +'Dúvidas? Responda esta mensagem.';
+
+  var btn=document.getElementById('btn-wpp-cob');
+  if(btn){ btn.disabled=true; btn.textContent='Enviando...'; }
+
+  try{
+    var resp=await fetch('/api/notificar',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({telefone:telefone,mensagem:msg})
+    });
+    var json=await resp.json();
+    if(json.ok) toast('WhatsApp enviado para '+cob.clienteNome+'!');
+    else toast(json.erro||'Erro ao enviar WhatsApp.','warn');
+  }catch(e){ toast('Erro: '+e.message,'warn'); }
+  finally{
+    if(btn){ btn.disabled=false; btn.textContent='Enviar por WhatsApp'; }
+  }
+}
+
+async function salvarConfigAsaas(){
+  var keyEl=document.getElementById('cfg-asaas-key'); if(!keyEl) return;
+  var key=keyEl.value.trim();
+  var sandbox=(document.getElementById('cfg-asaas-sandbox')||{}).checked!==false;
+  if(!key){ toast('Informe a chave de API do Asaas.','warn'); return; }
+
+  var btn=document.getElementById('btn-salvar-asaas');
+  if(btn){ btn.disabled=true; btn.textContent='Conectando...'; }
+
+  var token=await getToken();
+  if(!token){
+    toast('Login Firebase necessário para salvar configurações de pagamento.','warn');
+    if(btn){ btn.disabled=false; btn.textContent='Conectar'; }
+    return;
+  }
+
+  try{
+    var resp=await fetch('/api/salvar-config',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({asaasKey:key,sandbox:sandbox})
+    });
+    var json=await resp.json();
+    var st=document.getElementById('cfg-asaas-status');
+    if(json.ok){
+      toast('Asaas conectado! Conta: '+json.nome);
+      if(st){ st.textContent='● Conectado — '+json.nome; st.style.color='var(--green)'; }
+    } else {
+      toast(json.erro||'Erro ao conectar Asaas.','warn');
+    }
+  }catch(e){ toast('Erro de rede: '+e.message,'warn'); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent='Conectar'; } }
+}
 
 initFirebase();
 _initCodeInputs();
