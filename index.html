@@ -423,6 +423,71 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .color-custom{display:flex;align-items:center;gap:10px;margin-top:10px}
 .color-custom input[type=color]{width:42px;height:42px;border:none;border-radius:var(--r);cursor:pointer;padding:2px;background:none}
 
+/* ══════════════════════════════════════════
+   HOME — SELETOR DE MÓDULOS
+   ══════════════════════════════════════════ */
+.home-wrap{background:linear-gradient(160deg,#0c1f12 0%,#193a1f 55%,#0d2614 100%);border-radius:var(--rl);position:relative;overflow:hidden;min-height:calc(100vh - 32px)}
+.home-wrap::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(109,222,143,.08) 1px,transparent 1px);background-size:30px 30px;pointer-events:none;z-index:0}
+.home-wrap::after{content:'';position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:80%;height:55%;background:radial-gradient(ellipse at center,rgba(46,139,87,.2) 0%,transparent 70%);pointer-events:none;z-index:0}
+.home-topbar{display:flex;align-items:center;justify-content:space-between;padding:24px 32px;position:relative;z-index:5}
+.home-brand{display:flex;align-items:center;gap:12px}
+.home-brand-badge{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6dde8f,#2E8B57);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(109,222,143,.3)}
+.home-brand-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;letter-spacing:-.2px}
+.home-brand-sub{font-size:10px;color:rgba(255,255,255,.38);letter-spacing:.07em;text-transform:uppercase;margin-top:1px}
+.home-user-area{display:flex;align-items:center;gap:10px}
+.home-user-name{font-size:13px;color:rgba(255,255,255,.55)}
+.home-logout-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;font-family:'Outfit',sans-serif}
+.home-logout-btn:hover{background:rgba(255,255,255,.16)}
+.home-hero{text-align:center;padding:40px 24px 48px;position:relative;z-index:5;animation:modFadeUp .5s ease .04s both}
+.home-greeting-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(109,222,143,.1);border:1px solid rgba(109,222,143,.2);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:#6dde8f;letter-spacing:.09em;text-transform:uppercase;margin-bottom:18px}
+.home-greeting-dot{width:6px;height:6px;border-radius:50%;background:#6dde8f;animation:sun-pulse 2s infinite}
+.home-title{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:#fff;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
+.home-title em{font-style:normal;color:#6dde8f}
+.home-sub{font-size:14px;color:rgba(255,255,255,.38);line-height:1.7;font-weight:300}
+.home-modules{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:0 32px 44px;position:relative;z-index:5}
+@media(max-width:820px){.home-modules{grid-template-columns:1fr;padding:0 20px 32px}}
+@keyframes modFadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+.module-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:28px 24px 24px;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:300px;transition:transform .38s cubic-bezier(.34,1.4,.64,1),box-shadow .38s ease,background .25s,border-color .25s;animation:modFadeUp .55s ease both}
+.module-card:nth-child(1){animation-delay:.08s}
+.module-card:nth-child(2){animation-delay:.18s}
+.module-card:nth-child(3){animation-delay:.28s}
+.module-card.mod-clickable{cursor:pointer}
+.module-card.mod-usinas{border-top:2px solid rgba(109,222,143,.45)}
+.module-card.mod-proposta{border-top:2px solid rgba(96,165,250,.35)}
+.module-card.mod-crm{border-top:2px solid rgba(251,146,60,.35)}
+.module-card.mod-clickable:hover{transform:translateY(-9px);background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18)}
+.module-card.mod-usinas.mod-clickable:hover{box-shadow:0 22px 60px rgba(0,0,0,.5),0 0 40px rgba(109,222,143,.1)}
+.module-card.mod-proposta.mod-clickable:hover{box-shadow:0 22px 60px rgba(0,0,0,.45),0 0 32px rgba(96,165,250,.08)}
+.module-card.mod-crm.mod-clickable:hover{box-shadow:0 22px 60px rgba(0,0,0,.45),0 0 32px rgba(251,146,60,.08)}
+.module-card::before{content:'';position:absolute;top:-40%;right:-20%;width:70%;height:70%;border-radius:50%;opacity:0;transition:opacity .4s;pointer-events:none}
+.module-card.mod-usinas::before{background:radial-gradient(circle,rgba(109,222,143,.12) 0%,transparent 70%)}
+.module-card.mod-proposta::before{background:radial-gradient(circle,rgba(96,165,250,.1) 0%,transparent 70%)}
+.module-card.mod-crm::before{background:radial-gradient(circle,rgba(251,146,60,.1) 0%,transparent 70%)}
+.module-card.mod-clickable:hover::before{opacity:1}
+.mod-soon{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.mod-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;flex-shrink:0}
+.mod-icon.ic-g{background:linear-gradient(135deg,rgba(109,222,143,.18),rgba(46,139,87,.1));box-shadow:0 0 0 1px rgba(109,222,143,.2)}
+.mod-icon.ic-b{background:linear-gradient(135deg,rgba(96,165,250,.18),rgba(37,99,235,.1));box-shadow:0 0 0 1px rgba(96,165,250,.2)}
+.mod-icon.ic-o{background:linear-gradient(135deg,rgba(251,146,60,.18),rgba(234,88,12,.1));box-shadow:0 0 0 1px rgba(251,146,60,.2)}
+.mod-label{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+.mod-label.lb-g{background:rgba(109,222,143,.1);color:#6dde8f;border:1px solid rgba(109,222,143,.18)}
+.mod-label.lb-b{background:rgba(96,165,250,.1);color:#93c5fd;border:1px solid rgba(96,165,250,.18)}
+.mod-label.lb-o{background:rgba(251,146,60,.1);color:#fdba74;border:1px solid rgba(251,146,60,.18)}
+.mod-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:-.4px;margin-bottom:8px;line-height:1.2}
+.mod-desc{font-size:13px;color:rgba(255,255,255,.38);line-height:1.65;font-weight:300;flex:1;margin-bottom:18px}
+.mod-stats-row{display:flex;gap:10px;margin-bottom:20px}
+.mod-stat-box{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 8px;text-align:center}
+.mod-stat-v{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.mod-stat-l{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.mod-btn{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-radius:12px;font-size:13px;font-weight:600;border:none;width:100%;font-family:'Outfit',sans-serif;transition:all .25s;margin-top:auto}
+.mod-btn.mb-go{background:linear-gradient(135deg,#2a7a4e,#1a5535);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(30,107,46,.35)}
+.mod-btn.mb-go:hover{background:linear-gradient(135deg,#339961,#1E6B2E);box-shadow:0 8px 28px rgba(30,107,46,.5)}
+.mod-btn.mb-go svg{transition:transform .25s}
+.mod-btn.mb-go:hover svg{transform:translateX(5px)}
+.mod-btn.mb-soon{background:rgba(255,255,255,.04);color:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.08);cursor:default}
+.btn-home-back{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;font-family:'Outfit',sans-serif}
+.btn-home-back:hover{background:rgba(255,255,255,.22)}
+
 
 </style>
 </head>
@@ -685,6 +750,103 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 
 <div class="app">
 
+<!-- HOME — SELETOR DE MÓDULOS -->
+<div id="screen-home" class="screen">
+  <div class="home-wrap">
+
+    <!-- Topbar -->
+    <div class="home-topbar">
+      <div class="home-brand">
+        <div class="home-brand-badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0c1f12" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </div>
+        <div>
+          <div class="home-brand-name">UFV Solar</div>
+          <div class="home-brand-sub">Plataforma de Gestão</div>
+        </div>
+      </div>
+      <div class="home-user-area">
+        <span class="home-user-name" id="home-user-name"></span>
+        <button class="home-logout-btn" onclick="fazerLogout()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sair
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="home-hero">
+      <div class="home-greeting-pill">
+        <span class="home-greeting-dot"></span>
+        Plataforma Online
+      </div>
+      <div class="home-title">Selecione o <em>módulo</em></div>
+      <div class="home-sub">Todos os seus projetos e ferramentas em um só lugar</div>
+    </div>
+
+    <!-- Grid de módulos -->
+    <div class="home-modules">
+
+      <!-- ① Usinas de Investimento -->
+      <div class="module-card mod-usinas mod-clickable" onclick="irParaUsinas()">
+        <div class="mod-icon ic-g">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6dde8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </div>
+        <div class="mod-label lb-g">
+          <span style="width:5px;height:5px;border-radius:50%;background:#6dde8f;display:inline-block"></span>
+          Ativo
+        </div>
+        <div class="mod-name">Usinas de Investimento</div>
+        <div class="mod-desc">Gerencie seu portfólio solar, acompanhe faturamentos, payback e relatórios dos clientes em tempo real.</div>
+        <div class="mod-stats-row">
+          <div class="mod-stat-box"><div class="mod-stat-v" id="home-st-usinas">–</div><div class="mod-stat-l">Usinas</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v" id="home-st-clientes">–</div><div class="mod-stat-l">Clientes</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v" id="home-st-kwp">–</div><div class="mod-stat-l">kWp</div></div>
+        </div>
+        <button class="mod-btn mb-go" onclick="irParaUsinas()">
+          Acessar módulo
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+
+      <!-- ② Gerador de Proposta -->
+      <div class="module-card mod-proposta">
+        <span class="mod-soon">Em breve</span>
+        <div class="mod-icon ic-b">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="mod-label lb-b">Novo</div>
+        <div class="mod-name">Gerador de Proposta</div>
+        <div class="mod-desc">Dimensione sistemas fotovoltaicos, calcule payback e gere propostas profissionais em PDF em menos de 1 minuto.</div>
+        <div class="mod-stats-row">
+          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Templates</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Geradas</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Conversão</div></div>
+        </div>
+        <button class="mod-btn mb-soon">Em desenvolvimento</button>
+      </div>
+
+      <!-- ③ CRM de Projetos -->
+      <div class="module-card mod-crm">
+        <span class="mod-soon">Em breve</span>
+        <div class="mod-icon ic-o">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <div class="mod-label lb-o">Novo</div>
+        <div class="mod-name">CRM de Projetos</div>
+        <div class="mod-desc">Acompanhe o fluxo completo dos projetos: orçamento, homologação, instalação e ativação em um kanban visual.</div>
+        <div class="mod-stats-row">
+          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Projetos</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Em andamento</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Concluídos</div></div>
+        </div>
+        <button class="mod-btn mb-soon">Em desenvolvimento</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- GERAL -->
 <div id="screen-geral" class="screen">
   <div class="topbar" id="topbar-geral">
@@ -696,6 +858,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn-home-back" onclick="voltarHome()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Início
+      </button>
       <button class="btn-p" onclick="abrirNovaUsina()">+ Nova usina</button>
       <button onclick="fazerLogout()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1258,11 +1424,35 @@ function mostrarAuth(){
 }
 function entrarNoApp(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  document.getElementById('screen-geral').classList.add('active');
   var cfg=getCfg();
   aplicarTema(cfg.corPrimaria||'#1E6B2E',cfg.corSecundaria||'#2E8B57');
   atualizarPill();
+  document.getElementById('screen-home').classList.add('active');
+  renderHome();
+}
+function renderHome(){
+  var nome = (usuarioAtual && (usuarioAtual.empresa||usuarioAtual.email)) || '';
+  var el = document.getElementById('home-user-name');
+  if(el) el.textContent = nome;
+  var totalUsinas = usinas.length;
+  var totalClientes = usinas.reduce(function(a,u){ return a+(u.clientes||[]).length; },0);
+  var totalKwp = usinas.reduce(function(a,u){ return a+(parseFloat(u.potencia)||0); },0);
+  var eU=document.getElementById('home-st-usinas');
+  var eC=document.getElementById('home-st-clientes');
+  var eK=document.getElementById('home-st-kwp');
+  if(eU) eU.textContent = totalUsinas || '0';
+  if(eC) eC.textContent = totalClientes || '0';
+  if(eK) eK.textContent = totalKwp>0 ? (totalKwp%1===0?totalKwp:totalKwp.toFixed(1)) : '0';
+}
+function irParaUsinas(){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-geral').classList.add('active');
   renderGeral();
+}
+function voltarHome(){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-home').classList.add('active');
+  renderHome();
 }
 var _resetPending = {};
 
