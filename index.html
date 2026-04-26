@@ -488,6 +488,103 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .btn-home-back{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;font-family:'Outfit',sans-serif}
 .btn-home-back:hover{background:rgba(255,255,255,.22)}
 
+/* ══════════════════════════════════════════
+   GERADOR DE PROPOSTA
+   ══════════════════════════════════════════ */
+.prop-wrap{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 32px);background:#f0f0ec}
+@media(max-width:900px){.prop-wrap{grid-template-columns:1fr}}
+.prop-form-panel{background:#fff;border-right:1px solid var(--border);padding:20px 22px;overflow-y:auto;max-height:calc(100vh - 32px);position:sticky;top:0}
+@media(max-width:900px){.prop-form-panel{max-height:none;position:static;border-right:none;border-bottom:1px solid var(--border)}}
+.prop-preview-panel{padding:24px 20px;overflow-y:auto;max-height:calc(100vh - 32px);background:#e4e4e0}
+@media(max-width:900px){.prop-preview-panel{max-height:none}}
+.prop-h1{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.prop-section{margin-bottom:16px}
+.prop-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:9px;display:flex;align-items:center;gap:6px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.prop-grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.prop-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.prop-label{font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:500;display:block}
+.prop-input{font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:var(--r);background:#fff;color:var(--text);outline:none;width:100%;font-family:'Outfit',sans-serif;transition:border-color .15s}
+.prop-input:focus{border-color:var(--green)}
+.prop-select{font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:var(--r);background:#fff;color:var(--text);outline:none;width:100%;font-family:'Outfit',sans-serif;cursor:pointer}
+.prop-results{background:linear-gradient(135deg,var(--green),#2a7a4e);border-radius:var(--rl);padding:14px 16px;color:#fff;margin:12px 0;animation:modFadeUp .3s ease both}
+.prop-res-title{font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:10px;font-weight:600}
+.prop-res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.prop-res-box{background:rgba(255,255,255,.12);border-radius:8px;padding:9px 6px;text-align:center}
+.prop-res-v{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.prop-res-l{font-size:9px;opacity:.65;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.prop-res-grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px}
+.prop-res-box2{background:rgba(255,255,255,.08);border-radius:8px;padding:9px 6px;text-align:center;border:1px solid rgba(255,255,255,.15)}
+.prop-warn{background:#FFF9C4;border:1px solid #F9A825;border-radius:var(--r);padding:7px 10px;font-size:11px;color:#856404;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.prop-hsp-info{background:var(--blue-bg);border:1px solid var(--blue-b);border-radius:var(--r);padding:6px 10px;font-size:11px;color:var(--blue-t);margin-bottom:8px}
+.prop-check-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.prop-check-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text);cursor:pointer}
+.prop-check-item input{accent-color:var(--green);width:13px;height:13px;cursor:pointer}
+.prop-btn-pdf{background:linear-gradient(135deg,var(--green),#2a7a4e);color:#fff;border:none;padding:11px;border-radius:var(--rl);font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:4px;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .25s;box-shadow:0 4px 16px rgba(30,107,46,.3)}
+.prop-btn-pdf:hover{background:linear-gradient(135deg,#2a7a4e,#1a5535);box-shadow:0 6px 24px rgba(30,107,46,.45)}
+.prop-btn-calc{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;width:100%;margin-bottom:8px;font-family:'Outfit',sans-serif;transition:background .15s}
+.prop-btn-calc:hover{background:var(--border)}
+/* A4 preview pages */
+.a4-wrap{max-width:640px;margin:0 auto}
+.a4-label{font-size:10px;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;text-align:center}
+.a4-page{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.18);overflow:hidden;margin-bottom:20px}
+.a4-cover-bg{background:linear-gradient(155deg,#0c1f12 0%,#183519 55%,#0d2614 100%);padding:36px 44px 0;position:relative;overflow:hidden;min-height:320px}
+.a4-cover-bg::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(109,222,143,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none}
+.a4-cover-glow{position:absolute;top:-30%;right:-10%;width:60%;height:70%;background:radial-gradient(ellipse,rgba(109,222,143,.12) 0%,transparent 70%);pointer-events:none}
+.a4-cover-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(109,222,143,.12);border:1px solid rgba(109,222,143,.25);color:#6dde8f;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:24px;position:relative}
+.a4-cover-title{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;color:#fff;line-height:1.0;letter-spacing:-2px;margin-bottom:28px;position:relative}
+.a4-cover-title em{font-style:normal;color:#6dde8f}
+.a4-cover-infobox{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px 20px;position:relative;margin-bottom:0}
+.a4-cover-infobox p{font-size:12px;color:rgba(255,255,255,.65);line-height:2;font-weight:300;margin:0}
+.a4-cover-infobox strong{color:#fff;font-weight:600}
+.a4-cover-footer{background:rgba(0,0,0,.25);padding:14px 44px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.08);margin-top:20px}
+.a4-cover-footer-co{font-size:11px;color:rgba(255,255,255,.5)}
+.a4-cover-footer-pg{font-size:10px;color:rgba(255,255,255,.25);text-align:right}
+.a4-header{background:var(--green);color:#fff;padding:12px 32px;display:flex;justify-content:space-between;align-items:center}
+.a4-header-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.2px}
+.a4-header-pg{font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.08em}
+.a4-body{padding:24px 32px}
+.a4-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--green-l)}
+.a4-spec-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.a4-spec-row:last-child{border-bottom:none}
+.a4-spec-key{color:var(--text2)}
+.a4-spec-val{font-weight:600;color:var(--text)}
+.a4-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.a4-kpi{background:var(--bg2);border-radius:10px;padding:14px 10px;text-align:center;border:1px solid var(--border)}
+.a4-kpi-v{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green)}
+.a4-kpi-l{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.a4-bars{display:flex;gap:8px;align-items:flex-end;padding:12px 8px 0;height:90px}
+.a4-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.a4-bar-fill{border-radius:3px 3px 0 0;width:100%}
+.a4-bar-lbl{font-size:8px;color:var(--text2);text-align:center;white-space:nowrap;overflow:hidden;max-width:32px;text-overflow:ellipsis}
+.a4-invest-box{background:linear-gradient(135deg,#1E6B2E,#2a7a4e);border-radius:14px;padding:24px 28px;color:#fff;text-align:center;margin:14px 0}
+.a4-invest-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.65;margin-bottom:6px;font-weight:600}
+.a4-invest-value{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px}
+.a4-invest-sub{font-size:11px;opacity:.6;margin-top:4px}
+.a4-pay-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.a4-pay-item:last-child{border-bottom:none}
+.a4-pay-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:3px}
+.a4-incl-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.a4-incl-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);background:var(--bg2);border-radius:6px;padding:6px 8px}
+.a4-incl-check{width:16px;height:16px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.a4-footer{background:#f7f7f5;border-top:1px solid var(--border);padding:10px 32px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text2)}
+.a4-eco-compare{display:flex;gap:16px;align-items:stretch;margin:12px 0}
+.a4-eco-side{flex:1;background:var(--bg2);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border)}
+.a4-eco-side.eco-after{background:#E8F5E9;border-color:#A5D6A7}
+.a4-eco-side-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.a4-eco-side-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text)}
+.a4-eco-side.eco-after .a4-eco-side-val{color:var(--green)}
+.a4-eco-arrow{display:flex;align-items:center;color:var(--green);font-size:22px;font-weight:bold;padding:0 4px}
+.a4-bar-chart{background:var(--bg2);border-radius:10px;padding:12px;margin:10px 0}
+.a4-bar-chart-title{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;text-align:center}
+.a4-monthly-bars{display:flex;gap:4px;align-items:flex-end;height:70px}
+.a4-m-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.a4-m-bar{width:100%;border-radius:2px 2px 0 0}
+.a4-m-lbl{font-size:7px;color:var(--text2)}
+.a4-guarantee-row{display:flex;gap:10px;margin:8px 0;flex-wrap:wrap}
+.a4-guar-item{background:#E8F5E9;border-radius:8px;padding:8px 12px;font-size:11px;color:var(--green-t);flex:1;text-align:center;border:1px solid #A5D6A7}
+.a4-guar-v{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.a4-guar-l{font-size:9px;margin-top:2px;opacity:.7}
+
 
 </style>
 </head>
@@ -810,20 +907,25 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       </div>
 
       <!-- ② Gerador de Proposta -->
-      <div class="module-card mod-proposta">
-        <span class="mod-soon">Em breve</span>
+      <div class="module-card mod-proposta mod-clickable" onclick="irParaProposta()">
         <div class="mod-icon ic-b">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         </div>
-        <div class="mod-label lb-b">Novo</div>
-        <div class="mod-name">Gerador de Proposta</div>
-        <div class="mod-desc">Dimensione sistemas fotovoltaicos, calcule payback e gere propostas profissionais em PDF em menos de 1 minuto.</div>
-        <div class="mod-stats-row">
-          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Templates</div></div>
-          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Geradas</div></div>
-          <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Conversão</div></div>
+        <div class="mod-label lb-b">
+          <span style="width:5px;height:5px;border-radius:50%;background:#93c5fd;display:inline-block"></span>
+          Ativo
         </div>
-        <button class="mod-btn mb-soon">Em desenvolvimento</button>
+        <div class="mod-name">Gerador de Proposta</div>
+        <div class="mod-desc">Dimensione sistemas fotovoltaicos e gere propostas profissionais em PDF em menos de 1 minuto.</div>
+        <div class="mod-stats-row">
+          <div class="mod-stat-box"><div class="mod-stat-v" id="home-st-propostas">0</div><div class="mod-stat-l">Geradas</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v">4</div><div class="mod-stat-l">Páginas</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v">&lt;1min</div><div class="mod-stat-l">Por proposta</div></div>
+        </div>
+        <button class="mod-btn mb-go" onclick="irParaProposta()" style="background:linear-gradient(135deg,#1d4ed8,#1e40af);box-shadow:0 4px 16px rgba(29,78,216,.35)">
+          Acessar módulo
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
       </div>
 
       <!-- ③ CRM de Projetos -->
@@ -846,6 +948,298 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     </div>
   </div>
 </div>
+
+<!-- PROPOSTA -->
+<div id="screen-proposta" class="screen">
+  <div class="topbar" style="border-radius:var(--rl);margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn-home-back" onclick="voltarHome()" style="font-size:12px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Início
+      </button>
+      <div>
+        <div style="font-size:16px;font-weight:700;font-family:'Syne',sans-serif">Gerador de Proposta</div>
+        <div style="font-size:11px;opacity:.7">Preencha os dados e gere o PDF em 1 minuto</div>
+      </div>
+    </div>
+    <button class="btn-p" onclick="gerarPDFProposta()" style="display:flex;align-items:center;gap:6px;padding:9px 18px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Gerar PDF
+    </button>
+  </div>
+  <div class="prop-wrap">
+    <!-- ═══ FORMULÁRIO ═══ -->
+    <div class="prop-form-panel">
+      <div class="prop-h1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Dados da proposta
+      </div>
+
+      <!-- CLIENTE -->
+      <div class="prop-section">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Cliente
+        </div>
+        <div class="fr" style="margin-bottom:8px"><label class="prop-label">Nome do cliente *</label><input id="p-nome" class="prop-input" placeholder="Ex: João Silva" oninput="atualizarPreviewProposta()"></div>
+        <div class="prop-grid2">
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">Telefone</label><input id="p-tel" class="prop-input" placeholder="(84) 99999-0000" oninput="atualizarPreviewProposta()"></div>
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">E-mail</label><input id="p-email" class="prop-input" placeholder="email@..." oninput="atualizarPreviewProposta()"></div>
+        </div>
+        <div class="prop-grid2">
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Cidade *</label><input id="p-cidade" class="prop-input" placeholder="Ex: Natal" oninput="buscarHSP()" onblur="buscarHSP()"></div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Estado *</label>
+            <select id="p-estado" class="prop-select" onchange="buscarHSP()">
+              <option value="">UF</option>
+              <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+            </select>
+          </div>
+        </div>
+        <div id="p-hsp-info" class="prop-hsp-info" style="display:none;margin-top:8px"></div>
+      </div>
+
+      <!-- CONSUMO -->
+      <div class="prop-section">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Consumo & Tarifa
+        </div>
+        <div class="prop-grid3">
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">kWh/mês *</label><input id="p-kwh" class="prop-input" type="number" placeholder="1500" min="0" oninput="dimensionarAuto()"></div>
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">R$/kWh *</label><input id="p-tarifa" class="prop-input" type="number" placeholder="0,97" step="0.01" min="0" value="0.97" oninput="dimensionarAuto()"></div>
+          <div class="fr" style="margin-bottom:8px">
+            <label class="prop-label">Ligação</label>
+            <select id="p-ligacao" class="prop-select" onchange="atualizarPreviewProposta()">
+              <option value="Monofásico">Mono</option>
+              <option value="Bifásico">Bi</option>
+              <option value="Trifásico">Tri</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SISTEMA -->
+      <div class="prop-section">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          Equipamentos
+        </div>
+        <div class="prop-grid2">
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">Potência do módulo (W)</label><input id="p-wmodulo" class="prop-input" type="number" placeholder="580" value="580" min="100" max="700" oninput="dimensionarAuto()"></div>
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">Potência do inversor (kW)</label><input id="p-kinversor" class="prop-input" type="number" placeholder="8" value="8" min="1" max="100" oninput="dimensionarAuto()"></div>
+        </div>
+        <div class="prop-grid2">
+          <div class="fr" style="margin-bottom:8px">
+            <label class="prop-label">Tipo de estrutura</label>
+            <select id="p-estrutura" class="prop-select" onchange="atualizarPreviewProposta()">
+              <option>Cerâmico</option><option>Colonial</option><option>Metálico</option><option>Fibrocimento</option><option>Laje</option><option>Solo</option>
+            </select>
+          </div>
+          <div class="fr" style="margin-bottom:8px">
+            <label class="prop-label">Orientação (opcional)</label>
+            <select id="p-orientacao" class="prop-select" onchange="atualizarPreviewProposta()">
+              <option value="N">Norte</option><option value="NE">Nordeste</option><option value="L">Leste</option><option value="SE">Sudeste</option><option value="S">Sul</option><option value="SO">Sudoeste</option><option value="O">Oeste</option><option value="NO">Noroeste</option>
+            </select>
+          </div>
+        </div>
+        <div class="prop-grid2">
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Margem adicional (%)</label><input id="p-margem" class="prop-input" type="number" placeholder="0" value="0" min="0" max="30" oninput="dimensionarAuto()"></div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Expansão futura</label>
+            <select id="p-expansao" class="prop-select" onchange="atualizarPreviewProposta()">
+              <option value="Não">Sem expansão</option><option value="Sim">Com expansão</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTADOS AUTO -->
+      <div id="prop-results-box" style="display:none">
+        <div id="prop-warn" class="prop-warn" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span id="prop-warn-txt"></span>
+        </div>
+        <div class="prop-results">
+          <div class="prop-res-title">Dimensionamento calculado</div>
+          <div class="prop-res-grid">
+            <div class="prop-res-box"><div class="prop-res-v" id="pr-kwp">–</div><div class="prop-res-l">kWp inst.</div></div>
+            <div class="prop-res-box"><div class="prop-res-v" id="pr-mod">–</div><div class="prop-res-l">Módulos</div></div>
+            <div class="prop-res-box"><div class="prop-res-v" id="pr-inv">–</div><div class="prop-res-l">Inversores</div></div>
+          </div>
+          <div class="prop-res-grid2">
+            <div class="prop-res-box2"><div class="prop-res-v" id="pr-ger">–</div><div class="prop-res-l">kWh/mês gerado</div></div>
+            <div class="prop-res-box2"><div class="prop-res-v" id="pr-area">–</div><div class="prop-res-l">m² estimado</div></div>
+            <div class="prop-res-box2"><div class="prop-res-v" id="pr-eco">–</div><div class="prop-res-l">Econ. mensal</div></div>
+            <div class="prop-res-box2"><div class="prop-res-v" id="pr-pb">–</div><div class="prop-res-l">Payback (anos)</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINANCEIRO -->
+      <div class="prop-section">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Investimento & Pagamento
+        </div>
+        <div class="prop-grid2">
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">Valor total (R$) *</label><input id="p-valor" class="prop-input" type="number" placeholder="25000" min="0" oninput="dimensionarAuto()"></div>
+          <div class="fr" style="margin-bottom:8px"><label class="prop-label">Validade (dias)</label><input id="p-validade" class="prop-input" type="number" placeholder="7" value="7" min="1" oninput="atualizarPreviewProposta()"></div>
+        </div>
+        <div class="fr" style="margin-bottom:8px">
+          <label class="prop-label">Forma de pagamento</label>
+          <select id="p-pagamento" class="prop-select" onchange="togglePagamento()">
+            <option value="avista">À vista</option>
+            <option value="50-50" selected>50% entrega + 50% conclusão</option>
+            <option value="financiado">Financiamento bancário</option>
+          </select>
+        </div>
+        <div id="p-fin-fields" style="display:none">
+          <div class="prop-grid3">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Banco/Financeira</label><input id="p-banco" class="prop-input" placeholder="Ex: Solfácil" oninput="atualizarPreviewProposta()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Parcelas</label><input id="p-parcelas" class="prop-input" type="number" placeholder="72" min="1" oninput="atualizarPreviewProposta()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Valor parcela (R$)</label><input id="p-vparcela" class="prop-input" type="number" placeholder="850" min="0" oninput="atualizarPreviewProposta()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INCLUSOS -->
+      <div class="prop-section">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Itens inclusos na proposta
+        </div>
+        <div class="prop-check-row">
+          <label class="prop-check-item"><input type="checkbox" id="inc-eq" checked onchange="atualizarPreviewProposta()"> Equipamentos</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-proj" checked onchange="atualizarPreviewProposta()"> Projeto elétrico</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-inst" checked onchange="atualizarPreviewProposta()"> Instalação</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-hom" checked onchange="atualizarPreviewProposta()"> Homologação</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-mon" checked onchange="atualizarPreviewProposta()"> Monitoramento</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-pad" onchange="atualizarPreviewProposta()"> Padrão de entrada</label>
+        </div>
+      </div>
+
+      <button class="prop-btn-pdf" onclick="gerarPDFProposta()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Gerar Proposta em PDF
+      </button>
+      <div style="font-size:10px;color:var(--text2);text-align:center;margin-top:6px">PDF gerado localmente no seu dispositivo</div>
+    </div>
+
+    <!-- ═══ PREVIEW ═══ -->
+    <div class="prop-preview-panel">
+      <div class="a4-wrap">
+        <!-- PÁG 1: CAPA -->
+        <div class="a4-label">Página 1 — Capa</div>
+        <div class="a4-page">
+          <div class="a4-cover-bg">
+            <div class="a4-cover-glow"></div>
+            <div class="a4-cover-tag">
+              <span style="width:5px;height:5px;border-radius:50%;background:#6dde8f;animation:sun-pulse 2s infinite"></span>
+              Proposta Comercial
+            </div>
+            <div class="a4-cover-title">Proposta<br><em>Comercial</em></div>
+            <div class="a4-cover-infobox">
+              <p id="prev-capa-info">
+                Preencha os dados à esquerda para visualizar a proposta.
+              </p>
+            </div>
+            <div class="a4-cover-footer">
+              <div class="a4-cover-footer-co" id="prev-capa-empresa">Sua Empresa · contato@empresa.com</div>
+              <div class="a4-cover-footer-pg">1 / 4</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PÁG 2: SISTEMA -->
+        <div class="a4-label">Página 2 — Sistema Dimensionado</div>
+        <div class="a4-page">
+          <div class="a4-header">
+            <div class="a4-header-title">Sistema Fotovoltaico</div>
+            <div class="a4-header-pg">Página 2 / 4</div>
+          </div>
+          <div class="a4-body">
+            <div class="a4-section-title">Dados do Consumo</div>
+            <div id="prev-consumo-specs"></div>
+            <div class="a4-section-title" style="margin-top:14px">Dimensionamento do Sistema</div>
+            <div id="prev-sistema-specs"></div>
+            <div class="a4-section-title" style="margin-top:14px">Geração mensal estimada (kWh)</div>
+            <div class="a4-bar-chart">
+              <div class="a4-monthly-bars" id="prev-monthly-bars"></div>
+              <div style="display:flex;gap:12px;justify-content:center;margin-top:8px;font-size:9px;color:var(--text2)">
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--green);border-radius:2px;display:inline-block"></span>Geração</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#90CAF9;border-radius:2px;display:inline-block"></span>Consumo</span>
+              </div>
+            </div>
+            <div class="a4-section-title" style="margin-top:14px">Itens inclusos</div>
+            <div class="a4-incl-grid" id="prev-inclusos"></div>
+          </div>
+          <div class="a4-footer"><span id="prev-p2-empresa">Proposta Comercial</span><span>Página 2 de 4</span></div>
+        </div>
+
+        <!-- PÁG 3: FINANCEIRO -->
+        <div class="a4-label">Página 3 — Análise Financeira</div>
+        <div class="a4-page">
+          <div class="a4-header">
+            <div class="a4-header-title">Análise Financeira</div>
+            <div class="a4-header-pg">Página 3 / 4</div>
+          </div>
+          <div class="a4-body">
+            <div class="a4-section-title">Indicadores do investimento</div>
+            <div class="a4-kpi-row" id="prev-kpis"></div>
+            <div class="a4-section-title" style="margin-top:14px">Sua fatura antes e depois</div>
+            <div class="a4-eco-compare" id="prev-eco-compare"></div>
+            <div class="a4-section-title" style="margin-top:14px">Economia acumulada em 25 anos</div>
+            <div id="prev-eco25" style="background:var(--green-l);border:1px solid #A5D6A7;border-radius:10px;padding:16px;text-align:center;margin:8px 0">
+              <div style="font-size:10px;color:var(--green-t);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Economia estimada em 25 anos</div>
+              <div class="a4-kpi-v" style="font-size:28px" id="prev-eco25-val">–</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:4px">* Considerando reajuste tarifário de 6% ao ano</div>
+            </div>
+            <div class="a4-section-title" style="margin-top:14px">Impacto ambiental (25 anos)</div>
+            <div style="display:flex;gap:8px;margin-top:8px" id="prev-ambiental"></div>
+          </div>
+          <div class="a4-footer"><span id="prev-p3-empresa">Proposta Comercial</span><span>Página 3 de 4</span></div>
+        </div>
+
+        <!-- PÁG 4: INVESTIMENTO -->
+        <div class="a4-label">Página 4 — Investimento & Pagamento</div>
+        <div class="a4-page">
+          <div class="a4-header">
+            <div class="a4-header-title">Investimento & Pagamento</div>
+            <div class="a4-header-pg">Página 4 / 4</div>
+          </div>
+          <div class="a4-body">
+            <div class="a4-invest-box" id="prev-invest-box">
+              <div class="a4-invest-label">Valor Total do Investimento</div>
+              <div class="a4-invest-value" id="prev-invest-val">R$ –</div>
+              <div class="a4-invest-sub" id="prev-invest-wpp">–</div>
+            </div>
+            <div class="a4-section-title">Forma de pagamento</div>
+            <div id="prev-pagamento-info" style="margin-bottom:12px"></div>
+            <div class="a4-section-title">Garantias</div>
+            <div class="a4-guarantee-row">
+              <div class="a4-guar-item"><div class="a4-guar-v">25 anos</div><div class="a4-guar-l">Módulos</div></div>
+              <div class="a4-guar-item"><div class="a4-guar-v">10 anos</div><div class="a4-guar-l">Inversor</div></div>
+              <div class="a4-guar-item"><div class="a4-guar-v">5 anos</div><div class="a4-guar-l">Estrutura</div></div>
+              <div class="a4-guar-item"><div class="a4-guar-v">1 ano</div><div class="a4-guar-l">Instalação</div></div>
+            </div>
+            <div class="a4-section-title" style="margin-top:14px">Validade da proposta</div>
+            <div id="prev-validade-info" style="font-size:12px;color:var(--text2);margin-bottom:10px">–</div>
+            <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px;font-size:11px;color:var(--text2);line-height:1.7">
+              Estando de acordo com as condições desta proposta, as partes firmam o contrato de fornecimento e instalação do sistema fotovoltaico conforme especificações acima.
+            </div>
+            <div style="display:flex;gap:40px;margin-top:20px">
+              <div style="flex:1;border-top:1px solid var(--text2);padding-top:6px;font-size:11px;color:var(--text2);text-align:center" id="prev-assin-empresa">Empresa</div>
+              <div style="flex:1;border-top:1px solid var(--text2);padding-top:6px;font-size:11px;color:var(--text2);text-align:center" id="prev-assin-cliente">Cliente</div>
+            </div>
+          </div>
+          <div class="a4-footer"><span id="prev-p4-empresa">Proposta Comercial</span><span>Página 4 de 4</span></div>
+        </div>
+
+      </div><!-- /a4-wrap -->
+    </div><!-- /preview-panel -->
+  </div><!-- /prop-wrap -->
+</div><!-- /screen-proposta -->
 
 <!-- GERAL -->
 <div id="screen-geral" class="screen">
@@ -1453,6 +1847,636 @@ function voltarHome(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-home').classList.add('active');
   renderHome();
+}
+
+/* ══════════════════════════════════════════
+   GERADOR DE PROPOSTA — ENGINE
+   ══════════════════════════════════════════ */
+var _propHSP = 5.0;
+var _propCalc = {};
+var _propContador = 0;
+
+var HSP_CIDADES = {
+  // RN
+  'Natal':5.64,'Mossoró':5.91,'Cruzeta':5.78,'Caicó':5.85,'Currais Novos':5.80,
+  'São Gonçalo do Amarante':5.66,'Pau dos Ferros':5.82,'Parnamirim':5.64,'Macaíba':5.62,
+  'Ceará-Mirim':5.60,'Açu':5.88,'Angicos':5.86,'Apodi':5.88,'Assú':5.88,
+  // PB
+  'João Pessoa':5.45,'Campina Grande':5.62,'Patos':5.75,'Sousa':5.78,'Cajazeiras':5.72,
+  'Santa Rita':5.48,'Guarabira':5.55,'Lagoa Seca':5.60,'Pombal':5.75,
+  // PE
+  'Recife':5.37,'Caruaru':5.55,'Petrolina':5.96,'Garanhuns':5.40,'Araripina':5.90,
+  'Salgueiro':5.80,'Vitória de Santo Antão':5.38,'Olinda':5.35,'Paulista':5.35,
+  // CE
+  'Fortaleza':5.80,'Juazeiro do Norte':5.82,'Sobral':5.77,'Iguatu':5.79,'Crato':5.80,
+  'Caucaia':5.78,'Maracanaú':5.80,'Iguatu':5.79,'Quixadá':5.82,'Limoeiro do Norte':5.85,
+  // AL
+  'Maceió':5.38,'Arapiraca':5.55,'Palmeira dos Índios':5.45,'Delmiro Gouveia':5.75,
+  // SE
+  'Aracaju':5.35,'Lagarto':5.42,'Itabaiana':5.40,'Estância':5.30,
+  // BA
+  'Salvador':5.35,'Feira de Santana':5.57,'Vitória da Conquista':5.60,'Juazeiro':5.96,
+  'Paulo Afonso':5.82,'Ilhéus':5.25,'Barreiras':5.80,'Jequié':5.50,'Caetité':5.80,
+  'Teixeira de Freitas':5.35,'Irecê':5.85,'Jacobina':5.65,
+  // PI
+  'Teresina':5.72,'Parnaíba':5.83,'Picos':5.79,'Floriano':5.75,'Oeiras':5.78,
+  // MA
+  'São Luís':5.50,'Imperatriz':5.55,'Caxias':5.68,'Timon':5.72,'Codó':5.65,
+  // GO
+  'Goiânia':5.23,'Anápolis':5.20,'Luziânia':5.30,'Rio Verde':5.25,'Aparecida de Goiânia':5.22,
+  // DF
+  'Brasília':5.38,'Taguatinga':5.38,'Ceilândia':5.38,
+  // MG
+  'Belo Horizonte':5.10,'Uberlândia':5.30,'Montes Claros':5.50,'Uberaba':5.25,
+  'Juiz de Fora':4.85,'Governador Valadares':5.05,'Contagem':5.10,'Betim':5.10,
+  'Divinópolis':5.08,'Sete Lagoas':5.15,'Ipatinga':5.00,'Patos de Minas':5.30,
+  // SP
+  'São Paulo':4.90,'Campinas':5.02,'Ribeirão Preto':5.20,'São José dos Campos':4.95,
+  'Sorocaba':4.88,'Santos':4.75,'Osasco':4.90,'São Bernardo do Campo':4.88,
+  'Bauru':5.05,'São José do Rio Preto':5.10,'Presidente Prudente':5.20,
+  // RJ
+  'Rio de Janeiro':4.98,'Niterói':4.95,'Campos dos Goytacazes':5.10,'Nova Iguaçu':4.95,
+  'São Gonçalo':4.95,'Duque de Caxias':4.98,'Volta Redonda':4.85,'Macaé':4.90,
+  // ES
+  'Vitória':5.02,'Serra':5.02,'Colatina':5.00,'Cachoeiro de Itapemirim':4.95,
+  // PR
+  'Curitiba':4.50,'Londrina':4.80,'Maringá':4.85,'Ponta Grossa':4.55,'Cascavel':4.75,
+  'Foz do Iguaçu':4.85,'Guarapuava':4.40,
+  // SC
+  'Florianópolis':4.45,'Joinville':4.30,'Blumenau':4.40,'Criciúma':4.35,'Chapecó':4.55,
+  // RS
+  'Porto Alegre':4.30,'Caxias do Sul':4.20,'Pelotas':4.15,'Santa Maria':4.40,
+  'Canoas':4.30,'Passo Fundo':4.50,
+  // MS
+  'Campo Grande':5.15,'Dourados':5.10,'Três Lagoas':5.20,'Corumbá':5.05,
+  // MT
+  'Cuiabá':5.30,'Várzea Grande':5.30,'Rondonópolis':5.25,'Sinop':5.20,
+  // TO
+  'Palmas':5.60,'Araguaína':5.55,'Gurupi':5.62,
+  // PA
+  'Belém':4.85,'Santarém':5.10,'Ananindeua':4.85,'Marabá':5.10,
+  // AM
+  'Manaus':4.77,'Parintins':4.90,
+  // RO
+  'Porto Velho':4.80,'Ji-Paraná':4.90,
+  // AC
+  'Rio Branco':4.65,
+  // RR
+  'Boa Vista':5.30,
+  // AP
+  'Macapá':5.20
+};
+var HSP_ESTADOS = {
+  'RN':5.78,'PB':5.62,'PE':5.55,'CE':5.78,'AL':5.45,'SE':5.38,'BA':5.57,'PI':5.72,
+  'MA':5.52,'GO':5.23,'DF':5.38,'MG':5.10,'SP':4.90,'RJ':4.98,'ES':5.02,'PR':4.65,
+  'SC':4.38,'RS':4.25,'MS':5.12,'MT':5.27,'RO':4.80,'AC':4.65,'AM':4.77,'PA':4.90,
+  'AP':5.20,'TO':5.60,'RR':5.30
+};
+
+// Fatores mensais por região (Jan..Dez)
+var FATORES_NE = [1.04,1.04,1.05,0.99,0.89,0.81,0.87,0.97,1.09,1.12,1.12,1.05];
+var FATORES_CO = [1.12,1.08,1.02,0.98,0.88,0.82,0.84,0.92,0.96,1.05,1.08,1.12];
+var FATORES_SE = [1.10,1.06,1.00,0.95,0.88,0.82,0.85,0.92,0.96,1.04,1.08,1.12];
+var FATORES_SUL = [1.15,1.10,1.02,0.94,0.84,0.77,0.80,0.88,0.95,1.04,1.09,1.13];
+function _fatorMensal(estado){
+  var ne=['RN','PB','PE','CE','AL','SE','BA','PI','MA','AP'];
+  var co=['GO','DF','MS','MT','TO'];
+  var sul=['PR','SC','RS'];
+  if(ne.indexOf(estado)>=0) return FATORES_NE;
+  if(co.indexOf(estado)>=0) return FATORES_CO;
+  if(sul.indexOf(estado)>=0) return FATORES_SUL;
+  return FATORES_SE;
+}
+
+function buscarHSP(){
+  var cidade = (document.getElementById('p-cidade').value||'').trim();
+  var estado = document.getElementById('p-estado').value;
+  var hsp = null;
+  // Try exact match first
+  for(var k in HSP_CIDADES){
+    if(k.toLowerCase()===cidade.toLowerCase()){ hsp=HSP_CIDADES[k]; break; }
+  }
+  // Partial match
+  if(!hsp && cidade.length>=3){
+    for(var k in HSP_CIDADES){
+      if(k.toLowerCase().indexOf(cidade.toLowerCase())>=0){ hsp=HSP_CIDADES[k]; break; }
+    }
+  }
+  // Fallback to state
+  if(!hsp && estado) hsp = HSP_ESTADOS[estado] || 5.0;
+  if(!hsp) hsp = 5.0;
+  _propHSP = hsp;
+  var infoEl = document.getElementById('p-hsp-info');
+  if(infoEl){
+    if(hsp){
+      infoEl.style.display='block';
+      var src = (hsp && cidade) ? 'cidade' : 'estado';
+      infoEl.textContent = '☀ Irradiação local: '+hsp.toFixed(2)+' kWh/m²/dia (HSP) — fonte: tabela '+src;
+    } else { infoEl.style.display='none'; }
+  }
+  dimensionarAuto();
+}
+
+function dimensionarAuto(){
+  var kwh = parseFloat(document.getElementById('p-kwh').value)||0;
+  var tarifa = parseFloat(document.getElementById('p-tarifa').value)||0.97;
+  var wMod = parseFloat(document.getElementById('p-wmodulo').value)||580;
+  var kInv = parseFloat(document.getElementById('p-kinversor').value)||8;
+  var margem = parseFloat(document.getElementById('p-margem').value)||0;
+  var valor = parseFloat(document.getElementById('p-valor').value)||0;
+  var hsp = _propHSP || 5.0;
+  var perdas = 0.209;
+  var efic = 1 - perdas;
+  if(kwh<=0){ document.getElementById('prop-results-box').style.display='none'; atualizarPreviewProposta(); return; }
+  var consumoEfetivo = kwh*(1+margem/100);
+  var kWpNec = consumoEfetivo/(hsp*30*efic);
+  var nMod = Math.ceil(kWpNec*1000/wMod);
+  var kWpReal = nMod*wMod/1000;
+  var fdiMax=1.5, fdiMin=0.5;
+  var nInv = Math.ceil(kWpReal/(fdiMax*kInv));
+  var potInvTotal = nInv*kInv;
+  var fdi = kWpReal/potInvTotal;
+  var gerMensal = kWpReal*hsp*30*efic;
+  var area = Math.ceil(nMod*2.0);
+  var econMensal = Math.min(gerMensal, kwh)*0.93*tarifa;
+  var econAnual = econMensal*12;
+  var payback = valor>0 ? valor/econAnual : 0;
+  var fdiOk = fdi>=fdiMin && fdi<=fdiMax;
+  _propCalc = {kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,potInvTotal,valor};
+  // Update UI
+  document.getElementById('prop-results-box').style.display='block';
+  document.getElementById('pr-kwp').textContent = kWpReal.toFixed(2)+' kWp';
+  document.getElementById('pr-mod').textContent = nMod;
+  document.getElementById('pr-inv').textContent = nInv+'×'+kInv+'kW';
+  document.getElementById('pr-ger').textContent = Math.round(gerMensal)+' kWh';
+  document.getElementById('pr-area').textContent = area+' m²';
+  document.getElementById('pr-eco').textContent = 'R$ '+_fmt(econMensal);
+  document.getElementById('pr-pb').textContent = payback>0?payback.toFixed(1)+'a':'–';
+  var warn = document.getElementById('prop-warn');
+  var warnTxt = document.getElementById('prop-warn-txt');
+  if(!fdiOk){
+    warn.style.display='flex';
+    warnTxt.textContent = 'FDI='+fdi.toFixed(2)+' fora do intervalo 0.5–1.5. Ajuste a potência do inversor.';
+  } else { warn.style.display='none'; }
+  atualizarPreviewProposta();
+}
+
+function _fmt(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function _fmtK(v){ if(v>=1000000) return 'R$ '+_fmt(v/1000000)+' M'; if(v>=1000) return 'R$ '+_fmt(v/1000)+' mil'; return 'R$ '+_fmt(v); }
+function _dataHoje(){ var d=new Date(); return d.toLocaleDateString('pt-BR'); }
+function _dataValidade(dias){
+  dias=parseInt(dias)||7;
+  var d=new Date(); d.setDate(d.getDate()+dias);
+  return d.toLocaleDateString('pt-BR');
+}
+function _numProposta(){
+  return 'P'+new Date().getFullYear()+(Math.floor(Math.random()*90000)+10000);
+}
+
+function togglePagamento(){
+  var sel=document.getElementById('p-pagamento').value;
+  document.getElementById('p-fin-fields').style.display = sel==='financiado'?'block':'none';
+  atualizarPreviewProposta();
+}
+
+function atualizarPreviewProposta(){
+  var nome=document.getElementById('p-nome').value||'—';
+  var cidade=document.getElementById('p-cidade').value||'';
+  var estado=document.getElementById('p-estado').value||'';
+  var local=(cidade&&estado)?(cidade+'/'+estado):(cidade||estado||'—');
+  var tel=document.getElementById('p-tel').value||'';
+  var email=document.getElementById('p-email').value||'';
+  var kwh=parseFloat(document.getElementById('p-kwh').value)||0;
+  var tarifa=parseFloat(document.getElementById('p-tarifa').value)||0.97;
+  var ligacao=document.getElementById('p-ligacao').value;
+  var estrutura=document.getElementById('p-estrutura').value;
+  var orientacao=document.getElementById('p-orientacao').value;
+  var expansao=document.getElementById('p-expansao').value;
+  var valor=parseFloat(document.getElementById('p-valor').value)||0;
+  var validade=parseInt(document.getElementById('p-validade').value)||7;
+  var pagSel=document.getElementById('p-pagamento').value;
+  var empresa=(usuarioAtual&&usuarioAtual.empresa)||'Sua Empresa';
+  var c=_propCalc;
+  // Pág 1
+  var capaInfo='<strong>Cliente:</strong> '+nome+'<br>';
+  capaInfo+='<strong>Local:</strong> '+local+'<br>';
+  if(tel) capaInfo+='<strong>Telefone:</strong> '+tel+'<br>';
+  capaInfo+='<strong>Data:</strong> '+_dataHoje()+'&nbsp;&nbsp;·&nbsp;&nbsp;<strong>Válida até:</strong> '+_dataValidade(validade)+'<br>';
+  if(c.kWpReal) capaInfo+='<strong>Sistema:</strong> '+c.kWpReal.toFixed(2)+' kWp — '+c.nMod+' módulos';
+  document.getElementById('prev-capa-info').innerHTML=capaInfo;
+  document.getElementById('prev-capa-empresa').textContent=empresa+(email?' · '+email:'');
+  ['prev-p2-empresa','prev-p3-empresa','prev-p4-empresa'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.textContent=empresa;
+  });
+  document.getElementById('prev-assin-empresa').textContent=empresa;
+  document.getElementById('prev-assin-cliente').textContent=nome!='—'?nome:'Cliente';
+  // Pág 2 — specs consumo
+  var spc=document.getElementById('prev-consumo-specs');
+  if(spc) spc.innerHTML=
+    '<div class="a4-spec-row"><span class="a4-spec-key">Local da instalação</span><span class="a4-spec-val">'+local+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Consumo médio mensal</span><span class="a4-spec-val">'+(kwh?kwh+' kWh':'–')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Tarifa de energia</span><span class="a4-spec-val">'+(tarifa?'R$ '+tarifa.toFixed(3)+'/kWh':'–')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Tipo de ligação</span><span class="a4-spec-val">'+ligacao+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Irradiação solar local (HSP)</span><span class="a4-spec-val">'+(_propHSP||5.0).toFixed(2)+' kWh/m²/dia</span></div>';
+  var sps=document.getElementById('prev-sistema-specs');
+  if(sps) sps.innerHTML= c.kWpReal?
+    '<div class="a4-spec-row"><span class="a4-spec-key">Potência instalada</span><span class="a4-spec-val">'+c.kWpReal.toFixed(2)+' kWp</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Número de módulos</span><span class="a4-spec-val">'+c.nMod+' × '+(c.wMod||580)+'W</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Inversores</span><span class="a4-spec-val">'+c.nInv+' × '+(c.kInv||8)+' kW</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">FDI (sobrecarga)</span><span class="a4-spec-val">'+(c.fdi?c.fdi.toFixed(2):'-')+' '+(c.fdiOk?'✓ Ok':'⚠ Atenção')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Geração média mensal</span><span class="a4-spec-val">'+(c.gerMensal?Math.round(c.gerMensal)+' kWh/mês':'–')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Área estimada</span><span class="a4-spec-val">'+(c.area?c.area+' m²':'–')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Estrutura de fixação</span><span class="a4-spec-val">'+estrutura+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Orientação do telhado</span><span class="a4-spec-val">'+orientacao+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Capacidade de expansão</span><span class="a4-spec-val">'+expansao+'</span></div>'
+    : '<div style="font-size:12px;color:var(--text2);text-align:center;padding:12px">Preencha o consumo para calcular o dimensionamento</div>';
+  // Gráfico mensal
+  var bars=document.getElementById('prev-monthly-bars');
+  if(bars && c.gerMensal){
+    var fatores=_fatorMensal(estado);
+    var meses=['J','F','M','A','M','J','J','A','S','O','N','D'];
+    var maxG=0;
+    var gers=fatores.map(function(f){var g=c.gerMensal*f*12/fatores.reduce(function(a,b){return a+b;},0)*12/12; return g;});
+    gers=fatores.map(function(f){ return c.kWpReal*(_propHSP||5)*f*30*(1-0.209); });
+    var maxG=Math.max.apply(null,gers.concat([kwh]));
+    bars.innerHTML=meses.map(function(m,i){
+      var gH=Math.round(60*gers[i]/maxG);
+      var cH=kwh>0?Math.round(60*kwh/maxG):0;
+      return '<div class="a4-m-col">'+
+        '<div style="display:flex;align-items:flex-end;gap:2px;height:62px">'+
+        '<div class="a4-m-bar" style="height:'+gH+'px;background:var(--green);width:9px"></div>'+
+        (kwh?'<div class="a4-m-bar" style="height:'+cH+'px;background:#90CAF9;width:9px"></div>':'')+
+        '</div><div class="a4-m-lbl">'+m+'</div></div>';
+    }).join('');
+  } else if(bars){ bars.innerHTML='<div style="font-size:11px;color:var(--text2);padding:8px">Preencha os dados para ver o gráfico</div>'; }
+  // Inclusos
+  var inclEl=document.getElementById('prev-inclusos');
+  if(inclEl){
+    var itens=[
+      {id:'inc-eq',label:'Equipamentos fotovoltaicos'},
+      {id:'inc-proj',label:'Projeto elétrico'},
+      {id:'inc-inst',label:'Instalação'},
+      {id:'inc-hom',label:'Homologação na distribuidora'},
+      {id:'inc-mon',label:'Sistema de monitoramento'},
+      {id:'inc-pad',label:'Padrão de entrada'}
+    ];
+    inclEl.innerHTML=itens.filter(function(it){
+      var el=document.getElementById(it.id); return el&&el.checked;
+    }).map(function(it){
+      return '<div class="a4-incl-item"><div class="a4-incl-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'+it.label+'</div>';
+    }).join('');
+  }
+  // Pág 3 — financeiro
+  var kpisEl=document.getElementById('prev-kpis');
+  if(kpisEl && c.econMensal){
+    var eco25=0;
+    var em=c.econMensal;
+    for(var y=0;y<25;y++){ eco25+=em*12; em*=1.06; }
+    kpisEl.innerHTML=
+      '<div class="a4-kpi"><div class="a4-kpi-v">'+c.payback.toFixed(1)+'a</div><div class="a4-kpi-l">Payback</div></div>'+
+      '<div class="a4-kpi"><div class="a4-kpi-v">R$ '+_fmt(c.econMensal)+'</div><div class="a4-kpi-l">Economia/mês</div></div>'+
+      '<div class="a4-kpi"><div class="a4-kpi-v">R$ '+_fmt(c.econAnual)+'</div><div class="a4-kpi-l">Economia/ano</div></div>';
+    document.getElementById('prev-eco25-val').textContent='R$ '+_fmt(eco25);
+    document.getElementById('prev-eco25').querySelector('[style*="font-size:10px"]').textContent='* Considerando reajuste tarifário de 6% ao ano e vida útil de 25 anos';
+    // Ambiental
+    var co2 = c.kWpReal * (_propHSP||5) * 365 * 25 * (1-0.209) * 0.000075; // tCO2
+    var arvores = Math.round(co2/0.14);
+    var ambEl=document.getElementById('prev-ambiental');
+    if(ambEl) ambEl.innerHTML=
+      '<div style="flex:1;background:#E8F5E9;border-radius:8px;padding:10px;text-align:center;border:1px solid #A5D6A7">'+
+      '<div style="font-size:18px;font-weight:700;color:var(--green);font-family:\'Syne\',sans-serif">'+co2.toFixed(1)+' t</div>'+
+      '<div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">CO₂ não emitido</div></div>'+
+      '<div style="flex:1;background:#E8F5E9;border-radius:8px;padding:10px;text-align:center;border:1px solid #A5D6A7">'+
+      '<div style="font-size:18px;font-weight:700;color:var(--green);font-family:\'Syne\',sans-serif">'+arvores+'</div>'+
+      '<div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Árvores equiv.</div></div>';
+  }
+  // Compare antes/depois
+  var ecoComp=document.getElementById('prev-eco-compare');
+  if(ecoComp && kwh && tarifa){
+    var faturaAtual=kwh*tarifa;
+    var faturaDepois=(kwh>0&&c.gerMensal)?Math.max(kwh*tarifa*0.07,30*tarifa):faturaAtual;
+    ecoComp.innerHTML=
+      '<div class="a4-eco-side"><div class="a4-eco-side-label">Fatura atual</div><div class="a4-eco-side-val">R$ '+_fmt(faturaAtual)+'</div><div style="font-size:10px;color:var(--text2)">por mês</div></div>'+
+      '<div class="a4-eco-arrow">→</div>'+
+      '<div class="a4-eco-side eco-after"><div class="a4-eco-side-label">Com solar</div><div class="a4-eco-side-val">R$ '+_fmt(faturaDepois)+'</div><div style="font-size:10px;color:var(--green)">≈ custo mínimo</div></div>';
+  }
+  // Pág 4 — investimento
+  var investVal=document.getElementById('prev-invest-val');
+  var investSub=document.getElementById('prev-invest-sub');
+  if(investVal) investVal.textContent=valor>0?'R$ '+_fmt(valor):'R$ –';
+  var wpp=document.getElementById('prev-invest-wpp');
+  if(wpp) wpp.textContent=valor>0&&c.kWpReal?'R$ '+(valor/c.kWpReal/1000).toFixed(2)+' por Wp':'';
+  var pagInfo=document.getElementById('prev-pagamento-info');
+  if(pagInfo){
+    if(pagSel==='avista'){
+      pagInfo.innerHTML='<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Pagamento à vista — 100% na assinatura do contrato</div></div>';
+    } else if(pagSel==='50-50'){
+      var v50=valor/2;
+      pagInfo.innerHTML='<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> na chegada dos equipamentos — R$ '+_fmt(v50)+'</div></div>'+
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> após conclusão e funcionamento do sistema — R$ '+_fmt(v50)+'</div></div>';
+    } else {
+      var banco=document.getElementById('p-banco').value||'Financeira';
+      var parc=document.getElementById('p-parcelas').value||'72';
+      var vpar=document.getElementById('p-vparcela').value||'–';
+      pagInfo.innerHTML='<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Financiamento via <strong>'+banco+'</strong> — '+parc+'× de R$ '+_fmt(parseFloat(vpar)||0)+'</div></div>'+
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Sujeito à análise e aprovação de crédito</div></div>';
+    }
+  }
+  // Validade
+  var valEl=document.getElementById('prev-validade-info');
+  if(valEl) valEl.textContent='Esta proposta é válida por '+validade+' dias corridos — até '+_dataValidade(validade)+'.';
+}
+
+function irParaProposta(){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-proposta').classList.add('active');
+  atualizarPreviewProposta();
+}
+
+function gerarPDFProposta(){
+  if(typeof window.jspdf==='undefined'&&typeof jsPDF==='undefined'){
+    alert('Biblioteca PDF não carregada. Recarregue a página.'); return;
+  }
+  var JsPDF=window.jspdf?window.jspdf.jsPDF:jsPDF;
+  var c=_propCalc;
+  var nome=document.getElementById('p-nome').value||'Cliente';
+  var cidade=document.getElementById('p-cidade').value||'';
+  var estado=document.getElementById('p-estado').value||'';
+  var local=(cidade&&estado)?(cidade+'/'+estado):(cidade||estado||'—');
+  var tel=document.getElementById('p-tel').value||'';
+  var email=document.getElementById('p-email').value||'';
+  var kwh=parseFloat(document.getElementById('p-kwh').value)||0;
+  var tarifa=parseFloat(document.getElementById('p-tarifa').value)||0.97;
+  var ligacao=document.getElementById('p-ligacao').value;
+  var estrutura=document.getElementById('p-estrutura').value;
+  var orientacao=document.getElementById('p-orientacao').value;
+  var expansao=document.getElementById('p-expansao').value;
+  var valor=parseFloat(document.getElementById('p-valor').value)||0;
+  var validade=parseInt(document.getElementById('p-validade').value)||7;
+  var pagSel=document.getElementById('p-pagamento').value;
+  var empresa=(usuarioAtual&&usuarioAtual.empresa)||'Sua Empresa';
+  var contato=(usuarioAtual&&usuarioAtual.contato)||'';
+  var numProp='P'+new Date().getFullYear()+(Math.floor(Math.random()*90000)+10000);
+  var hoje=_dataHoje();
+  var valEl=_dataValidade(validade);
+
+  var doc=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var W=210, H=297, mg=15;
+
+  function addHeader(doc,title,pg){
+    doc.setFillColor(30,107,46); doc.rect(0,0,W,18,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(title,mg,12);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(200,230,200);
+    doc.text('Página '+pg+' de 4',W-mg,12,{align:'right'});
+  }
+  function addFooter(doc,pg){
+    doc.setFillColor(247,247,245); doc.rect(0,H-12,W,12,'F');
+    doc.setDrawColor(220,220,216); doc.line(0,H-12,W,H-12);
+    doc.setTextColor(160,160,150); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text(empresa,mg,H-4);
+    doc.text('Página '+pg+' de 4',W-mg,H-4,{align:'right'});
+  }
+  function specRow(doc,y,label,val,shade){
+    if(shade){ doc.setFillColor(247,247,245); doc.rect(mg,y-4,W-mg*2,7,'F'); }
+    doc.setTextColor(100,100,95); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    doc.text(label,mg+2,y);
+    doc.setTextColor(30,30,25); doc.setFont('helvetica','bold');
+    doc.text(String(val),W-mg-2,y,{align:'right'});
+    doc.setDrawColor(220,220,215); doc.line(mg,y+2.5,W-mg,y+2.5);
+    return y+8;
+  }
+  function sectionTitle(doc,y,title){
+    doc.setFillColor(200,230,201); doc.rect(mg,y,3,5,'F');
+    doc.setTextColor(30,107,46); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text(title.toUpperCase(),mg+6,y+4);
+    doc.setDrawColor(200,230,201); doc.line(mg+6,y+5,W-mg,y+5);
+    return y+12;
+  }
+
+  // ═══ PÁG 1 — CAPA ═══
+  doc.setFillColor(12,31,18); doc.rect(0,0,W,H,'F');
+  // Dot pattern (simplified — green glow top-right)
+  doc.setFillColor(46,139,87); doc.setGState && doc.setGState(new doc.GState({opacity:0.08}));
+  for(var row=0;row<H;row+=22){ for(var col=0;col<W;col+=22){ doc.circle(col,row,0.4,'F'); } }
+  // Tag
+  doc.setFillColor(18,50,25); doc.roundedRect(mg,24,60,7,2,2,'F');
+  doc.setTextColor(109,222,143); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+  doc.text('PROPOSTA COMERCIAL',mg+4,28.5);
+  // Title
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(48);
+  doc.text('Proposta',mg,65);
+  doc.setTextColor(109,222,143); doc.setFontSize(48);
+  doc.text('Comercial',mg,85);
+  // Decorative line
+  doc.setDrawColor(109,222,143); doc.setLineWidth(0.8); doc.line(mg,93,mg+60,93); doc.setLineWidth(0.2);
+  // Info box
+  doc.setFillColor(20,50,25); doc.roundedRect(mg,102,W-mg*2,72,3,3,'F');
+  doc.setDrawColor(255,255,255); doc.setLineWidth(0.2); doc.roundedRect(mg,102,W-mg*2,72,3,3,'S');
+  doc.setTextColor(200,210,200); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  var infoY=116;
+  var infoLines=[
+    ['Cliente:', nome],
+    ['Local:', local],
+    ['Data:', hoje],
+    ['Válida até:', valEl],
+    ['Proposta nº:', numProp],
+  ];
+  if(c.kWpReal) infoLines.push(['Sistema dimensionado:', c.kWpReal.toFixed(2)+' kWp · '+c.nMod+' módulos · '+c.nInv+' inversor(es)']);
+  infoLines.forEach(function(pair){
+    doc.setTextColor(140,170,140); doc.setFont('helvetica','normal'); doc.text(pair[0],mg+6,infoY);
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.text(pair[1],mg+52,infoY);
+    infoY+=8.5;
+  });
+  // Footer bar
+  doc.setFillColor(6,20,10); doc.rect(0,H-22,W,22,'F');
+  doc.setDrawColor(50,80,50); doc.line(0,H-22,W,H-22);
+  doc.setTextColor(100,140,100); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text(empresa,mg,H-13);
+  if(contato||email) doc.text(contato||(email||''),mg,H-5);
+  doc.setTextColor(60,100,60); doc.setFontSize(8);
+  doc.text('1 / 4',W-mg,H-9,{align:'right'});
+
+  // ═══ PÁG 2 — SISTEMA ═══
+  doc.addPage();
+  addHeader(doc,'Sistema Fotovoltaico Dimensionado','2');
+  var y=26; var shade=false;
+  y=sectionTitle(doc,y,'Dados do consumo');
+  y=specRow(doc,y,'Local da instalação',local,shade=!shade);
+  y=specRow(doc,y,'Consumo médio mensal',(kwh?kwh+' kWh/mês':'–'),shade=!shade);
+  y=specRow(doc,y,'Tarifa de energia',(tarifa?'R$ '+tarifa.toFixed(3)+'/kWh':'–'),shade=!shade);
+  y=specRow(doc,y,'Tipo de ligação',ligacao,shade=!shade);
+  y=specRow(doc,y,'Irradiação solar (HSP)',(_propHSP||5.0).toFixed(2)+' kWh/m²/dia',shade=!shade);
+  y+=4;
+  y=sectionTitle(doc,y,'Dimensionamento do sistema');
+  if(c.kWpReal){
+    y=specRow(doc,y,'Potência instalada',c.kWpReal.toFixed(2)+' kWp',shade=!shade);
+    y=specRow(doc,y,'Módulos fotovoltaicos',c.nMod+' × '+(c.wMod||580)+'W',shade=!shade);
+    y=specRow(doc,y,'Inversores',c.nInv+' × '+(c.kInv||8)+' kW',shade=!shade);
+    y=specRow(doc,y,'FDI (fator sobrecarga)',c.fdi.toFixed(2)+' '+(c.fdiOk?'✓':'⚠'),shade=!shade);
+    y=specRow(doc,y,'Geração média mensal',Math.round(c.gerMensal)+' kWh/mês',shade=!shade);
+    y=specRow(doc,y,'Área estimada no telhado',c.area+' m²',shade=!shade);
+    y=specRow(doc,y,'Estrutura de fixação',estrutura,shade=!shade);
+    y=specRow(doc,y,'Orientação do telhado',orientacao,shade=!shade);
+    y=specRow(doc,y,'Capacidade de expansão',expansao,shade=!shade);
+  }
+  y+=4;
+  // Monthly bar chart
+  if(c.kWpReal && kwh>0){
+    var fatores=_fatorMensal(estado);
+    var gers=fatores.map(function(f){ return c.kWpReal*(_propHSP||5)*f*30*(1-0.209); });
+    var maxG=Math.max.apply(null,gers.concat([kwh]));
+    var chartH=30, barW=8, gap=5, startX=mg+8;
+    var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    y=sectionTitle(doc,y,'Geração mensal estimada (kWh)');
+    doc.setFillColor(245,245,242); doc.roundedRect(mg,y,W-mg*2,chartH+18,2,2,'F');
+    gers.forEach(function(g,i){
+      var bH=Math.round(chartH*g/maxG);
+      var cH=kwh>0?Math.round(chartH*kwh/maxG):0;
+      var x=startX+i*(barW*2+gap);
+      doc.setFillColor(30,107,46); doc.rect(x,y+12+chartH-bH,barW-1,bH,'F');
+      doc.setFillColor(144,202,249); doc.rect(x+barW,y+12+chartH-cH,barW-1,cH,'F');
+      doc.setTextColor(120,120,110); doc.setFont('helvetica','normal'); doc.setFontSize(6);
+      doc.text(meses[i],x+(barW-1),y+12+chartH+4,{align:'center'});
+    });
+    // Legend
+    doc.setFillColor(30,107,46); doc.rect(mg+2,y+chartH+14,4,3,'F');
+    doc.setTextColor(100,100,95); doc.setFontSize(7); doc.text('Geração',mg+8,y+chartH+17);
+    doc.setFillColor(144,202,249); doc.rect(mg+32,y+chartH+14,4,3,'F');
+    doc.text('Consumo',mg+38,y+chartH+17);
+    y+=chartH+22;
+  }
+  addFooter(doc,'2');
+
+  // ═══ PÁG 3 — FINANCEIRO ═══
+  doc.addPage();
+  addHeader(doc,'Análise Financeira','3');
+  y=26;
+  if(c.econMensal){
+    var eco25=0,em=c.econMensal;
+    for(var i=0;i<25;i++){ eco25+=em*12; em*=1.06; }
+    // KPI boxes
+    var kpiW=(W-mg*2-20)/3, kpiY=y;
+    var kpis=[
+      {v:c.payback.toFixed(1)+' anos',l:'Payback simples'},
+      {v:'R$ '+_fmt(c.econMensal),l:'Economia mensal'},
+      {v:'R$ '+_fmt(c.econAnual),l:'Economia anual'}
+    ];
+    kpis.forEach(function(k,i){
+      var kx=mg+i*(kpiW+10);
+      doc.setFillColor(245,245,242); doc.roundedRect(kx,kpiY,kpiW,22,2,2,'F');
+      doc.setDrawColor(200,230,200); doc.roundedRect(kx,kpiY,kpiW,22,2,2,'S');
+      doc.setTextColor(30,107,46); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.text(k.v,kx+kpiW/2,kpiY+10,{align:'center'});
+      doc.setTextColor(120,120,110); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+      doc.text(k.l.toUpperCase(),kx+kpiW/2,kpiY+17,{align:'center'});
+    });
+    y+=30;
+    y=sectionTitle(doc,y,'Comparativo de fatura mensal');
+    var fatAtual=kwh*tarifa;
+    var fatDepois=Math.max(kwh*tarifa*0.07,30*tarifa);
+    var compW=(W-mg*2-10)/2;
+    doc.setFillColor(242,242,240); doc.roundedRect(mg,y,compW,26,2,2,'F');
+    doc.setTextColor(160,60,60); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text('R$ '+_fmt(fatAtual),mg+compW/2,y+12,{align:'center'});
+    doc.setTextColor(120,120,110); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text('Fatura atual',mg+compW/2,y+20,{align:'center'});
+    doc.setFillColor(232,245,233); doc.roundedRect(mg+compW+10,y,compW,26,2,2,'F');
+    doc.setDrawColor(165,214,167); doc.roundedRect(mg+compW+10,y,compW,26,2,2,'S');
+    doc.setTextColor(30,107,46); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text('R$ '+_fmt(fatDepois),mg+compW+10+compW/2,y+12,{align:'center'});
+    doc.setTextColor(80,130,80); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text('Com energia solar',mg+compW+10+compW/2,y+20,{align:'center'});
+    y+=34;
+    y=sectionTitle(doc,y,'Economia acumulada em 25 anos');
+    doc.setFillColor(232,245,233); doc.roundedRect(mg,y,W-mg*2,20,2,2,'F');
+    doc.setDrawColor(165,214,167); doc.roundedRect(mg,y,W-mg*2,20,2,2,'S');
+    doc.setTextColor(30,107,46); doc.setFont('helvetica','bold'); doc.setFontSize(18);
+    doc.text('R$ '+_fmt(eco25),W/2,y+12,{align:'center'});
+    doc.setTextColor(100,140,100); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.text('* Reajuste tarifário estimado de 6% ao ano',W/2,y+18,{align:'center'});
+    y+=26;
+    // Ambiental
+    var co2=(c.kWpReal*(_propHSP||5)*365*25*(1-0.209)*0.000075);
+    var arvores=Math.round(co2/0.14);
+    y=sectionTitle(doc,y,'Impacto ambiental em 25 anos');
+    var ambW=(W-mg*2-10)/2;
+    doc.setFillColor(232,245,233); doc.roundedRect(mg,y,ambW,20,2,2,'F');
+    doc.setTextColor(30,107,46); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text(co2.toFixed(1)+' t',mg+ambW/2,y+10,{align:'center'});
+    doc.setTextColor(80,130,80); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text('CO₂ não emitido',mg+ambW/2,y+17,{align:'center'});
+    doc.setFillColor(232,245,233); doc.roundedRect(mg+ambW+10,y,ambW,20,2,2,'F');
+    doc.setTextColor(30,107,46); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text(arvores+' árvores',mg+ambW+10+ambW/2,y+10,{align:'center'});
+    doc.setTextColor(80,130,80); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text('Equivalente em plantio',mg+ambW+10+ambW/2,y+17,{align:'center'});
+  }
+  addFooter(doc,'3');
+
+  // ═══ PÁG 4 — INVESTIMENTO ═══
+  doc.addPage();
+  addHeader(doc,'Investimento & Pagamento','4');
+  y=26;
+  // Investment big box
+  doc.setFillColor(30,107,46); doc.roundedRect(mg,y,W-mg*2,36,3,3,'F');
+  doc.setTextColor(180,220,180); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text('VALOR TOTAL DO INVESTIMENTO',W/2,y+9,{align:'center'});
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(26);
+  doc.text(valor>0?'R$ '+_fmt(valor):'R$ –',W/2,y+23,{align:'center'});
+  if(valor>0&&c.kWpReal){
+    doc.setTextColor(200,230,200); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    doc.text('R$ '+(valor/c.kWpReal/1000).toFixed(2)+' por Wp instalado',W/2,y+31,{align:'center'});
+  }
+  y+=42;
+  y=sectionTitle(doc,y,'Forma de pagamento');
+  if(pagSel==='avista'){
+    y=specRow(doc,y,'Condição','Pagamento à vista',false);
+  } else if(pagSel==='50-50'){
+    y=specRow(doc,y,'50% na chegada dos equipamentos',valor>0?'R$ '+_fmt(valor/2):'–',false);
+    y=specRow(doc,y,'50% após conclusão e funcionamento',valor>0?'R$ '+_fmt(valor/2):'–',true);
+  } else {
+    var banco=document.getElementById('p-banco').value||'Financeira';
+    var parc=document.getElementById('p-parcelas').value||'72';
+    var vpar=parseFloat(document.getElementById('p-vparcela').value)||0;
+    y=specRow(doc,y,'Financeira',banco,false);
+    y=specRow(doc,y,'Condição',parc+'× de R$ '+_fmt(vpar)+' (sujeito a aprovação)',true);
+  }
+  y+=4;
+  y=sectionTitle(doc,y,'Garantias');
+  var gars=[['Módulos fotovoltaicos','25 anos (geração)'],['Inversor','10 anos'],['Estrutura metálica','5 anos'],['Instalação','1 ano']];
+  var garW=(W-mg*2-15)/4;
+  gars.forEach(function(g,i){
+    var gx=mg+i*(garW+5);
+    doc.setFillColor(232,245,233); doc.roundedRect(gx,y,garW,20,2,2,'F');
+    doc.setDrawColor(165,214,167); doc.roundedRect(gx,y,garW,20,2,2,'S');
+    doc.setTextColor(30,107,46); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text(g[1],gx+garW/2,y+9,{align:'center'});
+    doc.setTextColor(80,130,80); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+    doc.text(g[0],gx+garW/2,y+15,{align:'center'});
+  });
+  y+=26;
+  y=sectionTitle(doc,y,'Validade da proposta');
+  doc.setTextColor(80,80,75); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text('Esta proposta é válida por '+validade+' dias — até '+valEl,mg+2,y);
+  y+=12;
+  doc.setTextColor(120,120,115); doc.setFontSize(9);
+  doc.text('Estando de acordo com os termos desta proposta, as partes firmam o compromisso de',mg+2,y);
+  y+=5; doc.text('fornecimento e instalação do sistema fotovoltaico conforme especificações acima.',mg+2,y);
+  y+=14;
+  var sigW=(W-mg*2-30)/2;
+  doc.setDrawColor(150,150,145); doc.line(mg,y,mg+sigW,y);
+  doc.line(mg+sigW+30,y,mg+sigW*2+30,y);
+  doc.setTextColor(120,120,115); doc.setFontSize(8);
+  doc.text(empresa,mg+sigW/2,y+5,{align:'center'});
+  doc.text(nome,mg+sigW+30+sigW/2,y+5,{align:'center'});
+  addFooter(doc,'4');
+
+  // Save
+  var filename='Proposta_'+nome.replace(/\s+/g,'_')+'_'+new Date().getFullYear()+'.pdf';
+  doc.save(filename);
+  _propContador++;
+  var el=document.getElementById('home-st-propostas'); if(el) el.textContent=_propContador;
 }
 var _resetPending = {};
 
