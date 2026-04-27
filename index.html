@@ -635,6 +635,17 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .prop-cor-row input[type=color]{width:36px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;background:none;flex-shrink:0}
 .prop-logo-mini{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12px;color:var(--text2)}
 .prop-logo-mini img{max-height:36px;max-width:100px;object-fit:contain;border-radius:4px;border:1px solid var(--border)}
+.btn-salvar-orc{background:var(--bg2);border:1.5px solid var(--border);color:var(--text);padding:9px 18px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s;font-family:'Outfit',sans-serif}
+.btn-salvar-orc:hover{border-color:var(--green);color:var(--green)}
+.btn-salvar-orc.editing{border-color:#f59e0b;color:#b45309;background:#fffbeb}
+.prop-edit-banner{background:#fffbeb;border:1.5px solid #f59e0b;border-radius:var(--r);padding:8px 14px;font-size:12px;font-weight:600;color:#b45309;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.prop-folio-drop{border:2px dashed var(--border);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;background:var(--bg2);transition:.2s}
+.prop-folio-drop:hover,.prop-folio-drop.over{border-color:var(--green);background:var(--green-l)}
+.prop-folio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:10px}
+.prop-folio-item{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;background:var(--bg2)}
+.prop-folio-item img{width:100%;height:100%;object-fit:cover}
+.prop-folio-rm{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;padding:2px 5px;line-height:1}
+.prop-rodape-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
 
 </style>
@@ -1015,9 +1026,13 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="prop-tabs">
-        <button class="prop-tab active" id="ptab-form" onclick="mostrarTabProposta('form')">📄 Nova Proposta</button>
+        <button class="prop-tab active" id="ptab-form" onclick="cancelarEdicao();mostrarTabProposta('form')">📄 Nova Proposta</button>
         <button class="prop-tab" id="ptab-hist" onclick="mostrarTabProposta('hist')">📋 Propostas Salvas</button>
       </div>
+      <button class="btn-salvar-orc" id="btn-salvar-orc" onclick="salvarOrcamento()" style="display:flex">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar
+      </button>
       <button class="btn-p" id="btn-gerar-pdf" onclick="gerarPDFProposta()" style="display:flex;align-items:center;gap:6px;padding:9px 18px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Gerar PDF
@@ -1027,6 +1042,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
   <div id="prop-tab-form" class="prop-wrap">
     <!-- ═══ FORMULÁRIO ═══ -->
     <div class="prop-form-panel">
+      <div id="prop-edit-banner" style="display:none" class="prop-edit-banner">
+        ✏️ <span id="prop-edit-banner-txt">Editando proposta</span>
+        <button onclick="cancelarEdicao()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#b45309;font-size:12px;font-weight:700">✕ Cancelar edição</button>
+      </div>
       <div class="prop-h1">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Dados da proposta
@@ -1203,17 +1222,24 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="fr" style="margin-bottom:8px"><label class="prop-label">Valor total (R$) *</label><input id="p-valor" class="prop-input" type="number" placeholder="25000" min="0" oninput="dimensionarAuto()"></div>
           <div class="fr" style="margin-bottom:8px"><label class="prop-label">Validade (dias)</label><input id="p-validade" class="prop-input" type="number" placeholder="7" value="7" min="1" oninput="atualizarPreviewProposta()"></div>
         </div>
-        <div class="fr" style="margin-bottom:8px">
-          <label class="prop-label">Forma de pagamento</label>
+        <div class="fr" style="margin-bottom:6px">
+          <label class="prop-label">Forma de pagamento na proposta</label>
           <select id="p-pagamento" class="prop-select" onchange="togglePagamento()">
-            <option value="avista">À vista</option>
-            <option value="50-50" selected>50% entrega + 50% conclusão</option>
-            <option value="financiado">Financiamento bancário</option>
+            <option value="todas">Mostrar todas as opções</option>
+            <option value="avista">Somente à vista</option>
+            <option value="50-50" selected>Somente 50%+50%</option>
+            <option value="financiado">Somente financiamento bancário</option>
           </select>
         </div>
         <div id="p-fin-fields" style="display:none">
           <div class="prop-grid3">
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">Banco/Financeira</label><input id="p-banco" class="prop-input" placeholder="Ex: Solfácil" oninput="atualizarPreviewProposta()"></div>
+            <div class="fr" style="margin-bottom:0">
+              <label class="prop-label">Banco/Financeira</label>
+              <select id="p-banco" class="prop-select" onchange="atualizarPreviewProposta()">
+                <option value="">Selecione...</option>
+                <option>Banco do Brasil</option><option>Banco do Nordeste (BNB)</option><option>Bradesco</option><option>BV Financeira</option><option>Caixa Econômica Federal</option><option>Itaú</option><option>Santander</option><option>Sicoob</option><option>Sicredi</option><option>Solfácil</option><option>SolAgora</option><option>Outro</option>
+              </select>
+            </div>
             <div class="fr" style="margin-bottom:0"><label class="prop-label">Parcelas</label><input id="p-parcelas" class="prop-input" type="number" placeholder="72" min="1" oninput="atualizarPreviewProposta()"></div>
             <div class="fr" style="margin-bottom:0"><label class="prop-label">Valor parcela (R$)</label><input id="p-vparcela" class="prop-input" type="number" placeholder="850" min="0" oninput="atualizarPreviewProposta()"></div>
           </div>
@@ -1236,6 +1262,42 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <label class="prop-check-item"><input type="checkbox" id="inc-mon" checked onchange="gerarDescritivo()"> Monitoramento</label>
           <label class="prop-check-item"><input type="checkbox" id="inc-pad" onchange="gerarDescritivo()"> Padrão de entrada</label>
         </div>
+        <div class="prop-grid2" style="margin-top:10px">
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Garantia instalação (anos)</label><input id="p-gar-inst" class="prop-input" type="number" value="2" min="1" max="10" oninput="gerarDescritivo()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Monitoramento incluso (anos)</label><input id="p-mon-anos" class="prop-input" type="number" value="2" min="0" max="10" oninput="gerarDescritivo()"></div>
+        </div>
+      </div>
+
+      <!-- PORTFÓLIO -->
+      <div class="prop-section">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Portfólio — imagens de trabalhos realizados <span style="font-size:10px;color:var(--text2)">(opcional, aparecem no PDF)</span>
+        </div>
+        <div id="prop-folio-drop" class="prop-folio-drop" onclick="document.getElementById('prop-folio-input').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="portfolioDrop(event)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px">Clique ou arraste imagens (máx. 6)</div>
+        </div>
+        <input type="file" id="prop-folio-input" accept="image/*" multiple style="display:none" onchange="portfolioAdd(this)">
+        <div id="prop-folio-grid" class="prop-folio-grid"></div>
+      </div>
+
+      <!-- RODAPÉ DA PROPOSTA -->
+      <div class="prop-section">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          Rodapé da proposta
+          <label style="margin-left:auto;font-size:11px;font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="p-rodape-padrao" checked onchange="toggleRodapaoPadrao()"> Usar dados das Configurações</label>
+        </div>
+        <div id="p-rodape-campos" style="display:none">
+          <div class="prop-rodape-grid">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">CNPJ</label><input id="p-rod-cnpj" class="prop-input" placeholder="00.000.000/0001-00"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Telefone</label><input id="p-rod-tel" class="prop-input" placeholder="(84) 99999-0000"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">E-mail</label><input id="p-rod-email" class="prop-input" placeholder="contato@empresa.com"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Endereço</label><input id="p-rod-end" class="prop-input" placeholder="Rua, nº, Cidade/UF"></div>
+          </div>
+        </div>
+        <div id="p-rodape-preview" style="font-size:11px;color:var(--text2);margin-top:6px"></div>
       </div>
 
       <!-- PERSONALIZAÇÃO -->
@@ -2394,6 +2456,7 @@ function irParaProposta(){
   initCorProposta();
   atualizarPreviewProposta();
   carregarCidades();
+  atualizarRodapePreview();
 }
 function initCorProposta(){
   var cfg=getCfg();
@@ -2676,23 +2739,46 @@ function gerarPDFProposta(){
     doc.text('R$ '+(valor/c.kWpReal/1000).toFixed(2)+' por Wp instalado',W/2,y+31,{align:'center'});
   }
   y+=42;
-  y=sectionTitle(doc,y,'Forma de pagamento');
-  if(pagSel==='avista'){
-    y=specRow(doc,y,'Condição','Pagamento à vista',false);
+  y=sectionTitle(doc,y,'Formas de pagamento');
+  var bancoSel=((document.getElementById('p-banco')||{}).value)||'';
+  var parcSel=((document.getElementById('p-parcelas')||{}).value)||'72';
+  var vparSel=parseFloat(((document.getElementById('p-vparcela')||{}).value)||0)||0;
+  function _drawPagOpt(doc,y,titulo,linhas,destaque){
+    var bh=10+linhas.length*8;
+    if(destaque){ doc.setFillColor(pcr,pcg,pcb); } else { doc.setFillColor(247,247,245); }
+    doc.roundedRect(mg,y,W-mg*2,bh,2,2,'F');
+    if(destaque){ doc.setTextColor(255,255,255); } else { doc.setTextColor(80,80,75); }
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text(titulo,mg+4,y+7);
+    linhas.forEach(function(l,i){
+      if(destaque){ doc.setTextColor(230,245,230); } else { doc.setTextColor(100,100,95); }
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+      doc.text('• '+l,mg+6,y+14+i*8);
+    });
+    return y+bh+4;
+  }
+  if(pagSel==='todas'){
+    y=_drawPagOpt(doc,y,'À vista — desconto especial',['Pagamento integral no ato da contratação'],false);
+    y=_drawPagOpt(doc,y,'50% entrada + 50% conclusão',[valor>0?'50% na entrega dos equipamentos: R$ '+_fmt(valor/2):'50% na entrega dos equipamentos',valor>0?'50% após conclusão e comissionamento: R$ '+_fmt(valor/2):'50% após conclusão e comissionamento'],false);
+    if(bancoSel){
+      y=_drawPagOpt(doc,y,'Financiamento via '+bancoSel,[parcSel+'× de R$ '+_fmt(vparSel)+' (sujeito a análise de crédito)'],true);
+    } else {
+      y=_drawPagOpt(doc,y,'Financiamento bancário',['Consulte condições — parcelas a partir de R$ '+_fmt(valor/84)+'/mês (estimativa 84×)'],false);
+    }
+  } else if(pagSel==='avista'){
+    y=_drawPagOpt(doc,y,'À vista — desconto especial',['Pagamento integral no ato da contratação'],true);
   } else if(pagSel==='50-50'){
-    y=specRow(doc,y,'50% na chegada dos equipamentos',valor>0?'R$ '+_fmt(valor/2):'–',false);
-    y=specRow(doc,y,'50% após conclusão e funcionamento',valor>0?'R$ '+_fmt(valor/2):'–',true);
+    y=_drawPagOpt(doc,y,'50% entrada + 50% conclusão',[valor>0?'50% na entrega dos equipamentos: R$ '+_fmt(valor/2):'50% na entrega dos equipamentos',valor>0?'50% após conclusão e comissionamento: R$ '+_fmt(valor/2):'50% após conclusão e comissionamento'],true);
   } else {
-    var banco=document.getElementById('p-banco').value||'Financeira';
-    var parc=document.getElementById('p-parcelas').value||'72';
-    var vpar=parseFloat(document.getElementById('p-vparcela').value)||0;
-    y=specRow(doc,y,'Financeira',banco,false);
-    y=specRow(doc,y,'Condição',parc+'× de R$ '+_fmt(vpar)+' (sujeito a aprovação)',true);
+    y=_drawPagOpt(doc,y,'Financiamento via '+(bancoSel||'Financeira'),[parcSel+'× de R$ '+_fmt(vparSel)+' (sujeito a análise de crédito)'],true);
   }
   y+=4;
   y=sectionTitle(doc,y,'Garantias');
-  var gars=[['Módulos fotovoltaicos','25 anos (geração)'],['Inversor','10 anos'],['Estrutura metálica','5 anos'],['Instalação','1 ano']];
-  var garW=(W-mg*2-15)/4;
+  var garInstVal=parseInt(((document.getElementById('p-gar-inst')||{}).value)||2);
+  var monAnosVal=parseInt(((document.getElementById('p-mon-anos')||{}).value)||2);
+  var gars=[['Módulos fotovoltaicos','25 anos (geração)'],['Inversor','10 anos'],['Estrutura metálica','5 anos'],['Instalação',garInstVal+' ano'+(garInstVal>1?'s':'')]];
+  if(monAnosVal>0) gars.push(['Monitoramento',monAnosVal+' ano'+(monAnosVal>1?'s':'')]);
+  var garW=(W-mg*2-(gars.length-1)*5)/gars.length;
   gars.forEach(function(g,i){
     var gx=mg+i*(garW+5);
     doc.setFillColor(232,245,233); doc.roundedRect(gx,y,garW,20,2,2,'F');
@@ -2717,14 +2803,51 @@ function gerarPDFProposta(){
   doc.setTextColor(120,120,115); doc.setFontSize(8);
   doc.text(empresa,mg+sigW/2,y+5,{align:'center'});
   doc.text(nome,mg+sigW+30+sigW/2,y+5,{align:'center'});
+  // Rodapé com dados da empresa
+  var usarPadrao=(document.getElementById('p-rodape-padrao')||{}).checked!==false;
+  var rodCnpj='',rodTel='',rodEmail='',rodEnd='';
+  if(usarPadrao){
+    var u=usuarioAtual||{};
+    rodCnpj=u.cnpj||''; rodTel=u.contato||''; rodEmail=u.email||''; rodEnd=u.endereco||'';
+  } else {
+    rodCnpj=((document.getElementById('p-rod-cnpj')||{}).value)||'';
+    rodTel=((document.getElementById('p-rod-tel')||{}).value)||'';
+    rodEmail=((document.getElementById('p-rod-email')||{}).value)||'';
+    rodEnd=((document.getElementById('p-rod-end')||{}).value)||'';
+  }
+  var rodInfo=[rodCnpj,rodTel,rodEmail,rodEnd].filter(Boolean);
+  y+=14;
+  if(rodInfo.length&&y<H-22){
+    doc.setDrawColor(200,210,200); doc.line(mg,y,W-mg,y); y+=4;
+    doc.setTextColor(130,130,125); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.text(empresa+' — '+rodInfo.join(' · '),W/2,y,{align:'center'});
+  }
   addFooter(doc,'4');
+
+  // Portfólio (pág 5 se houver imagens)
+  var totPg=4;
+  if(_portfolioImgs&&_portfolioImgs.length>0){
+    totPg=5;
+    doc.addPage();
+    addHeader(doc,'Portfólio de Instalações','5');
+    var py=26, px=mg, pCols=3, pGap=4, pW=(W-mg*2-(pCols-1)*pGap)/pCols, pH=pW*0.75;
+    _portfolioImgs.forEach(function(img,idx){
+      var col=idx%pCols, row=Math.floor(idx/pCols);
+      var ix=mg+col*(pW+pGap), iy=py+row*(pH+pGap+6);
+      if(iy+pH>H-22) return;
+      try{ doc.addImage(img.base64,img.type||'JPEG',ix,iy,pW,pH); }catch(e){}
+    });
+    addFooter(doc,'5');
+  }
+  // Atualizar total de páginas nas páginas anteriores (não trivial em jsPDF — mantemos o número estático)
 
   // Save
   var filename='Proposta_'+nome.replace(/\s+/g,'_')+'_'+new Date().getFullYear()+'.pdf';
   doc.save(filename);
-  salvarProposta();
+  salvarProposta(); // salva/atualiza no histórico ao gerar PDF
   _propContador++;
   var el=document.getElementById('home-st-propostas'); if(el) el.textContent=_propContador;
+  if(_editandoPropostaId) toast('✅ Proposta atualizada e PDF gerado!');
 }
 // ── TABS ──────────────────────────────────────────
 function mostrarTabProposta(tab){
@@ -2735,7 +2858,67 @@ function mostrarTabProposta(tab){
   var bf=document.getElementById('ptab-form'); if(bf) bf.classList.toggle('active',tab==='form');
   var bh=document.getElementById('ptab-hist'); if(bh) bh.classList.toggle('active',tab==='hist');
   var btn=document.getElementById('btn-gerar-pdf'); if(btn) btn.style.display=tab==='form'?'flex':'none';
+  var btnS=document.getElementById('btn-salvar-orc'); if(btnS) btnS.style.display=tab==='form'?'flex':'none';
   if(tab==='hist') renderHistorico();
+}
+// ── PORTFÓLIO ──────────────────────────────────────
+function portfolioAdd(input){
+  var files=Array.from(input.files||[]);
+  files.forEach(function(f){
+    if(_portfolioImgs.length>=6) return;
+    var rd=new FileReader();
+    rd.onload=function(e){
+      _portfolioImgs.push({base64:e.target.result,type:f.type.includes('png')?'PNG':'JPEG',name:f.name});
+      renderPortfolio();
+    };
+    rd.readAsDataURL(f);
+  });
+  input.value='';
+}
+function portfolioDrop(e){
+  e.preventDefault();
+  var el=document.getElementById('prop-folio-drop'); if(el) el.classList.remove('over');
+  var inp=document.getElementById('prop-folio-input');
+  var dt=new DataTransfer();
+  Array.from(e.dataTransfer.files).forEach(function(f){if(f.type.startsWith('image/'))dt.items.add(f);});
+  inp.files=dt.files; portfolioAdd(inp);
+}
+function removePortfolioImg(idx){
+  _portfolioImgs.splice(idx,1); renderPortfolio();
+}
+function renderPortfolio(){
+  var grid=document.getElementById('prop-folio-grid'); if(!grid) return;
+  grid.innerHTML=_portfolioImgs.map(function(img,i){
+    return '<div class="prop-folio-item"><img src="'+img.base64+'" alt="img '+(i+1)+'"><button class="prop-folio-rm" onclick="removePortfolioImg('+i+')">✕</button></div>';
+  }).join('');
+  var drop=document.getElementById('prop-folio-drop');
+  if(drop) drop.style.display=_portfolioImgs.length>=6?'none':'block';
+}
+// ── RODAPÉ PROPOSTA ────────────────────────────────
+function toggleRodapaoPadrao(){
+  var chk=(document.getElementById('p-rodape-padrao')||{}).checked;
+  var campos=document.getElementById('p-rodape-campos');
+  if(campos) campos.style.display=chk?'none':'block';
+  atualizarRodapePreview();
+}
+function atualizarRodapePreview(){
+  var preview=document.getElementById('p-rodape-preview'); if(!preview) return;
+  var usarPadrao=(document.getElementById('p-rodape-padrao')||{}).checked!==false;
+  var u=usuarioAtual||{};
+  var itens=[];
+  if(usarPadrao){
+    if(u.cnpj) itens.push('CNPJ: '+u.cnpj);
+    if(u.contato) itens.push(u.contato);
+    if(u.email) itens.push(u.email);
+    if(u.endereco) itens.push(u.endereco);
+  } else {
+    var c=((document.getElementById('p-rod-cnpj')||{}).value)||'';
+    var t=((document.getElementById('p-rod-tel')||{}).value)||'';
+    var em=((document.getElementById('p-rod-email')||{}).value)||'';
+    var en=((document.getElementById('p-rod-end')||{}).value)||'';
+    if(c) itens.push('CNPJ: '+c); if(t) itens.push(t); if(em) itens.push(em); if(en) itens.push(en);
+  }
+  preview.textContent=itens.length?'No PDF: '+itens.join(' · '):'(rodapé vazio — configure em Configurações ou preencha acima)';
 }
 
 // ── CITY AUTOCOMPLETE (IBGE) ───────────────────────
@@ -2804,15 +2987,17 @@ function gerarDescritivo(){
     linhas.push(c.nInv+' inversor'+(c.nInv>1?'es':'')+' '+(c.kInv||8)+'kW'+(brandInv?' '+brandInv:''));
   linhas.push('Estrutura de fixação — Telhado '+est);
   if((document.getElementById('inc-cabo')||{}).checked){
-    var mCabo=Math.round(Math.max(30,c.nMod*3.5));
-    linhas.push(mCabo+'m de cabo fotovoltaico preto + '+mCabo+'m de cabo fotovoltaico vermelho');
+    linhas.push('50m de cabo fotovoltaico preto + 50m de cabo fotovoltaico vermelho');
   }
   if((document.getElementById('inc-ca')||{}).checked)
     linhas.push('Material CA — cabos, conectores, disjuntor e proteção DPS');
   if((document.getElementById('inc-proj')||{}).checked) linhas.push('Projeto elétrico e memorial de cálculo');
   if((document.getElementById('inc-hom')||{}).checked)  linhas.push('Homologação na distribuidora');
-  if((document.getElementById('inc-mon')||{}).checked)  linhas.push('Sistema de monitoramento online');
+  var monAnos=parseInt((document.getElementById('p-mon-anos')||{}).value)||2;
+  if((document.getElementById('inc-mon')||{}).checked&&monAnos>0) linhas.push('Sistema de monitoramento online ('+monAnos+' ano'+(monAnos>1?'s':'')+')');
   if((document.getElementById('inc-inst')||{}).checked) linhas.push('Instalação completa do sistema');
+  var garInst=parseInt((document.getElementById('p-gar-inst')||{}).value)||2;
+  linhas.push('Garantia de instalação — '+garInst+' ano'+(garInst>1?'s':''));
   if((document.getElementById('inc-pad')||{}).checked)  linhas.push('Adequação do padrão de entrada');
   var ta=document.getElementById('p-descritivo');
   if(ta) ta.value=linhas.join('\n');
@@ -2849,12 +3034,22 @@ function salvarProposta(){
       wModM:gv('p-wmodulo-m','580'), kInvM:gv('p-kinversor-m','8'),
       pagamento:gv('p-pagamento',''), banco:gv('p-banco',''), parcelas:gv('p-parcelas',''), vparcela:gv('p-vparcela',''),
       descritivo:gv('p-descritivo',''), corProposta:gv('p-cor-proposta','#1E6B2E'),
+      garInst:gv('p-gar-inst','2'), monAnos:gv('p-mon-anos','2'),
+      rodapaoPadrao:gc('p-rodape-padrao'),
+      rodCnpj:gv('p-rod-cnpj',''), rodTel:gv('p-rod-tel',''), rodEmail:gv('p-rod-email',''), rodEnd:gv('p-rod-end',''),
       incEq:gc('inc-eq'), incCabo:gc('inc-cabo'), incCa:gc('inc-ca'), incProj:gc('inc-proj'),
       incInst:gc('inc-inst'), incHom:gc('inc-hom'), incMon:gc('inc-mon'), incPad:gc('inc-pad')
     }
   };
-  var hist=_loadHist(); hist.unshift(prop);
-  if(hist.length>300) hist=hist.slice(0,300);
+  var hist=_loadHist();
+  if(_editandoPropostaId){
+    prop.id=_editandoPropostaId; prop.data=prop.data; // mantém id original
+    var idx=hist.findIndex(function(x){return x.id===_editandoPropostaId;});
+    if(idx>=0) hist[idx]=prop; else hist.unshift(prop);
+  } else {
+    hist.unshift(prop);
+    if(hist.length>300) hist=hist.slice(0,300);
+  }
   try{localStorage.setItem('propostas_geradas',JSON.stringify(hist));}catch(e){}
 }
 function _loadHist(){try{return JSON.parse(localStorage.getItem('propostas_geradas')||'[]');}catch(e){return[];}}
@@ -2867,6 +3062,26 @@ function deletarProposta(id){
   var h=_loadHist().filter(function(p){return p.id!==id;});
   try{localStorage.setItem('propostas_geradas',JSON.stringify(h));}catch(e){} renderHistorico();
 }
+function salvarOrcamento(){
+  salvarProposta();
+  toast('✅ Orçamento salvo!');
+  if(_editandoPropostaId) toast('✅ Proposta atualizada no histórico.');
+  _propContador++;
+  var el=document.getElementById('home-st-propostas'); if(el) el.textContent=_propContador;
+}
+function cancelarEdicao(){
+  _editandoPropostaId=null;
+  var b=document.getElementById('prop-edit-banner'); if(b) b.style.display='none';
+  var sb=document.getElementById('btn-salvar-orc'); if(sb) sb.classList.remove('editing');
+  var pt=document.getElementById('ptab-form'); if(pt) pt.textContent='📄 Nova Proposta';
+}
+function _setBannerEdicao(cliente){
+  _editandoPropostaId=null; // será redefinido depois
+  var b=document.getElementById('prop-edit-banner'); if(b){ b.style.display='flex'; }
+  var t=document.getElementById('prop-edit-banner-txt'); if(t) t.textContent='Editando: '+cliente;
+  var sb=document.getElementById('btn-salvar-orc'); if(sb) sb.classList.add('editing');
+  var pt=document.getElementById('ptab-form'); if(pt) pt.textContent='✏️ Editando proposta';
+}
 function editarProposta(id){
   var hist=_loadHist();
   var p=hist.find(function(x){return x.id===id;});
@@ -2875,6 +3090,8 @@ function editarProposta(id){
   var sv=function(id,v){var el=document.getElementById(id);if(el&&v!==undefined&&v!=='')el.value=v;};
   var sc=function(id,v){var el=document.getElementById(id);if(el)el.checked=!!v;};
   mostrarTabProposta('form');
+  _setBannerEdicao(p.cliente||'cliente');
+  _editandoPropostaId=id;
   sv('p-nome',p.cliente); sv('p-cidade',p.cidade); sv('p-estado',p.estado);
   sv('p-tel',s.tel); sv('p-email',s.email);
   sv('p-kwh',s.kwh); sv('p-tarifa',s.tarifa);
@@ -2884,10 +3101,16 @@ function editarProposta(id){
   var simVal=document.getElementById('p-simult-val'); if(simVal) simVal.textContent=(s.simult||40)+'%';
   sv('p-orientacao',s.orientacao); sv('p-expansao',s.expansao);
   sv('p-validade',s.validade); sv('p-valor',p.valor);
-  sv('p-pagamento',s.pagamento); sv('p-banco',s.banco); sv('p-parcelas',s.parcelas); sv('p-vparcela',s.vparcela);
+  var pagEl=document.getElementById('p-pagamento'); if(pagEl&&s.pagamento) pagEl.value=s.pagamento;
+  var bancoEl=document.getElementById('p-banco'); if(bancoEl&&s.banco){
+    for(var i=0;i<bancoEl.options.length;i++){if(bancoEl.options[i].value===s.banco){bancoEl.value=s.banco;break;}}
+    if(bancoEl.value!==s.banco){var opt=document.createElement('option');opt.value=s.banco;opt.textContent=s.banco;bancoEl.appendChild(opt);bancoEl.value=s.banco;}
+  }
+  sv('p-parcelas',s.parcelas); sv('p-vparcela',s.vparcela);
   sv('p-brand-modulo',p.brandMod); sv('p-brand-inversor',p.brandInv);
   sv('p-estrutura',p.estrutura);
   sv('p-cor-proposta',s.corProposta||'#1E6B2E');
+  sv('p-gar-inst',s.garInst||'2'); sv('p-mon-anos',s.monAnos||'2');
   if(s.modoCalc) { setModoCalc(s.modoCalc);
     if(s.modoCalc==='auto'){ sv('p-wmodulo',s.wMod); sv('p-kinversor',s.kInv); sv('p-margem',s.margem); }
     else { sv('p-kwp-manual',s.kwpManual); sv('p-nmod-manual',s.nModManual); sv('p-ninv-manual',s.nInvManual); sv('p-wmodulo-m',s.wModM); sv('p-kinversor-m',s.kInvM); }
@@ -2898,6 +3121,7 @@ function editarProposta(id){
   dimensionarAuto();
   if(s.descritivo){ sv('p-descritivo',s.descritivo); }
   atualizarPreviewProposta();
+  window.scrollTo(0,0);
   toast('✏️ Proposta carregada para edição.');
 }
 function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -2929,6 +3153,8 @@ function renderHistorico(){
 }
 
 var _resetPending = {};
+var _editandoPropostaId = null;
+var _portfolioImgs = []; // [{base64, name}]
 
 function _hideAllAuthForms(){
   ['aform-login','aform-cadastro','aform-recuperar','aform-codigo','aform-link','aform-recuperar-ok'].forEach(function(id){
