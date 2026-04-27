@@ -584,6 +584,49 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .a4-guar-item{background:#E8F5E9;border-radius:8px;padding:8px 12px;font-size:11px;color:var(--green-t);flex:1;text-align:center;border:1px solid #A5D6A7}
 .a4-guar-v{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
 .a4-guar-l{font-size:9px;margin-top:2px;opacity:.7}
+.prop-tabs{display:flex;background:rgba(255,255,255,.1);border-radius:10px;padding:3px;gap:2px}
+.prop-tab{background:transparent;border:none;color:rgba(255,255,255,.6);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.prop-tab.active{background:#fff;color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.city-ac-wrap{position:relative}
+.city-ac-drop{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:200;max-height:220px;overflow-y:auto}
+.city-ac-item{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);transition:background .1s}
+.city-ac-item:last-child{border-bottom:none}
+.city-ac-item:hover{background:#f0faf4}
+.city-ac-uf{font-size:10px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text2);font-weight:700;flex-shrink:0}
+.prop-equip-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.prop-mode-toggle{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px}
+.mode-btn{background:transparent;border:none;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text2);transition:all .2s}
+.mode-btn.active{background:#fff;color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.prop-manual-box{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--rl);padding:12px;animation:modFadeUp .2s ease both}
+.prop-range{width:100%;accent-color:var(--green);cursor:pointer;margin-top:6px}
+.simult-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.simult-presets{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.simult-preset{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:3px 9px;font-size:10px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s;font-family:'Outfit',sans-serif}
+.simult-preset:hover,.simult-preset.sp-active{background:var(--green);border-color:var(--green);color:#fff}
+.prop-descritivo-ta{font-size:11px;padding:9px 10px;border:1px solid var(--border);border-radius:var(--r);background:#fff;color:var(--text);outline:none;width:100%;font-family:'Outfit',sans-serif;resize:vertical;line-height:1.75;transition:border-color .15s}
+.prop-descritivo-ta:focus{border-color:var(--green)}
+.prop-regen-btn{font-size:11px;color:var(--green);background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;padding:3px 0;display:flex;align-items:center;gap:4px;margin-top:4px}
+.prop-regen-btn:hover{opacity:.7}
+.hist-wrap{padding:20px 24px;background:#f0f0ec;min-height:calc(100vh - 60px);animation:modFadeUp .3s ease both}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.hist-title-row{display:flex;align-items:center;gap:10px}
+.hist-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#1a1a1a}
+.hist-count{background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.hist-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hist-search{font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);outline:none;font-family:'Outfit',sans-serif;width:210px;background:#fff;color:var(--text)}
+.hist-search:focus{border-color:var(--green)}
+.hist-select{font-size:12px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:#fff;color:var(--text);font-family:'Outfit',sans-serif;cursor:pointer;outline:none}
+.hist-tbl-wrap{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.hist-tbl{width:100%;border-collapse:collapse}
+.hist-tbl thead{background:var(--green)}
+.hist-tbl th{padding:11px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff}
+.hist-tbl td{padding:11px 14px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)}
+.hist-tbl tr:last-child td{border-bottom:none}
+.hist-tbl tbody tr:hover{background:#f8fdf9}
+.hist-badge-pag{font-size:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:2px 7px;color:var(--text2);font-weight:600}
+.hist-empty{text-align:center;padding:52px 24px;color:var(--text2);font-size:14px;line-height:2}
+.hist-del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 5px}
+.hist-del-btn:hover{color:#e53e3e}
 
 
 </style>
@@ -962,12 +1005,18 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <div style="font-size:11px;opacity:.7">Preencha os dados e gere o PDF em 1 minuto</div>
       </div>
     </div>
-    <button class="btn-p" onclick="gerarPDFProposta()" style="display:flex;align-items:center;gap:6px;padding:9px 18px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Gerar PDF
-    </button>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="prop-tabs">
+        <button class="prop-tab active" id="ptab-form" onclick="mostrarTabProposta('form')">📄 Nova Proposta</button>
+        <button class="prop-tab" id="ptab-hist" onclick="mostrarTabProposta('hist')">📋 Propostas Salvas</button>
+      </div>
+      <button class="btn-p" id="btn-gerar-pdf" onclick="gerarPDFProposta()" style="display:flex;align-items:center;gap:6px;padding:9px 18px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Gerar PDF
+      </button>
+    </div>
   </div>
-  <div class="prop-wrap">
+  <div id="prop-tab-form" class="prop-wrap">
     <!-- ═══ FORMULÁRIO ═══ -->
     <div class="prop-form-panel">
       <div class="prop-h1">
@@ -987,12 +1036,18 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="fr" style="margin-bottom:8px"><label class="prop-label">E-mail</label><input id="p-email" class="prop-input" placeholder="email@..." oninput="atualizarPreviewProposta()"></div>
         </div>
         <div class="prop-grid2">
-          <div class="fr" style="margin-bottom:0"><label class="prop-label">Cidade *</label><input id="p-cidade" class="prop-input" placeholder="Ex: Natal" oninput="buscarHSP()" onblur="buscarHSP()"></div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Cidade *</label>
+            <div class="city-ac-wrap">
+              <input id="p-cidade" class="prop-input" placeholder="Digite a cidade..." oninput="onCidadeInput(this)" autocomplete="off" onblur="setTimeout(function(){var d=document.getElementById('city-ac-drop');if(d)d.style.display='none';},220)">
+              <div class="city-ac-drop" id="city-ac-drop" style="display:none"></div>
+            </div>
+          </div>
           <div class="fr" style="margin-bottom:0">
             <label class="prop-label">Estado *</label>
             <select id="p-estado" class="prop-select" onchange="buscarHSP()">
               <option value="">UF</option>
-              <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+              <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option selected>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
             </select>
           </div>
         </div>
@@ -1010,7 +1065,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="fr" style="margin-bottom:8px"><label class="prop-label">R$/kWh *</label><input id="p-tarifa" class="prop-input" type="number" placeholder="0,97" step="0.01" min="0" value="0.97" oninput="dimensionarAuto()"></div>
           <div class="fr" style="margin-bottom:8px">
             <label class="prop-label">Ligação</label>
-            <select id="p-ligacao" class="prop-select" onchange="atualizarPreviewProposta()">
+            <select id="p-ligacao" class="prop-select" onchange="onLigacaoChange()">
               <option value="Monofásico">Mono</option>
               <option value="Bifásico">Bi</option>
               <option value="Trifásico">Tri</option>
@@ -1019,39 +1074,93 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         </div>
       </div>
 
-      <!-- SISTEMA -->
+      <!-- TARIFAÇÃO & ANÁLISE -->
       <div class="prop-section">
         <div class="prop-section-label">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-          Equipamentos
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Tarifação & Análise de Payback
         </div>
-        <div class="prop-grid2">
-          <div class="fr" style="margin-bottom:8px"><label class="prop-label">Potência do módulo (W)</label><input id="p-wmodulo" class="prop-input" type="number" placeholder="580" value="580" min="100" max="700" oninput="dimensionarAuto()"></div>
-          <div class="fr" style="margin-bottom:8px"><label class="prop-label">Potência do inversor (kW)</label><input id="p-kinversor" class="prop-input" type="number" placeholder="8" value="8" min="1" max="100" oninput="dimensionarAuto()"></div>
+        <div class="prop-grid2" style="margin-bottom:8px">
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Fio B — TUSD (R$/kWh)</label><input id="p-fiob" class="prop-input" type="number" value="0.21" step="0.01" min="0" max="2" oninput="dimensionarAuto()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Ilum. Pública (%)</label><input id="p-ip" class="prop-input" type="number" value="8" step="0.5" min="0" max="30" oninput="dimensionarAuto()"></div>
         </div>
-        <div class="prop-grid2">
-          <div class="fr" style="margin-bottom:8px">
-            <label class="prop-label">Tipo de estrutura</label>
-            <select id="p-estrutura" class="prop-select" onchange="atualizarPreviewProposta()">
-              <option>Cerâmico</option><option>Colonial</option><option>Metálico</option><option>Fibrocimento</option><option>Laje</option><option>Solo</option>
-            </select>
-          </div>
-          <div class="fr" style="margin-bottom:8px">
-            <label class="prop-label">Orientação (opcional)</label>
-            <select id="p-orientacao" class="prop-select" onchange="atualizarPreviewProposta()">
-              <option value="N">Norte</option><option value="NE">Nordeste</option><option value="L">Leste</option><option value="SE">Sudeste</option><option value="S">Sul</option><option value="SO">Sudoeste</option><option value="O">Oeste</option><option value="NO">Noroeste</option>
-            </select>
+        <div class="fr" style="margin-bottom:4px">
+          <div class="simult-label"><label class="prop-label" style="margin:0">Fator de simultaneidade</label><strong style="font-size:13px;color:var(--green)" id="p-simult-val">40%</strong></div>
+          <input id="p-simult" class="prop-range" type="range" min="0" max="100" value="40" oninput="document.getElementById('p-simult-val').textContent=this.value+'%';dimensionarAuto()">
+          <div class="simult-presets">
+            <button class="simult-preset sp-active" onclick="setSimult(40,'res')">Residencial 40%</button>
+            <button class="simult-preset" onclick="setSimult(60,'com')">Comercial 60%</button>
+            <button class="simult-preset" onclick="setSimult(40,'rur')">Rural 40%</button>
           </div>
         </div>
-        <div class="prop-grid2">
-          <div class="fr" style="margin-bottom:0"><label class="prop-label">Margem adicional (%)</label><input id="p-margem" class="prop-input" type="number" placeholder="0" value="0" min="0" max="30" oninput="dimensionarAuto()"></div>
-          <div class="fr" style="margin-bottom:0">
-            <label class="prop-label">Expansão futura</label>
-            <select id="p-expansao" class="prop-select" onchange="atualizarPreviewProposta()">
-              <option value="Não">Sem expansão</option><option value="Sim">Com expansão</option>
-            </select>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;line-height:1.55">Maior simultaneidade = menos energia injetada = menos Fio B pago sobre os créditos.</div>
+      </div>
+
+      <!-- SISTEMA / EQUIPAMENTOS -->
+      <div class="prop-section">
+        <div class="prop-equip-header">
+          <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            Equipamentos
+          </div>
+          <div class="prop-mode-toggle">
+            <button class="mode-btn active" id="mode-auto" onclick="setModoCalc('auto')">⚡ Auto</button>
+            <button class="mode-btn" id="mode-manual" onclick="setModoCalc('manual')">✏️ Manual</button>
           </div>
         </div>
+        <!-- AUTO -->
+        <div id="equip-auto-fields">
+          <div class="prop-grid2" style="margin-bottom:8px">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Potência do módulo (W)</label><input id="p-wmodulo" class="prop-input" type="number" placeholder="580" value="580" min="100" max="800" oninput="dimensionarAuto()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Potência do inversor (kW)</label><input id="p-kinversor" class="prop-input" type="number" placeholder="8" value="8" min="1" max="100" step="0.5" oninput="dimensionarAuto()"></div>
+          </div>
+          <div class="prop-grid2" style="margin-bottom:0">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Margem adicional (%)</label><input id="p-margem" class="prop-input" type="number" placeholder="0" value="0" min="0" max="30" oninput="dimensionarAuto()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Expansão futura</label><select id="p-expansao" class="prop-select" onchange="atualizarPreviewProposta()"><option value="Não">Sem expansão</option><option value="Sim">Com expansão</option></select></div>
+          </div>
+        </div>
+        <!-- MANUAL -->
+        <div id="equip-manual-fields" class="prop-manual-box" style="display:none">
+          <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:10px">✏️ Inserção manual — informe os valores diretamente</div>
+          <div class="prop-grid3" style="margin-bottom:8px">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">kWp total</label><input id="p-kwp-manual" class="prop-input" type="number" placeholder="6.40" step="0.1" min="0" oninput="dimensionarAuto()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº de módulos</label><input id="p-nmod-manual" class="prop-input" type="number" placeholder="11" min="1" oninput="dimensionarAuto()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº de inversores</label><input id="p-ninv-manual" class="prop-input" type="number" placeholder="1" min="1" oninput="dimensionarAuto()"></div>
+          </div>
+          <div class="prop-grid2">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Pot. módulo (W)</label><input id="p-wmodulo-m" class="prop-input" type="number" placeholder="580" value="580" min="100" max="800" oninput="dimensionarAuto()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Pot. inversor (kW)</label><input id="p-kinversor-m" class="prop-input" type="number" placeholder="8" value="8" min="1" max="100" oninput="dimensionarAuto()"></div>
+          </div>
+        </div>
+        <!-- CAMPOS COMUNS (sempre visíveis) -->
+        <div style="margin-top:8px">
+          <div class="prop-grid2" style="margin-bottom:8px">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Marca/modelo do módulo</label><input id="p-brand-modulo" class="prop-input" placeholder="Ex: Canadian Solar 580W" oninput="gerarDescritivo()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Marca/modelo do inversor</label><input id="p-brand-inversor" class="prop-input" placeholder="Ex: Solis 8K" oninput="gerarDescritivo()"></div>
+          </div>
+          <div class="prop-grid2">
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Tipo de estrutura</label>
+              <select id="p-estrutura" class="prop-select" onchange="gerarDescritivo()">
+                <option value="Cerâmico">Cerâmico</option><option value="Colonial">Colonial</option><option value="Metálico">Metálico</option><option value="Fibrocimento">Fibrocimento</option><option value="Laje">Laje</option><option value="Solo">Solo (groundmount)</option>
+              </select>
+            </div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label">Orientação (opcional)</label>
+              <select id="p-orientacao" class="prop-select" onchange="atualizarPreviewProposta()">
+                <option value="Norte">Norte</option><option value="Nordeste">Nordeste</option><option value="Leste">Leste</option><option value="Sudeste">Sudeste</option><option value="Sul">Sul</option><option value="Sudoeste">Sudoeste</option><option value="Oeste">Oeste</option><option value="Noroeste">Noroeste</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESCRITIVO DO SISTEMA -->
+      <div class="prop-section" id="prop-descritivo-section" style="display:none">
+        <div class="prop-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Descritivo do sistema
+        </div>
+        <textarea id="p-descritivo" class="prop-descritivo-ta" rows="6" oninput="atualizarPreviewProposta()" placeholder="Preencha o dimensionamento para gerar automaticamente..."></textarea>
+        <button class="prop-regen-btn" onclick="gerarDescritivo()">↺ Regenerar automaticamente</button>
       </div>
 
       <!-- RESULTADOS AUTO -->
@@ -1110,12 +1219,14 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           Itens inclusos na proposta
         </div>
         <div class="prop-check-row">
-          <label class="prop-check-item"><input type="checkbox" id="inc-eq" checked onchange="atualizarPreviewProposta()"> Equipamentos</label>
-          <label class="prop-check-item"><input type="checkbox" id="inc-proj" checked onchange="atualizarPreviewProposta()"> Projeto elétrico</label>
-          <label class="prop-check-item"><input type="checkbox" id="inc-inst" checked onchange="atualizarPreviewProposta()"> Instalação</label>
-          <label class="prop-check-item"><input type="checkbox" id="inc-hom" checked onchange="atualizarPreviewProposta()"> Homologação</label>
-          <label class="prop-check-item"><input type="checkbox" id="inc-mon" checked onchange="atualizarPreviewProposta()"> Monitoramento</label>
-          <label class="prop-check-item"><input type="checkbox" id="inc-pad" onchange="atualizarPreviewProposta()"> Padrão de entrada</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-eq" checked onchange="gerarDescritivo()"> Equipamentos</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-cabo" checked onchange="gerarDescritivo()"> Cabos FV</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-ca" checked onchange="gerarDescritivo()"> Material CA</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-proj" checked onchange="gerarDescritivo()"> Projeto elétrico</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-inst" checked onchange="gerarDescritivo()"> Instalação</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-hom" checked onchange="gerarDescritivo()"> Homologação</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-mon" checked onchange="gerarDescritivo()"> Monitoramento</label>
+          <label class="prop-check-item"><input type="checkbox" id="inc-pad" onchange="gerarDescritivo()"> Padrão de entrada</label>
         </div>
       </div>
 
@@ -1171,7 +1282,9 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
                 <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#90CAF9;border-radius:2px;display:inline-block"></span>Consumo</span>
               </div>
             </div>
-            <div class="a4-section-title" style="margin-top:14px">Itens inclusos</div>
+            <div class="a4-section-title" style="margin-top:10px">Descritivo do sistema</div>
+            <div id="prev-descritivo" style="font-size:10px;color:var(--text2);line-height:1.9;white-space:pre-line;background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:6px"></div>
+            <div class="a4-section-title" style="margin-top:10px">Itens inclusos</div>
             <div class="a4-incl-grid" id="prev-inclusos"></div>
           </div>
           <div class="a4-footer"><span id="prev-p2-empresa">Proposta Comercial</span><span>Página 2 de 4</span></div>
@@ -1238,7 +1351,31 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 
       </div><!-- /a4-wrap -->
     </div><!-- /preview-panel -->
-  </div><!-- /prop-wrap -->
+  </div><!-- /prop-tab-form -->
+
+  <!-- HISTÓRICO TAB -->
+  <div id="prop-tab-hist" style="display:none" class="hist-wrap">
+    <div class="hist-header">
+      <div class="hist-title-row">
+        <div class="hist-title">Propostas Salvas</div>
+        <div class="hist-count" id="hist-total-count">0</div>
+      </div>
+      <div class="hist-filters">
+        <input class="hist-search" id="hist-search" placeholder="🔍 Buscar cliente ou cidade..." oninput="renderHistorico()">
+        <select class="hist-select" id="hist-sort" onchange="renderHistorico()">
+          <option value="date-desc">Mais recentes</option>
+          <option value="date-asc">Mais antigas</option>
+          <option value="valor-desc">Maior valor</option>
+          <option value="valor-asc">Menor valor</option>
+          <option value="cidade">Por cidade (A-Z)</option>
+          <option value="cliente">Por cliente (A-Z)</option>
+        </select>
+        <button onclick="limparHistorico()" style="font-size:11px;background:none;border:1px solid var(--border);border-radius:var(--r);padding:7px 12px;cursor:pointer;color:var(--text2);font-family:'Outfit',sans-serif">Limpar tudo</button>
+      </div>
+    </div>
+    <div id="hist-table"></div>
+  </div>
+
 </div><!-- /screen-proposta -->
 
 <!-- GERAL -->
@@ -1977,48 +2114,79 @@ function buscarHSP(){
   dimensionarAuto();
 }
 
-function dimensionarAuto(){
-  var kwh = parseFloat(document.getElementById('p-kwh').value)||0;
-  var tarifa = parseFloat(document.getElementById('p-tarifa').value)||0.97;
-  var wMod = parseFloat(document.getElementById('p-wmodulo').value)||580;
-  var kInv = parseFloat(document.getElementById('p-kinversor').value)||8;
-  var margem = parseFloat(document.getElementById('p-margem').value)||0;
-  var valor = parseFloat(document.getElementById('p-valor').value)||0;
-  var hsp = _propHSP || 5.0;
-  var perdas = 0.209;
-  var efic = 1 - perdas;
-  if(kwh<=0){ document.getElementById('prop-results-box').style.display='none'; atualizarPreviewProposta(); return; }
-  var consumoEfetivo = kwh*(1+margem/100);
-  var kWpNec = consumoEfetivo/(hsp*30*efic);
-  var nMod = Math.ceil(kWpNec*1000/wMod);
-  var kWpReal = nMod*wMod/1000;
-  var fdiMax=1.5, fdiMin=0.5;
-  var nInv = Math.ceil(kWpReal/(fdiMax*kInv));
-  var potInvTotal = nInv*kInv;
-  var fdi = kWpReal/potInvTotal;
-  var gerMensal = kWpReal*hsp*30*efic;
-  var area = Math.ceil(nMod*2.0);
-  var econMensal = Math.min(gerMensal, kwh)*0.93*tarifa;
-  var econAnual = econMensal*12;
-  var payback = valor>0 ? valor/econAnual : 0;
-  var fdiOk = fdi>=fdiMin && fdi<=fdiMax;
-  _propCalc = {kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,potInvTotal,valor};
-  // Update UI
-  document.getElementById('prop-results-box').style.display='block';
-  document.getElementById('pr-kwp').textContent = kWpReal.toFixed(2)+' kWp';
-  document.getElementById('pr-mod').textContent = nMod;
-  document.getElementById('pr-inv').textContent = nInv+'×'+kInv+'kW';
-  document.getElementById('pr-ger').textContent = Math.round(gerMensal)+' kWh';
-  document.getElementById('pr-area').textContent = area+' m²';
-  document.getElementById('pr-eco').textContent = 'R$ '+_fmt(econMensal);
-  document.getElementById('pr-pb').textContent = payback>0?payback.toFixed(1)+'a':'–';
-  var warn = document.getElementById('prop-warn');
-  var warnTxt = document.getElementById('prop-warn-txt');
-  if(!fdiOk){
-    warn.style.display='flex';
-    warnTxt.textContent = 'FDI='+fdi.toFixed(2)+' fora do intervalo 0.5–1.5. Ajuste a potência do inversor.';
-  } else { warn.style.display='none'; }
+// ── MODO AUTO/MANUAL ──────────────────────────────
+var _modoCalc = 'auto';
+function setModoCalc(modo){
+  _modoCalc = modo;
+  document.getElementById('mode-auto').classList.toggle('active', modo==='auto');
+  document.getElementById('mode-manual').classList.toggle('active', modo==='manual');
+  document.getElementById('equip-auto-fields').style.display = modo==='auto'?'block':'none';
+  document.getElementById('equip-manual-fields').style.display = modo==='manual'?'block':'none';
+  dimensionarAuto();
+}
+function setSimult(val, tipo){
+  document.getElementById('p-simult').value = val;
+  document.getElementById('p-simult-val').textContent = val+'%';
+  document.querySelectorAll('.simult-preset').forEach(function(b){ b.classList.remove('sp-active'); });
+  var idx={res:0,com:1,rur:2}[tipo];
+  var btns=document.querySelectorAll('.simult-preset');
+  if(btns[idx]) btns[idx].classList.add('sp-active');
+  dimensionarAuto();
+}
+function onLigacaoChange(){
+  var lig=document.getElementById('p-ligacao').value;
+  if(lig==='Trifásico'){setSimult(60,'com');}else{setSimult(40,'res');}
   atualizarPreviewProposta();
+}
+
+function dimensionarAuto(){
+  var kwh    = parseFloat(document.getElementById('p-kwh').value)||0;
+  var tarifa = parseFloat(document.getElementById('p-tarifa').value)||0.97;
+  var valor  = parseFloat(document.getElementById('p-valor').value)||0;
+  var hsp    = _propHSP || 5.0;
+  var perdas = 0.209, efic = 1-perdas;
+  var fioB   = parseFloat(document.getElementById('p-fiob').value)||0.21;
+  var ipPct  = parseFloat(document.getElementById('p-ip').value)||8;
+  var simPct = parseFloat(document.getElementById('p-simult').value)||40;
+  var sim=simPct/100, ip=ipPct/100;
+  var kWpReal,nMod,nInv,wMod,kInv,fdi,fdiOk;
+  if(_modoCalc==='manual'){
+    kWpReal=parseFloat((document.getElementById('p-kwp-manual')||{}).value)||0;
+    nMod=parseInt((document.getElementById('p-nmod-manual')||{}).value)||0;
+    nInv=parseInt((document.getElementById('p-ninv-manual')||{}).value)||1;
+    wMod=parseFloat((document.getElementById('p-wmodulo-m')||{}).value)||580;
+    kInv=parseFloat((document.getElementById('p-kinversor-m')||{}).value)||8;
+    if(kWpReal<=0){document.getElementById('prop-results-box').style.display='none';atualizarPreviewProposta();return;}
+    if(!nMod)nMod=Math.ceil(kWpReal*1000/wMod);
+    fdi=kWpReal/(nInv*kInv); fdiOk=fdi>=0.5&&fdi<=1.5;
+  } else {
+    wMod=parseFloat(document.getElementById('p-wmodulo').value)||580;
+    kInv=parseFloat(document.getElementById('p-kinversor').value)||8;
+    var margem=parseFloat(document.getElementById('p-margem').value)||0;
+    if(kwh<=0){document.getElementById('prop-results-box').style.display='none';atualizarPreviewProposta();return;}
+    var kWpNec=kwh*(1+margem/100)/(hsp*30*efic);
+    nMod=Math.ceil(kWpNec*1000/wMod); kWpReal=nMod*wMod/1000;
+    nInv=Math.ceil(kWpReal/(1.5*kInv)); fdi=kWpReal/(nInv*kInv); fdiOk=fdi>=0.5&&fdi<=1.5;
+  }
+  var gerMensal=kWpReal*hsp*30*efic, area=Math.ceil(nMod*2.0);
+  var gerado=Math.min(gerMensal,kwh>0?kwh:gerMensal);
+  var econMensal=gerado*sim*tarifa + gerado*(1-sim)*Math.max(0,tarifa-fioB-tarifa*ip);
+  var econAnual=econMensal*12;
+  var payback=(valor>0&&econAnual>0)?valor/econAnual:0;
+  _propCalc={kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,valor,fioB,ipPct,simPct,sim};
+  document.getElementById('prop-results-box').style.display='block';
+  document.getElementById('pr-kwp').textContent=kWpReal.toFixed(2)+' kWp';
+  document.getElementById('pr-mod').textContent=nMod;
+  document.getElementById('pr-inv').textContent=nInv+'×'+kInv+'kW';
+  document.getElementById('pr-ger').textContent=Math.round(gerMensal)+' kWh';
+  document.getElementById('pr-area').textContent=area+' m²';
+  document.getElementById('pr-eco').textContent='R$ '+_fmt(econMensal);
+  document.getElementById('pr-pb').textContent=payback>0?payback.toFixed(1)+'a':'–';
+  var warn=document.getElementById('prop-warn');
+  if(!fdiOk){warn.style.display='flex';document.getElementById('prop-warn-txt').textContent='FDI='+fdi.toFixed(2)+' fora de 0.5–1.5.';}
+  else{warn.style.display='none';}
+  var ds=document.getElementById('prop-descritivo-section'); if(ds)ds.style.display='block';
+  gerarDescritivo(); atualizarPreviewProposta();
 }
 
 function _fmt(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -2078,11 +2246,14 @@ function atualizarPreviewProposta(){
     '<div class="a4-spec-row"><span class="a4-spec-key">Tarifa de energia</span><span class="a4-spec-val">'+(tarifa?'R$ '+tarifa.toFixed(3)+'/kWh':'–')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Tipo de ligação</span><span class="a4-spec-val">'+ligacao+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Irradiação solar local (HSP)</span><span class="a4-spec-val">'+(_propHSP||5.0).toFixed(2)+' kWh/m²/dia</span></div>';
+  var brandMod=(document.getElementById('p-brand-modulo')||{}).value||'';
+  var brandInv=(document.getElementById('p-brand-inversor')||{}).value||'';
+  var expansao=((document.getElementById('p-expansao')||{}).value)||'Não';
   var sps=document.getElementById('prev-sistema-specs');
   if(sps) sps.innerHTML= c.kWpReal?
     '<div class="a4-spec-row"><span class="a4-spec-key">Potência instalada</span><span class="a4-spec-val">'+c.kWpReal.toFixed(2)+' kWp</span></div>'+
-    '<div class="a4-spec-row"><span class="a4-spec-key">Número de módulos</span><span class="a4-spec-val">'+c.nMod+' × '+(c.wMod||580)+'W</span></div>'+
-    '<div class="a4-spec-row"><span class="a4-spec-key">Inversores</span><span class="a4-spec-val">'+c.nInv+' × '+(c.kInv||8)+' kW</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Módulos fotovoltaicos</span><span class="a4-spec-val">'+c.nMod+' × '+(c.wMod||580)+'W'+(brandMod?' — '+brandMod:'')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Inversores</span><span class="a4-spec-val">'+c.nInv+' × '+(c.kInv||8)+' kW'+(brandInv?' — '+brandInv:'')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">FDI (sobrecarga)</span><span class="a4-spec-val">'+(c.fdi?c.fdi.toFixed(2):'-')+' '+(c.fdiOk?'✓ Ok':'⚠ Atenção')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Geração média mensal</span><span class="a4-spec-val">'+(c.gerMensal?Math.round(c.gerMensal)+' kWh/mês':'–')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Área estimada</span><span class="a4-spec-val">'+(c.area?c.area+' m²':'–')+'</span></div>'+
@@ -2090,6 +2261,9 @@ function atualizarPreviewProposta(){
     '<div class="a4-spec-row"><span class="a4-spec-key">Orientação do telhado</span><span class="a4-spec-val">'+orientacao+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Capacidade de expansão</span><span class="a4-spec-val">'+expansao+'</span></div>'
     : '<div style="font-size:12px;color:var(--text2);text-align:center;padding:12px">Preencha o consumo para calcular o dimensionamento</div>';
+  // Descritivo no preview
+  var descEl=document.getElementById('prev-descritivo');
+  if(descEl){var ta=document.getElementById('p-descritivo');descEl.textContent=ta&&ta.value?ta.value:'–';}
   // Gráfico mensal
   var bars=document.getElementById('prev-monthly-bars');
   if(bars && c.gerMensal){
@@ -2114,8 +2288,10 @@ function atualizarPreviewProposta(){
   if(inclEl){
     var itens=[
       {id:'inc-eq',label:'Equipamentos fotovoltaicos'},
+      {id:'inc-cabo',label:'Cabos fotovoltaicos (preto e vermelho)'},
+      {id:'inc-ca',label:'Material CA (cabos, conectores, DPS)'},
       {id:'inc-proj',label:'Projeto elétrico'},
-      {id:'inc-inst',label:'Instalação'},
+      {id:'inc-inst',label:'Instalação completa'},
       {id:'inc-hom',label:'Homologação na distribuidora'},
       {id:'inc-mon',label:'Sistema de monitoramento'},
       {id:'inc-pad',label:'Padrão de entrada'}
@@ -2137,7 +2313,6 @@ function atualizarPreviewProposta(){
       '<div class="a4-kpi"><div class="a4-kpi-v">R$ '+_fmt(c.econMensal)+'</div><div class="a4-kpi-l">Economia/mês</div></div>'+
       '<div class="a4-kpi"><div class="a4-kpi-v">R$ '+_fmt(c.econAnual)+'</div><div class="a4-kpi-l">Economia/ano</div></div>';
     document.getElementById('prev-eco25-val').textContent='R$ '+_fmt(eco25);
-    document.getElementById('prev-eco25').querySelector('[style*="font-size:10px"]').textContent='* Considerando reajuste tarifário de 6% ao ano e vida útil de 25 anos';
     // Ambiental
     var co2 = c.kWpReal * (_propHSP||5) * 365 * 25 * (1-0.209) * 0.000075; // tCO2
     var arvores = Math.round(co2/0.14);
@@ -2190,7 +2365,9 @@ function atualizarPreviewProposta(){
 function irParaProposta(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-proposta').classList.add('active');
+  mostrarTabProposta('form');
   atualizarPreviewProposta();
+  carregarCidades();
 }
 
 function gerarPDFProposta(){
@@ -2214,6 +2391,9 @@ function gerarPDFProposta(){
   var valor=parseFloat(document.getElementById('p-valor').value)||0;
   var validade=parseInt(document.getElementById('p-validade').value)||7;
   var pagSel=document.getElementById('p-pagamento').value;
+  var brandMod=(document.getElementById('p-brand-modulo')||{}).value||'';
+  var brandInv=(document.getElementById('p-brand-inversor')||{}).value||'';
+  var descritivo=(document.getElementById('p-descritivo')||{}).value||'';
   var empresa=(usuarioAtual&&usuarioAtual.empresa)||'Sua Empresa';
   var contato=(usuarioAtual&&usuarioAtual.contato)||'';
   var numProp='P'+new Date().getFullYear()+(Math.floor(Math.random()*90000)+10000);
@@ -2282,7 +2462,7 @@ function gerarPDFProposta(){
     ['Válida até:', valEl],
     ['Proposta nº:', numProp],
   ];
-  if(c.kWpReal) infoLines.push(['Sistema dimensionado:', c.kWpReal.toFixed(2)+' kWp · '+c.nMod+' módulos · '+c.nInv+' inversor(es)']);
+  if(c.kWpReal) infoLines.push(['Sistema:', c.kWpReal.toFixed(2)+' kWp · '+c.nMod+(brandMod?' × '+brandMod:' módulos')+' · '+c.nInv+(brandInv?' × '+brandInv:' inversor(es)')]);
   infoLines.forEach(function(pair){
     doc.setTextColor(140,170,140); doc.setFont('helvetica','normal'); doc.text(pair[0],mg+6,infoY);
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.text(pair[1],mg+52,infoY);
@@ -2311,8 +2491,10 @@ function gerarPDFProposta(){
   y=sectionTitle(doc,y,'Dimensionamento do sistema');
   if(c.kWpReal){
     y=specRow(doc,y,'Potência instalada',c.kWpReal.toFixed(2)+' kWp',shade=!shade);
-    y=specRow(doc,y,'Módulos fotovoltaicos',c.nMod+' × '+(c.wMod||580)+'W',shade=!shade);
-    y=specRow(doc,y,'Inversores',c.nInv+' × '+(c.kInv||8)+' kW',shade=!shade);
+    var modLabel=brandMod?(c.nMod+' × '+brandMod):(c.nMod+' × '+(c.wMod||580)+'W');
+    var invLabel=brandInv?(c.nInv+' × '+brandInv):(c.nInv+' × '+(c.kInv||8)+' kW');
+    y=specRow(doc,y,'Módulos fotovoltaicos',modLabel,shade=!shade);
+    y=specRow(doc,y,'Inversores',invLabel,shade=!shade);
     y=specRow(doc,y,'FDI (fator sobrecarga)',c.fdi.toFixed(2)+' '+(c.fdiOk?'✓':'⚠'),shade=!shade);
     y=specRow(doc,y,'Geração média mensal',Math.round(c.gerMensal)+' kWh/mês',shade=!shade);
     y=specRow(doc,y,'Área estimada no telhado',c.area+' m²',shade=!shade);
@@ -2345,6 +2527,15 @@ function gerarPDFProposta(){
     doc.setFillColor(144,202,249); doc.rect(mg+32,y+chartH+14,4,3,'F');
     doc.text('Consumo',mg+38,y+chartH+17);
     y+=chartH+22;
+  }
+  // Descritivo
+  if(descritivo&&y<H-40){
+    y=sectionTitle(doc,y,'Descritivo do sistema');
+    var lines=doc.splitTextToSize(descritivo,W-mg*2-4);
+    doc.setTextColor(80,80,75); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    var maxLines=Math.min(lines.length,Math.floor((H-40-y)/5));
+    for(var li=0;li<maxLines;li++){ doc.text(lines[li],mg+2,y); y+=5; }
+    y+=4;
   }
   addFooter(doc,'2');
 
@@ -2475,9 +2666,161 @@ function gerarPDFProposta(){
   // Save
   var filename='Proposta_'+nome.replace(/\s+/g,'_')+'_'+new Date().getFullYear()+'.pdf';
   doc.save(filename);
+  salvarProposta();
   _propContador++;
   var el=document.getElementById('home-st-propostas'); if(el) el.textContent=_propContador;
 }
+// ── TABS ──────────────────────────────────────────
+function mostrarTabProposta(tab){
+  var tf=document.getElementById('prop-tab-form');
+  var th=document.getElementById('prop-tab-hist');
+  if(tf) tf.style.display=tab==='form'?'grid':'none';
+  if(th) th.style.display=tab==='hist'?'block':'none';
+  var bf=document.getElementById('ptab-form'); if(bf) bf.classList.toggle('active',tab==='form');
+  var bh=document.getElementById('ptab-hist'); if(bh) bh.classList.toggle('active',tab==='hist');
+  var btn=document.getElementById('btn-gerar-pdf'); if(btn) btn.style.display=tab==='form'?'flex':'none';
+  if(tab==='hist') renderHistorico();
+}
+
+// ── CITY AUTOCOMPLETE (IBGE) ───────────────────────
+var _cidadesBR=null,_cidadesLoading=false;
+async function carregarCidades(){
+  if(_cidadesBR||_cidadesLoading) return;
+  _cidadesLoading=true;
+  var inp=document.getElementById('p-cidade');
+  if(inp) inp.placeholder='Carregando cidades...';
+  try{
+    var r=await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome');
+    var data=await r.json();
+    _cidadesBR=data.map(function(m){
+      var uf=''; try{uf=m.microrregiao.mesorregiao.UF.sigla;}catch(e){}
+      return{nome:m.nome,uf:uf};
+    });
+  }catch(e){
+    _cidadesBR=Object.keys(HSP_CIDADES).map(function(c){return{nome:c,uf:''};});
+  }
+  _cidadesLoading=false;
+  if(inp) inp.placeholder='Digite a cidade...';
+}
+function _normStr(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function filtrarCidades(q){
+  var ql=_normStr(q);
+  var src=_cidadesBR||Object.keys(HSP_CIDADES).map(function(c){return{nome:c,uf:''};});
+  var res=[];
+  for(var i=0;i<src.length&&res.length<60;i++){
+    var c=src[i],nl=_normStr(c.nome);
+    if(nl.indexOf(ql)>=0) res.push({c:c,pri:nl.startsWith(ql)?0:1});
+  }
+  res.sort(function(a,b){return a.pri-b.pri||a.c.nome.localeCompare(b.c.nome,'pt-BR');});
+  return res.slice(0,15).map(function(r){return r.c;});
+}
+function onCidadeInput(inp){
+  var q=(inp.value||'').trim(),drop=document.getElementById('city-ac-drop');
+  if(q.length<2){if(drop)drop.style.display='none';return;}
+  var sugs=filtrarCidades(q);
+  if(!sugs.length){drop.style.display='none';return;}
+  drop.innerHTML=sugs.map(function(c){
+    var sn=c.nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div class="city-ac-item" onmousedown="selecionarCidade(\''+sn+'\',\''+c.uf+'\')">'+
+      '<span>'+c.nome+'</span>'+(c.uf?'<span class="city-ac-uf">'+c.uf+'</span>':'')+
+      '</div>';
+  }).join('');
+  drop.style.display='block';
+}
+function selecionarCidade(nome,uf){
+  var inp=document.getElementById('p-cidade'); if(inp) inp.value=nome;
+  if(uf){var sel=document.getElementById('p-estado');if(sel)sel.value=uf;}
+  var drop=document.getElementById('city-ac-drop');if(drop)drop.style.display='none';
+  buscarHSP();
+}
+
+// ── DESCRITIVO DO SISTEMA ──────────────────────────
+function gerarDescritivo(){
+  var c=_propCalc;
+  if(!c||!c.kWpReal) return;
+  var brandMod=(document.getElementById('p-brand-modulo')||{}).value||'';
+  var brandInv=(document.getElementById('p-brand-inversor')||{}).value||'';
+  var est=(document.getElementById('p-estrutura')||{}).value||'Cerâmico';
+  var linhas=[];
+  if((document.getElementById('inc-eq')||{}).checked)
+    linhas.push(c.nMod+' módulos fotovoltaicos '+(c.wMod||580)+'W'+(brandMod?' '+brandMod:''));
+  if((document.getElementById('inc-eq')||{}).checked)
+    linhas.push(c.nInv+' inversor'+(c.nInv>1?'es':'')+' '+(c.kInv||8)+'kW'+(brandInv?' '+brandInv:''));
+  linhas.push('Estrutura de fixação — Telhado '+est);
+  if((document.getElementById('inc-cabo')||{}).checked){
+    var mCabo=Math.round(Math.max(30,c.nMod*3.5));
+    linhas.push(mCabo+'m de cabo fotovoltaico preto + '+mCabo+'m de cabo fotovoltaico vermelho');
+  }
+  if((document.getElementById('inc-ca')||{}).checked)
+    linhas.push('Material CA — cabos, conectores, disjuntor e proteção DPS');
+  if((document.getElementById('inc-proj')||{}).checked) linhas.push('Projeto elétrico e memorial de cálculo');
+  if((document.getElementById('inc-hom')||{}).checked)  linhas.push('Homologação na distribuidora');
+  if((document.getElementById('inc-mon')||{}).checked)  linhas.push('Sistema de monitoramento online');
+  if((document.getElementById('inc-inst')||{}).checked) linhas.push('Instalação completa do sistema');
+  if((document.getElementById('inc-pad')||{}).checked)  linhas.push('Adequação do padrão de entrada');
+  var ta=document.getElementById('p-descritivo');
+  if(ta) ta.value=linhas.join('\n');
+  atualizarPreviewProposta();
+}
+
+// ── HISTÓRICO (localStorage) ───────────────────────
+function salvarProposta(){
+  var c=_propCalc||{};
+  var prop={
+    id:'P'+Date.now(),
+    data:new Date().toISOString(),
+    cliente:((document.getElementById('p-nome')||{}).value||'–').trim(),
+    cidade:((document.getElementById('p-cidade')||{}).value||'–').trim(),
+    estado:((document.getElementById('p-estado')||{}).value||'').trim(),
+    kwp:c.kWpReal||0, nMod:c.nMod||0, nInv:c.nInv||0,
+    valor:parseFloat((document.getElementById('p-valor')||{}).value)||0,
+    payback:c.payback||0,
+    pagamento:(document.getElementById('p-pagamento')||{}).value||'',
+    estrutura:(document.getElementById('p-estrutura')||{}).value||'',
+    brandMod:((document.getElementById('p-brand-modulo')||{}).value||'').trim(),
+    brandInv:((document.getElementById('p-brand-inversor')||{}).value||'').trim()
+  };
+  var hist=_loadHist(); hist.unshift(prop);
+  if(hist.length>300) hist=hist.slice(0,300);
+  try{localStorage.setItem('propostas_geradas',JSON.stringify(hist));}catch(e){}
+}
+function _loadHist(){try{return JSON.parse(localStorage.getItem('propostas_geradas')||'[]');}catch(e){return[];}}
+function limparHistorico(){
+  if(!confirm('Apagar todas as propostas salvas?')) return;
+  localStorage.removeItem('propostas_geradas'); renderHistorico();
+}
+function deletarProposta(id){
+  var h=_loadHist().filter(function(p){return p.id!==id;});
+  try{localStorage.setItem('propostas_geradas',JSON.stringify(h));}catch(e){} renderHistorico();
+}
+function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderHistorico(){
+  var hist=_loadHist();
+  var search=_normStr(((document.getElementById('hist-search')||{}).value)||'');
+  var sort=((document.getElementById('hist-sort')||{}).value)||'date-desc';
+  var cnt=document.getElementById('hist-total-count'); if(cnt)cnt.textContent=hist.length;
+  if(search) hist=hist.filter(function(p){return _normStr(p.cliente||'').indexOf(search)>=0||_normStr(p.cidade||'').indexOf(search)>=0;});
+  var sorts={'date-desc':function(a,b){return b.data.localeCompare(a.data);},'date-asc':function(a,b){return a.data.localeCompare(b.data);},'valor-desc':function(a,b){return b.valor-a.valor;},'valor-asc':function(a,b){return a.valor-b.valor;},'cidade':function(a,b){return(a.cidade||'').localeCompare(b.cidade||'','pt-BR');},'cliente':function(a,b){return(a.cliente||'').localeCompare(b.cliente||'','pt-BR');}};
+  hist.sort(sorts[sort]||sorts['date-desc']);
+  var el=document.getElementById('hist-table'); if(!el)return;
+  if(!hist.length){el.innerHTML='<div class="hist-empty">📄<br>Nenhuma proposta salva ainda.<br>Gere a primeira proposta e ela aparecerá aqui.</div>';return;}
+  var pl={'avista':'À vista','50-50':'50/50','financiado':'Financiado'};
+  el.innerHTML='<div class="hist-tbl-wrap"><table class="hist-tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Cidade/UF</th><th>Sistema</th><th>Valor</th><th>Payback</th><th>Pgto</th><th></th></tr></thead><tbody>'+
+    hist.map(function(p){
+      var dt=new Date(p.data),ds=isNaN(dt)?'–':dt.toLocaleDateString('pt-BR');
+      var sis=(p.kwp?p.kwp.toFixed(2)+' kWp'+(p.nMod?' · '+p.nMod+'mod':''):'–');
+      var marca=[p.brandMod,p.brandInv].filter(Boolean).join(' / ');
+      return '<tr><td style="color:var(--text2);font-size:12px">'+ds+'</td>'+
+        '<td><strong>'+_esc(p.cliente||'–')+'</strong></td>'+
+        '<td>'+_esc((p.cidade||'–')+(p.estado?' / '+p.estado:''))+'</td>'+
+        '<td style="font-size:12px">'+sis+(marca?'<br><span style="font-size:10px;color:var(--text2)">'+_esc(marca)+'</span>':'')+'</td>'+
+        '<td><strong>R$ '+_fmt(p.valor||0)+'</strong></td>'+
+        '<td style="color:var(--green);font-weight:700">'+((p.payback||0)>0?p.payback.toFixed(1)+'a':'–')+'</td>'+
+        '<td><span class="hist-badge-pag">'+(pl[p.pagamento]||p.pagamento||'–')+'</span></td>'+
+        '<td><button class="hist-del-btn" onclick="deletarProposta(\''+p.id+'\')">✕</button></td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
 var _resetPending = {};
 
 function _hideAllAuthForms(){
