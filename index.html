@@ -2452,6 +2452,18 @@ function atualizarPreviewProposta(){
       var v50=valor/2;
       pagInfo.innerHTML='<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> na chegada dos equipamentos — R$ '+_fmt(v50)+'</div></div>'+
         '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> após conclusão e funcionamento do sistema — R$ '+_fmt(v50)+'</div></div>';
+    } else if(pagSel==='todas'){
+      var banco=document.getElementById('p-banco').value||'';
+      var parc=document.getElementById('p-parcelas').value||'72';
+      var vpar=document.getElementById('p-vparcela').value||'0';
+      var v50t=valor/2;
+      pagInfo.innerHTML=
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>À vista</strong> — 100% na assinatura do contrato</div></div>'+
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> na chegada dos equipamentos — R$ '+_fmt(v50t)+'</div></div>'+
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> após conclusão e funcionamento — R$ '+_fmt(v50t)+'</div></div>'+
+        (banco
+          ? '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Financiamento via <strong>'+banco+'</strong> — '+parc+'× de R$ '+_fmt(parseFloat(vpar)||0)+' (sujeito a análise de crédito)</div></div>'
+          : '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Financiamento bancário — consulte condições</div></div>');
     } else {
       var banco=document.getElementById('p-banco').value||'Financeira';
       var parc=document.getElementById('p-parcelas').value||'72';
@@ -2470,7 +2482,7 @@ function irParaProposta(){
   document.getElementById('screen-proposta').classList.add('active');
   mostrarTabProposta('form');
   initCorProposta();
-  atualizarPreviewProposta();
+  dimensionarAuto();
   carregarCidades();
   atualizarRodapePreview();
 }
