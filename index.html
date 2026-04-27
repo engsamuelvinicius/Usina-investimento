@@ -1272,8 +1272,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <label class="prop-check-item"><input type="checkbox" id="inc-pad" onchange="gerarDescritivo()"> Padrão de entrada</label>
         </div>
         <div class="prop-grid2" style="margin-top:10px">
-          <div class="fr" style="margin-bottom:0"><label class="prop-label">Garantia instalação (anos)</label><input id="p-gar-inst" class="prop-input" type="number" value="2" min="1" max="10" oninput="gerarDescritivo()"></div>
-          <div class="fr" style="margin-bottom:0"><label class="prop-label">Monitoramento incluso (anos)</label><input id="p-mon-anos" class="prop-input" type="number" value="2" min="0" max="10" oninput="gerarDescritivo()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Garantia instalação (anos)</label><input id="p-gar-inst" class="prop-input" type="number" value="2" min="1" max="10" oninput="gerarDescritivo();atualizarPreviewProposta()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Monitoramento incluso (anos)</label><input id="p-mon-anos" class="prop-input" type="number" value="2" min="0" max="10" oninput="gerarDescritivo();atualizarPreviewProposta()"></div>
         </div>
       </div>
 
@@ -1444,7 +1444,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
               <div class="a4-guar-item"><div class="a4-guar-v">25 anos</div><div class="a4-guar-l">Módulos</div></div>
               <div class="a4-guar-item"><div class="a4-guar-v">10 anos</div><div class="a4-guar-l">Inversor</div></div>
               <div class="a4-guar-item"><div class="a4-guar-v">5 anos</div><div class="a4-guar-l">Estrutura</div></div>
-              <div class="a4-guar-item"><div class="a4-guar-v">1 ano</div><div class="a4-guar-l">Instalação</div></div>
+              <div class="a4-guar-item"><div class="a4-guar-v" id="prev-gar-inst-v">2 anos</div><div class="a4-guar-l">Instalação</div></div>
             </div>
             <div class="a4-section-title" style="margin-top:14px">Validade da proposta</div>
             <div id="prev-validade-info" style="font-size:12px;color:var(--text2);margin-bottom:10px">–</div>
@@ -2279,9 +2279,12 @@ function dimensionarAuto(){
     nMod=Math.ceil(kWpNec*1000/wMod); kWpReal=nMod*wMod/1000;
     nInv=Math.ceil(kWpReal/(1.5*kInv)); fdi=kWpReal/(nInv*kInv); fdiOk=fdi>=0.5&&fdi<=1.5;
   }
-  var gerMensal=kWpReal*hsp*30*efic, area=Math.ceil(nMod*2.0);
-  var gerado=Math.min(gerMensal,kwh>0?kwh:gerMensal);
-  var econMensal=gerado*sim*(tarifa*(1+ip)+bandeira) + gerado*(1-sim)*Math.max(0,tarifa-fioB-tarifa*ip);
+  var gerMensal=kWpReal*hsp*30*efic, area=Math.ceil(nMod*3.0);
+  // SC: autoconsumo (kWh consumidos no local); INJ: injeção total na rede (usa gerMensal, não limitado a kwh)
+  var SC=Math.min(gerMensal*sim, kwh>0?kwh:gerMensal);
+  var INJ=gerMensal-SC;
+  var fatAtualCalc=(kwh>0?kwh:gerMensal)*(tarifa*(1+ip)+bandeira);
+  var econMensal=Math.min(SC*(tarifa*(1+ip)+bandeira)+INJ*Math.max(0,tarifa-fioB-tarifa*ip), fatAtualCalc);
   var econAnual=econMensal*12;
   var payback=(valor>0&&econAnual>0)?valor/econAnual:0;
   _propCalc={kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,valor,fioB,ipPct,bandeira,simPct,sim};
@@ -2501,6 +2504,9 @@ function atualizarPreviewProposta(){
         '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Sujeito à análise e aprovação de crédito</div></div>';
     }
   }
+  // Garantia instalação no preview
+  var garInstEl=document.getElementById('prev-gar-inst-v');
+  if(garInstEl){var gi=parseInt((document.getElementById('p-gar-inst')||{}).value)||2; garInstEl.textContent=gi+' ano'+(gi!==1?'s':'');}
   // Validade
   var valEl=document.getElementById('prev-validade-info');
   if(valEl) valEl.textContent='Esta proposta é válida por '+validade+' dias corridos — até '+_dataValidade(validade)+'.';
