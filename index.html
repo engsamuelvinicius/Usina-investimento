@@ -2258,7 +2258,7 @@ function dimensionarAuto(){
   var fioB   = parseFloat(document.getElementById('p-fiob').value)||0.21;
   var ipPct  = parseFloat(document.getElementById('p-ip').value)||8;
   var bandeira = parseFloat((document.getElementById('p-bandeira')||{}).value)||0;
-  var simPct = parseFloat(document.getElementById('p-simult').value)||40;
+  var simPct = parseFloat(document.getElementById('p-simult').value||'40');
   var sim=simPct/100, ip=ipPct/100;
   var kWpReal,nMod,nInv,wMod,kInv,fdi,fdiOk;
   if(_modoCalc==='manual'){
