@@ -444,13 +444,15 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .home-title{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:#fff;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
 .home-title em{font-style:normal;color:#6dde8f}
 .home-sub{font-size:14px;color:rgba(255,255,255,.38);line-height:1.7;font-weight:300}
-.home-modules{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:0 32px 44px;position:relative;z-index:5}
-@media(max-width:820px){.home-modules{grid-template-columns:1fr;padding:0 20px 32px}}
+.home-modules{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:0 32px 44px;position:relative;z-index:5}
+@media(max-width:820px){.home-modules{grid-template-columns:repeat(2,1fr);padding:0 20px 32px}}
+@media(max-width:480px){.home-modules{grid-template-columns:1fr;padding:0 16px 28px}}
 @keyframes modFadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
 .module-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:28px 24px 24px;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:300px;transition:transform .38s cubic-bezier(.34,1.4,.64,1),box-shadow .38s ease,background .25s,border-color .25s;animation:modFadeUp .55s ease both}
 .module-card:nth-child(1){animation-delay:.08s}
 .module-card:nth-child(2){animation-delay:.18s}
 .module-card:nth-child(3){animation-delay:.28s}
+.module-card:nth-child(4){animation-delay:.36s}
 .module-card.mod-clickable{cursor:pointer}
 .module-card.mod-usinas{border-top:2px solid rgba(109,222,143,.45)}
 .module-card.mod-proposta{border-top:2px solid rgba(96,165,250,.35)}
@@ -654,6 +656,31 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .prop-dados-padrao .pdn-badge{font-size:10px;font-weight:700;color:var(--green);background:#fff;border:1px solid var(--green);border-radius:20px;padding:2px 8px}
 .prop-dados-padrao .pdn-info{font-size:11px;color:var(--text2);line-height:1.7}
 .prop-dados-padrao .pdn-link{font-size:11px;color:var(--green);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;margin-top:5px;display:inline-block}
+
+/* ── CONTRATOS ──────────────────────────────────── */
+.module-card.mod-contrato{border-top:2px solid rgba(196,181,253,.4)}
+.module-card.mod-contrato.mod-clickable:hover{box-shadow:0 22px 60px rgba(0,0,0,.45),0 0 32px rgba(196,181,253,.12)}
+.module-card.mod-contrato::before{background:radial-gradient(circle,rgba(196,181,253,.12) 0%,transparent 70%)}
+.mod-icon.ic-v{background:linear-gradient(135deg,rgba(196,181,253,.18),rgba(139,92,246,.1));box-shadow:0 0 0 1px rgba(196,181,253,.2)}
+.mod-label.lb-v{background:rgba(196,181,253,.1);color:#c4b5fd;border:1px solid rgba(196,181,253,.18)}
+.ctr-campo-tag{display:inline-flex;background:var(--green-l);color:var(--green-t);border:1px solid rgba(30,107,46,.2);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:500;margin:2px 2px 2px 0;font-family:monospace}
+.tpl-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.tpl-card-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.ctr-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:box-shadow .15s}
+.ctr-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.ctr-card-icon{width:36px;height:36px;border-radius:9px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ctr-card-info{flex:1;min-width:0}
+.ctr-card-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctr-card-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.ctr-status{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.ctr-status.st-rascunho{background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
+.ctr-status.st-vigente{background:var(--blue-bg);color:var(--blue-t);border:1px solid var(--blue-b)}
+.ctr-status.st-assinado{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
+.ctr-status.st-encerrado{background:var(--red-bg);color:var(--red-t);border:1px solid #EF9A9A}
+.ctr-upload-area{border:2px dashed var(--border);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:10px}
+.ctr-upload-area:hover,.ctr-upload-area.over{border-color:var(--green);background:var(--green-l)}
+.ctr-campo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:580px){.ctr-campo-grid{grid-template-columns:1fr}}
 
 
 </style>
@@ -1013,6 +1040,27 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="mod-stat-box"><div class="mod-stat-v">–</div><div class="mod-stat-l">Concluídos</div></div>
         </div>
         <button class="mod-btn mb-soon">Em desenvolvimento</button>
+      </div>
+
+      <!-- ④ Gerador de Contratos -->
+      <div class="module-card mod-contrato mod-clickable" onclick="irParaContratos()">
+        <div class="mod-icon ic-v">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        </div>
+        <div class="mod-label lb-v">
+          <span style="width:5px;height:5px;border-radius:50%;background:#c4b5fd;display:inline-block"></span>
+          Novo
+        </div>
+        <div class="mod-name">Gerador de Contratos</div>
+        <div class="mod-desc">Envie seu modelo de contrato, preencha com dados do cliente e gerencie todos os documentos assinados.</div>
+        <div class="mod-stats-row">
+          <div class="mod-stat-box"><div class="mod-stat-v" id="home-st-contratos">0</div><div class="mod-stat-l">Contratos</div></div>
+          <div class="mod-stat-box"><div class="mod-stat-v" id="home-st-modelos">0</div><div class="mod-stat-l">Modelos</div></div>
+        </div>
+        <button class="mod-btn" style="background:rgba(196,181,253,.12);color:#c4b5fd;border:1px solid rgba(196,181,253,.2)">
+          Acessar
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
       </div>
 
     </div>
@@ -1889,6 +1937,120 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     </div>
   </div>
 </div>
+
+<!-- CONTRATOS -->
+<div id="screen-contratos" class="screen">
+  <div class="topbar" style="border-radius:var(--rl);margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+      <div>
+        <div style="font-size:17px;font-weight:700;font-family:'Syne',sans-serif;letter-spacing:-.2px">Gerador de Contratos</div>
+        <div style="font-size:12px;opacity:.7;margin-top:1px">Modelos, geração automática e gestão</div>
+      </div>
+    </div>
+    <button class="btn-home-back" onclick="voltarHome()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Início
+    </button>
+  </div>
+
+  <div class="app" style="padding-top:12px">
+    <!-- Tabs -->
+    <div class="tabs" style="margin-bottom:16px">
+      <button id="ctr-btn-modelos" class="tab-btn active" onclick="mostrarTabContrato('modelos')">📋 Modelos</button>
+      <button id="ctr-btn-novo" class="tab-btn" onclick="mostrarTabContrato('novo')">✚ Novo Contrato</button>
+      <button id="ctr-btn-lista" class="tab-btn" onclick="mostrarTabContrato('lista')">📁 Contratos</button>
+    </div>
+
+    <!-- ── TAB MODELOS ── -->
+    <div id="ctr-tab-modelos">
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">Novo Modelo de Contrato</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Cole o texto do seu contrato usando <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">{{CAMPO}}</code> nos lugares que serão preenchidos automaticamente. Ex: <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">{{NOME_CLIENTE}}</code>, <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">{{CPF}}</code>, <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">{{VALOR}}</code></div>
+
+        <div class="fr" style="margin-bottom:10px">
+          <label class="prop-label">Nome do modelo</label>
+          <input id="tpl-nome" class="prop-input" placeholder="Ex: Contrato de Prestação de Serviços Solar">
+        </div>
+
+        <div class="ctr-upload-area" onclick="document.getElementById('tpl-file-input').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="ctrDropTpl(event)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px">Clique para carregar um arquivo <strong>.txt</strong> ou <strong>.docx</strong>, ou cole o texto abaixo</div>
+        </div>
+        <input type="file" id="tpl-file-input" accept=".txt,.docx" style="display:none" onchange="ctrCarregarArquivoTpl(this)">
+
+        <div class="fr" style="margin-bottom:8px">
+          <label class="prop-label">Texto do contrato</label>
+          <textarea id="tpl-texto" class="prop-input" rows="10" style="font-family:monospace;font-size:12px;resize:vertical" placeholder="Cole aqui o texto completo do seu contrato com os marcadores {{CAMPO}}..." oninput="ctrDetectarCampos()"></textarea>
+        </div>
+
+        <div id="tpl-campos-preview" style="margin-bottom:12px"></div>
+
+        <button class="btn-p" onclick="ctrSalvarModelo()" style="width:100%">✓ Salvar Modelo</button>
+      </div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Modelos salvos</div>
+      <div id="modelos-list"></div>
+    </div>
+
+    <!-- ── TAB NOVO CONTRATO ── -->
+    <div id="ctr-tab-novo" style="display:none">
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px">Gerar Contrato</div>
+
+        <div class="fr" style="margin-bottom:10px">
+          <label class="prop-label">Modelo de contrato</label>
+          <select id="ctr-select-modelo" class="prop-input" onchange="ctrRenderCamposForm()">
+            <option value="">— Selecione um modelo —</option>
+          </select>
+        </div>
+
+        <div id="ctr-campos-form"></div>
+
+        <div class="fr" style="margin-top:10px;margin-bottom:10px">
+          <label class="prop-label">Status do contrato</label>
+          <select id="ctr-status-sel" class="prop-input">
+            <option value="rascunho">Rascunho</option>
+            <option value="vigente">Vigente</option>
+            <option value="assinado">Assinado</option>
+            <option value="encerrado">Encerrado</option>
+          </select>
+        </div>
+
+        <button class="btn-p" onclick="ctrGerarPDF()" style="width:100%;margin-top:4px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Gerar Contrato em PDF
+        </button>
+      </div>
+
+      <div class="card" style="background:var(--blue-bg);border-color:var(--blue-b)">
+        <div style="font-size:13px;font-weight:600;color:var(--blue-t);margin-bottom:6px">💡 Como usar</div>
+        <div style="font-size:12px;color:var(--blue-t);line-height:1.7">
+          1. Crie um modelo na aba <strong>Modelos</strong> com seu contrato e marcadores <code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px">{{CAMPO}}</code><br>
+          2. Selecione o modelo acima<br>
+          3. Preencha os dados do cliente (campos do perfil já vêm preenchidos)<br>
+          4. Clique <strong>Gerar Contrato em PDF</strong> — o contrato será baixado e salvo na lista
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB LISTA ── -->
+    <div id="ctr-tab-lista" style="display:none">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <input id="ctr-search" class="prop-input" style="flex:1;min-width:160px;margin-bottom:0" placeholder="Buscar por nome ou cliente..." oninput="ctrRenderLista()">
+        <select id="ctr-sort-sel" class="prop-input" style="width:auto;margin-bottom:0" onchange="ctrRenderLista()">
+          <option value="data">Mais recente</option>
+          <option value="nome">Nome A–Z</option>
+          <option value="status">Por status</option>
+        </select>
+        <button class="btn-p" onclick="ctrAnexarContrato()" style="white-space:nowrap">📎 Anexar existente</button>
+        <input type="file" id="ctr-anexar-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" style="display:none" onchange="ctrOnAnexar(this)">
+      </div>
+      <div id="contratos-list"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 
 
@@ -2160,6 +2322,10 @@ function renderHome(){
   if(eU) eU.textContent = totalUsinas || '0';
   if(eC) eC.textContent = totalClientes || '0';
   if(eK) eK.textContent = totalKwp>0 ? (totalKwp%1===0?totalKwp:totalKwp.toFixed(1)) : '0';
+  // Stats contratos
+  var ctrC=_ctrLoad('ctr_contratos'); var ctrM=_ctrLoad('ctr_modelos');
+  var eCtr=document.getElementById('home-st-contratos'); if(eCtr) eCtr.textContent=ctrC.length||'0';
+  var eMod=document.getElementById('home-st-modelos'); if(eMod) eMod.textContent=ctrM.length||'0';
 }
 function irParaUsinas(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
@@ -5430,6 +5596,373 @@ async function salvarConfigAsaas(){
     }
   }catch(e){ toast('Erro de rede: '+e.message,'warn'); }
   finally{ if(btn){ btn.disabled=false; btn.textContent='Conectar'; } }
+}
+
+// ── CONTRATOS ──────────────────────────────────────
+var _ctrModelos = [];
+var _ctrContratos = [];
+
+var CTR_CAMPO_LABELS = {
+  NOME:'Nome Completo', NOME_CLIENTE:'Nome do Cliente', NOME_CONTRATANTE:'Contratante',
+  NOME_CONTRATADO:'Contratado', CPF:'CPF', RG:'RG', CNPJ_CLIENTE:'CNPJ do Cliente',
+  ENDERECO:'Endereço Completo', CIDADE:'Cidade', ESTADO:'Estado/UF', CEP:'CEP',
+  EMAIL:'E-mail', TELEFONE:'Telefone', CELULAR:'Celular',
+  VALOR:'Valor do Contrato (R$)', VALOR_TOTAL:'Valor Total (R$)',
+  VALOR_PARCELA:'Valor da Parcela (R$)', NUM_PARCELAS:'Nº de Parcelas',
+  DATA:'Data', DATA_HOJE:'Data de Hoje', DATA_INICIO:'Data de Início',
+  DATA_FIM:'Data de Término', DATA_ASSINATURA:'Data da Assinatura',
+  PRAZO:'Prazo (dias)', GARANTIA_ANOS:'Garantia (anos)',
+  POTENCIA:'Potência do Sistema (kWp)', NUM_MODULOS:'Nº de Módulos',
+  MARCA_MODULO:'Marca do Módulo', MARCA_INVERSOR:'Marca do Inversor',
+  ESTRUTURA:'Tipo de Estrutura', ENDERECO_OBRA:'Endereço da Obra',
+  EMPRESA:'Nome da Empresa', CNPJ_EMPRESA:'CNPJ da Empresa',
+  REPRESENTANTE:'Representante Legal', TESTEMUNHA1:'Testemunha 1', TESTEMUNHA2:'Testemunha 2'
+};
+
+function _ctrLoad(key){ try{return JSON.parse(localStorage.getItem(key)||'[]');}catch(e){return[];} }
+function _ctrSave(key,arr){ try{localStorage.setItem(key,JSON.stringify(arr));}catch(e){} }
+function _escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _fmtDataBR(iso){ try{return new Date(iso).toLocaleDateString('pt-BR');}catch(e){return iso||'—';} }
+
+function _ctrDetectarCampos(texto){
+  var matches=texto.match(/\{\{([A-Z0-9_]+)\}\}/g)||[];
+  var campos=[];
+  matches.forEach(function(m){ var c=m.slice(2,-2); if(campos.indexOf(c)===-1) campos.push(c); });
+  return campos;
+}
+
+function _ctrLabelCampo(c){
+  return CTR_CAMPO_LABELS[c]||c.replace(/_/g,' ').replace(/\b\w/g,function(l){return l.toUpperCase();});
+}
+
+function irParaContratos(){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-contratos').classList.add('active');
+  _ctrModelos=_ctrLoad('ctr_modelos');
+  _ctrContratos=_ctrLoad('ctr_contratos');
+  mostrarTabContrato('modelos');
+  ctrRenderModelosList();
+  ctrRenderLista();
+  ctrAtualizarStats();
+}
+
+function mostrarTabContrato(tab){
+  ['modelos','novo','lista'].forEach(function(t){
+    var sec=document.getElementById('ctr-tab-'+t); if(sec) sec.style.display='none';
+    var btn=document.getElementById('ctr-btn-'+t); if(btn) btn.classList.remove('active');
+  });
+  var s=document.getElementById('ctr-tab-'+tab); if(s) s.style.display='block';
+  var b=document.getElementById('ctr-btn-'+tab); if(b) b.classList.add('active');
+  if(tab==='novo') ctrRenderModeloSelect();
+  if(tab==='lista') ctrRenderLista();
+}
+
+/* ── MODELOS ── */
+function ctrDetectarCampos(){
+  var texto=(document.getElementById('tpl-texto')||{}).value||'';
+  var campos=_ctrDetectarCampos(texto);
+  var el=document.getElementById('tpl-campos-preview'); if(!el) return;
+  if(!campos.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="font-size:11px;color:var(--text2);margin-bottom:5px">'+campos.length+' campos detectados:</div>'
+    +campos.map(function(c){return '<span class="ctr-campo-tag">{{'+_escHtml(c)+'}}</span>';}).join('');
+}
+
+function ctrCarregarArquivoTpl(inp){
+  if(!inp.files||!inp.files[0]) return;
+  var f=inp.files[0];
+  var reader=new FileReader();
+  if(f.name.endsWith('.docx')){
+    reader.onload=function(e){
+      var texto=_extrairTextoDocx(e.target.result);
+      var el=document.getElementById('tpl-texto'); if(el) el.value=texto;
+      ctrDetectarCampos();
+      toast('📄 DOCX carregado — verifique o texto e ajuste se necessário.');
+    };
+    reader.readAsArrayBuffer(f);
+  } else {
+    reader.onload=function(e){
+      var el=document.getElementById('tpl-texto'); if(el) el.value=e.target.result;
+      ctrDetectarCampos();
+      toast('📄 Arquivo carregado!');
+    };
+    reader.readAsText(f,'UTF-8');
+  }
+  inp.value='';
+}
+
+function _extrairTextoDocx(buffer){
+  // Extração básica: encontrar texto XML do word/document.xml dentro do ZIP
+  try {
+    var bytes=new Uint8Array(buffer);
+    var str=String.fromCharCode.apply(null,bytes);
+    // Procurar padrão XML de texto do Word
+    var xmlMatch=str.match(/word\/document\.xml/);
+    if(!xmlMatch) return '(Não foi possível extrair o texto. Cole o conteúdo manualmente.)';
+    var xmlStart=str.indexOf('<w:document',str.indexOf('word/document.xml'));
+    if(xmlStart===-1) xmlStart=str.indexOf('<?xml');
+    var xmlContent=str.slice(xmlStart,xmlStart+200000);
+    // Remover tags XML e extrair texto
+    var texto=xmlContent
+      .replace(/<w:br[^>]*\/>/g,'\n')
+      .replace(/<\/w:p>/g,'\n')
+      .replace(/<[^>]+>/g,' ')
+      .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')
+      .replace(/[ \t]{2,}/g,' ')
+      .replace(/\n{3,}/g,'\n\n')
+      .trim();
+    return texto||'(Texto não extraído. Cole o conteúdo manualmente.)';
+  } catch(e) {
+    return '(Erro ao ler o arquivo. Cole o conteúdo manualmente.)';
+  }
+}
+
+function ctrDropTpl(e){
+  e.preventDefault();
+  document.querySelector('.ctr-upload-area').classList.remove('over');
+  var f=e.dataTransfer.files[0]; if(!f) return;
+  var inp=document.getElementById('tpl-file-input');
+  var dt=new DataTransfer(); dt.items.add(f); inp.files=dt.files;
+  ctrCarregarArquivoTpl(inp);
+}
+
+function ctrSalvarModelo(){
+  var nome=((document.getElementById('tpl-nome')||{}).value||'').trim();
+  var texto=((document.getElementById('tpl-texto')||{}).value||'').trim();
+  if(!nome){toast('Informe o nome do modelo.','warn');return;}
+  if(!texto){toast('O texto do contrato está vazio.','warn');return;}
+  var campos=_ctrDetectarCampos(texto);
+  var modelo={id:'tpl_'+Date.now(),nome:nome,texto:texto,campos:campos,criadoEm:new Date().toISOString()};
+  _ctrModelos.push(modelo);
+  _ctrSave('ctr_modelos',_ctrModelos);
+  document.getElementById('tpl-nome').value='';
+  document.getElementById('tpl-texto').value='';
+  document.getElementById('tpl-campos-preview').innerHTML='';
+  ctrRenderModelosList();
+  ctrAtualizarStats();
+  toast('✅ Modelo "'+nome+'" salvo com '+campos.length+' campos!');
+}
+
+function ctrRenderModelosList(){
+  var el=document.getElementById('modelos-list'); if(!el) return;
+  if(!_ctrModelos.length){
+    el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text2);font-size:13px">Nenhum modelo salvo ainda.<br>Crie o primeiro acima.</div>';
+    return;
+  }
+  el.innerHTML=_ctrModelos.map(function(m){
+    var tags=m.campos.slice(0,5).map(function(c){return '<span class="ctr-campo-tag">{{'+_escHtml(c)+'}}</span>';}).join('');
+    if(m.campos.length>5) tags+='<span class="ctr-campo-tag" style="background:var(--bg2);color:var(--text2);border-color:var(--border)">+' +(m.campos.length-5)+'</span>';
+    return '<div class="tpl-card">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="tpl-card-name">'+_escHtml(m.nome)+'</div>'
+      +'<div style="margin:4px 0">'+(tags||'<em style="font-size:11px;color:var(--text2)">Sem campos {{}} detectados</em>')+'</div>'
+      +'<div style="font-size:10px;color:var(--text2)">'+m.campos.length+' campos · '+_fmtDataBR(m.criadoEm)+'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
+      +'<button class="btn-e" onclick="ctrUsarModelo(\''+m.id+'\')">Usar</button>'
+      +'<button class="btn-w" onclick="ctrExcluirModelo(\''+m.id+'\')">✕</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function ctrExcluirModelo(id){
+  if(!confirm('Excluir este modelo?')) return;
+  _ctrModelos=_ctrModelos.filter(function(m){return m.id!==id;});
+  _ctrSave('ctr_modelos',_ctrModelos);
+  ctrRenderModelosList();
+  ctrAtualizarStats();
+}
+
+function ctrUsarModelo(id){
+  mostrarTabContrato('novo');
+  var sel=document.getElementById('ctr-select-modelo'); if(!sel) return;
+  sel.value=id;
+  ctrRenderCamposForm();
+}
+
+/* ── NOVO CONTRATO ── */
+function ctrRenderModeloSelect(){
+  var sel=document.getElementById('ctr-select-modelo'); if(!sel) return;
+  var cur=sel.value;
+  sel.innerHTML='<option value="">— Selecione um modelo —</option>'
+    +_ctrModelos.map(function(m){return '<option value="'+m.id+'">'+_escHtml(m.nome)+'</option>';}).join('');
+  if(cur) sel.value=cur;
+  ctrRenderCamposForm();
+}
+
+function ctrRenderCamposForm(){
+  var sel=document.getElementById('ctr-select-modelo');
+  var modeloId=sel?sel.value:'';
+  var modelo=_ctrModelos.find(function(m){return m.id===modeloId;});
+  var el=document.getElementById('ctr-campos-form'); if(!el) return;
+  if(!modelo){el.innerHTML='';return;}
+  if(!modelo.campos.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text2);padding:8px;background:var(--bg2);border-radius:var(--r)">Nenhum campo <code>{{CAMPO}}</code> detectado neste modelo. O PDF será gerado com o texto original.</div>';
+    return;
+  }
+  var u=usuarioAtual||{};
+  var prefill={
+    EMPRESA:u.empresa||'', CNPJ_EMPRESA:u.cnpj||'',
+    TELEFONE:u.contato||'', EMAIL:u.emailProposta||u.email||'',
+    ENDERECO:u.endereco||'', DATA_HOJE:_dataHoje(), DATA:_dataHoje()
+  };
+  el.innerHTML='<div class="ctr-campo-grid">'
+    +modelo.campos.map(function(c){
+      var label=_ctrLabelCampo(c);
+      var val=_escHtml(prefill[c]||'');
+      return '<div class="fr" style="margin-bottom:0"><label class="prop-label">'+_escHtml(label)+'</label>'
+        +'<input class="prop-input" id="ctr-f-'+c+'" value="'+val+'" placeholder="'+_escHtml(label)+'"></div>';
+    }).join('')
+    +'</div>';
+}
+
+function ctrGerarPDF(){
+  var sel=document.getElementById('ctr-select-modelo');
+  var modeloId=sel?sel.value:'';
+  var modelo=_ctrModelos.find(function(m){return m.id===modeloId;});
+  if(!modelo){toast('Selecione um modelo primeiro.','warn');return;}
+
+  var valores={};
+  modelo.campos.forEach(function(c){
+    var inp=document.getElementById('ctr-f-'+c);
+    valores[c]=inp?inp.value:'';
+  });
+
+  var textoFinal=modelo.texto.replace(/\{\{([A-Z0-9_]+)\}\}/g,function(match,c){return valores[c]!==undefined?valores[c]:match;});
+
+  var clienteNome=valores['NOME_CLIENTE']||valores['NOME']||valores['NOME_CONTRATANTE']||'Cliente';
+  var status=(document.getElementById('ctr-status-sel')||{}).value||'rascunho';
+
+  var contrato={
+    id:'ctr_'+Date.now(),tipo:'gerado',
+    nome:modelo.nome+' — '+clienteNome,
+    clienteNome:clienteNome,modeloId:modelo.id,modeloNome:modelo.nome,
+    criadoEm:new Date().toISOString(),status:status,campos:valores
+  };
+  _ctrContratos.unshift(contrato);
+  _ctrSave('ctr_contratos',_ctrContratos);
+  ctrAtualizarStats();
+
+  // Gerar PDF
+  var doc=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var W=210,H=297,mg=18;
+  var u=usuarioAtual||{};
+  var empNome=u.empresa||'Empresa';
+
+  // Cabeçalho
+  doc.setFillColor(30,107,46); doc.rect(0,0,W,20,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(255,255,255);
+  doc.text(empNome,mg,13);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  doc.text(modelo.nome.toUpperCase(),W-mg,13,{align:'right'});
+
+  // Conteúdo
+  doc.setTextColor(20,20,20); doc.setFontSize(10); doc.setFont('helvetica','normal');
+  var linhas=doc.splitTextToSize(textoFinal,W-mg*2);
+  var y=32,lh=5.5;
+  for(var i=0;i<linhas.length;i++){
+    if(y+lh>H-16){
+      doc.setFontSize(7); doc.setTextColor(130,130,130);
+      doc.text(empNome+' · '+_dataHoje(),mg,H-6);
+      doc.text(String(doc.internal.getNumberOfPages()),W-mg,H-6,{align:'right'});
+      doc.addPage();
+      doc.setFillColor(30,107,46); doc.rect(0,0,W,8,'F');
+      y=18; doc.setFontSize(10); doc.setTextColor(20,20,20); doc.setFont('helvetica','normal');
+    }
+    doc.text(linhas[i],mg,y); y+=lh;
+  }
+  // Rodapé última página
+  doc.setFontSize(7); doc.setTextColor(130,130,130);
+  doc.text(empNome+' · '+_dataHoje(),mg,H-6);
+  doc.text(String(doc.internal.getNumberOfPages()),W-mg,H-6,{align:'right'});
+
+  var filename='Contrato_'+clienteNome.replace(/\s+/g,'_')+'_'+new Date().getFullYear()+'.pdf';
+  doc.save(filename);
+  toast('✅ Contrato gerado e salvo na lista!');
+  mostrarTabContrato('lista');
+}
+
+/* ── LISTA DE CONTRATOS ── */
+function ctrRenderLista(){
+  var el=document.getElementById('contratos-list'); if(!el) return;
+  if(!_ctrContratos.length){
+    el.innerHTML='<div style="text-align:center;padding:36px;color:var(--text2);font-size:13px">Nenhum contrato ainda.<br>Gere seu primeiro contrato ou anexe um existente.</div>';
+    return;
+  }
+  var sort=((document.getElementById('ctr-sort-sel')||{}).value)||'data';
+  var search=(((document.getElementById('ctr-search')||{}).value)||'').toLowerCase();
+  var arr=_ctrContratos.slice();
+  if(sort==='nome') arr.sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  else if(sort==='status') arr.sort(function(a,b){return (a.status||'').localeCompare(b.status||'');});
+  else arr.sort(function(a,b){return b.criadoEm.localeCompare(a.criadoEm);});
+  if(search) arr=arr.filter(function(c){return (c.nome+c.clienteNome).toLowerCase().includes(search);});
+
+  var stCls={rascunho:'st-rascunho',vigente:'st-vigente',assinado:'st-assinado',encerrado:'st-encerrado'};
+  var stLbl={rascunho:'Rascunho',vigente:'Vigente',assinado:'Assinado',encerrado:'Encerrado'};
+
+  el.innerHTML=arr.map(function(c){
+    var st=c.status||'rascunho';
+    var iconSvg=c.tipo==='anexado'
+      ?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>'
+      :'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    return '<div class="ctr-card">'
+      +'<div class="ctr-card-icon">'+iconSvg+'</div>'
+      +'<div class="ctr-card-info">'
+      +'<div class="ctr-card-name">'+_escHtml(c.nome)+'</div>'
+      +'<div class="ctr-card-meta">'+(c.tipo==='anexado'?'Anexado':'Gerado de: '+_escHtml(c.modeloNome||''))
+      +' · '+_fmtDataBR(c.criadoEm)+'</div>'
+      +'</div>'
+      +'<select class="prop-input" style="width:auto;margin-bottom:0;font-size:11px;padding:4px 8px" onchange="ctrAlterarStatus(\''+c.id+'\',this.value)">'
+      +['rascunho','vigente','assinado','encerrado'].map(function(s){
+        return '<option value="'+s+'"'+(s===st?' selected':'')+'>'+stLbl[s]+'</option>';
+      }).join('')
+      +'</select>'
+      +'<button class="btn-w" onclick="ctrExcluirContrato(\''+c.id+'\')" style="flex-shrink:0">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+function ctrAlterarStatus(id,novoStatus){
+  var c=_ctrContratos.find(function(x){return x.id===id;});
+  if(c){ c.status=novoStatus; _ctrSave('ctr_contratos',_ctrContratos); }
+}
+
+function ctrExcluirContrato(id){
+  if(!confirm('Excluir este contrato?')) return;
+  _ctrContratos=_ctrContratos.filter(function(c){return c.id!==id;});
+  _ctrSave('ctr_contratos',_ctrContratos);
+  ctrRenderLista();
+  ctrAtualizarStats();
+}
+
+function ctrAnexarContrato(){
+  document.getElementById('ctr-anexar-input').click();
+}
+
+function ctrOnAnexar(inp){
+  if(!inp.files||!inp.files[0]) return;
+  var f=inp.files[0];
+  var nome=prompt('Nome para este contrato:',f.name.replace(/\.[^.]+$/,''));
+  if(nome===null) return;
+  nome=nome.trim()||f.name;
+  var contrato={
+    id:'ctr_'+Date.now(),tipo:'anexado',
+    nome:nome,clienteNome:nome,
+    criadoEm:new Date().toISOString(),
+    status:'assinado',arquivoNome:f.name
+  };
+  _ctrContratos.unshift(contrato);
+  _ctrSave('ctr_contratos',_ctrContratos);
+  ctrRenderLista();
+  ctrAtualizarStats();
+  toast('📎 "'+nome+'" anexado!');
+  inp.value='';
+}
+
+function ctrAtualizarStats(){
+  var ct=document.getElementById('home-st-contratos');
+  if(ct) ct.textContent=_ctrContratos.length||'0';
+  var mt=document.getElementById('home-st-modelos');
+  if(mt) mt.textContent=_ctrModelos.length||'0';
 }
 
 initFirebase();
