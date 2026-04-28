@@ -2284,7 +2284,7 @@ function dimensionarAuto(){
   var SC=Math.min(gerMensal*sim, kwh>0?kwh:gerMensal);
   var INJ=gerMensal-SC;
   var fatAtualCalc=(kwh>0?kwh:gerMensal)*(tarifa*(1+ip)+bandeira);
-  var econMensal=Math.min(SC*(tarifa*(1+ip)+bandeira)+INJ*Math.max(0,tarifa-fioB-tarifa*ip), fatAtualCalc);
+  var econMensal=Math.min(SC*(tarifa*(1+ip)+bandeira)+INJ*Math.max(0,tarifa-fioB), fatAtualCalc);
   var econAnual=econMensal*12;
   var payback=(valor>0&&econAnual>0)?valor/econAnual:0;
   _propCalc={kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,valor,fioB,ipPct,bandeira,simPct,sim};
