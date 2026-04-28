@@ -1981,7 +1981,9 @@ function initFirebase(){
         mods[2].getDoc(mods[2].doc(fbDb,'usuarios',user.uid)).then(function(snap){
           var perfil = snap.exists() ? snap.data() : {};
           usuarioAtual = Object.assign({uid:user.uid,email:user.email},perfil);
-          fbLoadUsinas(user.uid).then(function(){ entrarNoApp(); });
+          fbLoadUsinas(user.uid).then(function(){
+          return fbLoadPropostas(user.uid);
+        }).then(function(){ entrarNoApp(); });
         });
       } else { usuarioAtual=null; mostrarAuth(); }
     });
@@ -1995,6 +1997,33 @@ function fbLoadUsinas(uid){
 function fbSvUsinas(){
   if(!firebaseOK||!usuarioAtual) return;
   window._fbDb.setDoc(window._fbDb.doc(fbDb,'dados',usuarioAtual.uid),{usinas:usinas},{merge:true}).catch(function(){});
+}
+function fbLoadPropostas(uid){
+  var db=window._fbDb;
+  return db.getDocs(db.collection(fbDb,'dados',uid,'propostas')).then(function(snap){
+    if(!snap.empty){
+      var arr=[];
+      snap.forEach(function(d){ arr.push(d.data()); });
+      arr.sort(function(a,b){ return b.data.localeCompare(a.data); });
+      try{localStorage.setItem('propostas_geradas',JSON.stringify(arr));}catch(e){}
+    } else {
+      // migra propostas existentes no localStorage para o Firestore
+      var local=_loadHist();
+      local.forEach(function(p){
+        db.setDoc(db.doc(fbDb,'dados',uid,'propostas',p.id),p).catch(function(){});
+      });
+    }
+  }).catch(function(){});
+}
+function fbSvProposta(prop){
+  if(!firebaseOK||!usuarioAtual) return;
+  var db=window._fbDb;
+  db.setDoc(db.doc(fbDb,'dados',usuarioAtual.uid,'propostas',prop.id),prop).catch(function(){});
+}
+function fbDelProposta(id){
+  if(!firebaseOK||!usuarioAtual) return;
+  var db=window._fbDb;
+  db.deleteDoc(db.doc(fbDb,'dados',usuarioAtual.uid,'propostas',id)).catch(function(){});
 }
 function initOffline(){
   firebaseOK = false;
@@ -3210,16 +3239,22 @@ function salvarProposta(){
     if(hist.length>300) hist=hist.slice(0,300);
   }
   try{localStorage.setItem('propostas_geradas',JSON.stringify(hist));}catch(e){}
+  fbSvProposta(prop);
 }
 function _loadHist(){try{return JSON.parse(localStorage.getItem('propostas_geradas')||'[]');}catch(e){return[];}}
 function limparHistorico(){
   if(!confirm('Apagar todas as propostas salvas?')) return;
-  localStorage.removeItem('propostas_geradas'); renderHistorico();
+  var hist=_loadHist();
+  localStorage.removeItem('propostas_geradas');
+  hist.forEach(function(p){ fbDelProposta(p.id); });
+  renderHistorico();
 }
 function deletarProposta(id){
   if(!confirm('Excluir esta proposta?')) return;
   var h=_loadHist().filter(function(p){return p.id!==id;});
-  try{localStorage.setItem('propostas_geradas',JSON.stringify(h));}catch(e){} renderHistorico();
+  try{localStorage.setItem('propostas_geradas',JSON.stringify(h));}catch(e){}
+  fbDelProposta(id);
+  renderHistorico();
 }
 function salvarOrcamento(){
   salvarProposta();
