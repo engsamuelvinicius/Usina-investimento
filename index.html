@@ -1335,7 +1335,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         </div>
         <!-- Upload de logo para esta proposta -->
         <div style="margin-top:10px">
-          <div class="prop-label">Logo desta proposta <span style="font-weight:400">(substitui a das Configurações)</span></div>
+          <div class="prop-label">Logo da empresa <span style="font-weight:400">(carregue e clique "Usar como padrão" para salvar)</span></div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
             <button class="btn-s" type="button" onclick="document.getElementById('p-logo-input').click()">📎 Carregar logo</button>
             <span id="p-logo-status" style="font-size:11px;color:var(--text2)"></span>
@@ -1346,7 +1346,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <!-- Nome da empresa para esta proposta -->
         <div class="fr" style="margin-top:10px;margin-bottom:0">
           <label class="prop-label">Nome da empresa na proposta</label>
-          <input id="p-nome-empresa" class="prop-input" placeholder="Deixe em branco para usar o cadastrado" oninput="atualizarPreviewProposta();atualizarRodapePreview()">
+          <input id="p-nome-empresa" class="prop-input" placeholder="Nome da empresa (salve como padrão abaixo)" oninput="atualizarPreviewProposta();atualizarRodapePreview()">
         </div>
       </div>
 
@@ -2612,7 +2612,7 @@ function initCorProposta(){
     var rm=document.getElementById('p-logo-rm');
     if(rm) rm.style.display=_propLogoBase64?'':'none';
   } else {
-    row.innerHTML='<span style="font-size:11px;color:var(--text2)">Sem logo — configure em <strong>Configurações</strong> para aparecer na capa do PDF</span>';
+    row.innerHTML='<span style="font-size:11px;color:var(--text2)">Sem logo — carregue abaixo e clique <strong>Usar como padrão</strong> para salvar para todas as propostas</span>';
     var st=document.getElementById('p-logo-status'); if(st) st.textContent='';
     var rm=document.getElementById('p-logo-rm'); if(rm) rm.style.display='none';
   }
@@ -3113,10 +3113,12 @@ function preencherRodapaoDoPerfil(){
   var telEl=document.getElementById('p-rod-tel');
   var emailEl=document.getElementById('p-rod-email');
   var endEl=document.getElementById('p-rod-end');
+  var nomeEl=document.getElementById('p-nome-empresa');
   if(cnpjEl) cnpjEl.value=u.cnpj||'';
   if(telEl) telEl.value=u.contato||'';
   if(emailEl) emailEl.value=u.emailProposta||u.email||'';
   if(endEl) endEl.value=u.endereco||'';
+  if(nomeEl) nomeEl.value=u.empresa||'';
 }
 function salvarComopadraoDados(){
   var u=usuarioAtual; if(!u) return;
@@ -3126,7 +3128,8 @@ function salvarComopadraoDados(){
   u.endereco=(document.getElementById('p-rod-end')||{}).value||'';
   var nomeEmp=((document.getElementById('p-nome-empresa')||{}).value)||'';
   if(nomeEmp) u.empresa=nomeEmp;
-  _persistirPerfil(u); atualizarPill();
+  if(_propLogoBase64){ if(!u.config) u.config={}; u.config.logoBase64=_propLogoBase64; }
+  _persistirPerfil(u); atualizarPill(); initCorProposta();
   toast('✅ Dados salvos como padrão para todas as propostas!');
 }
 function toggleRodapaoPadrao(){ atualizarRodapePreview(); }
