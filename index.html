@@ -629,6 +629,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .hist-del-btn:hover{background:#fff0f0;border-color:#c53030}
 .hist-edit-btn{background:none;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:12px;padding:3px 8px;font-weight:600;transition:.15s;margin-right:4px}
 .hist-edit-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-l)}
+.hist-share-btn{background:none;border:1.5px solid #b2dfdb;border-radius:6px;cursor:pointer;color:#128C7E;font-size:12px;padding:3px 8px;font-weight:600;transition:.15s;margin-right:4px}
+.hist-share-btn:hover{background:#e8f5e9;border-color:#128C7E}
 .hist-action-cell{display:flex;gap:4px;align-items:center;white-space:nowrap}
 .prop-cor-row{display:flex;align-items:center;gap:10px;margin-top:6px}
 .prop-cor-row label{font-size:12px;color:var(--text2);white-space:nowrap}
@@ -1037,6 +1039,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Gerar PDF
       </button>
+      <button class="btn-p" id="btn-compartilhar-pdf" onclick="gerarPDFProposta('share')" style="display:flex;align-items:center;gap:6px;padding:9px 18px;background:#128C7E">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Compartilhar
+      </button>
     </div>
   </div>
   <div id="prop-tab-form" class="prop-wrap">
@@ -1343,6 +1349,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       <button class="prop-btn-pdf" onclick="gerarPDFProposta()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Gerar Proposta em PDF
+      </button>
+      <button class="prop-btn-pdf" onclick="gerarPDFProposta('share')" style="background:#128C7E;margin-top:8px;box-shadow:0 4px 16px rgba(18,140,126,.3)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Compartilhar pelo WhatsApp
       </button>
       <div style="font-size:10px;color:var(--text2);text-align:center;margin-top:6px">PDF gerado localmente no seu dispositivo</div>
     </div>
@@ -2542,7 +2552,7 @@ function initCorProposta(){
   }
 }
 
-function gerarPDFProposta(){
+function gerarPDFProposta(modo){
   if(typeof window.jspdf==='undefined'&&typeof jsPDF==='undefined'){
     alert('Biblioteca PDF não carregada. Recarregue a página.'); return;
   }
@@ -2938,13 +2948,31 @@ function gerarPDFProposta(){
   }
   // Atualizar total de páginas nas páginas anteriores (não trivial em jsPDF — mantemos o número estático)
 
-  // Save
+  // Save / Share
   var filename='Proposta_'+nome.replace(/\s+/g,'_')+'_'+new Date().getFullYear()+'.pdf';
-  doc.save(filename);
-  salvarProposta(); // salva/atualiza no histórico ao gerar PDF
+  if(modo==='share'){
+    var blob=doc.output('blob');
+    var file=new File([blob],filename,{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'Proposta Solar — '+nome,text:'Segue sua proposta solar.'}).catch(function(e){
+        if(e.name!=='AbortError'){doc.save(filename);toast('PDF baixado como alternativa.');}
+      });
+    } else {
+      doc.save(filename);
+      toast('📱 Compartilhamento não suportado neste navegador — PDF baixado.');
+    }
+  } else {
+    doc.save(filename);
+  }
+  salvarProposta();
   _propContador++;
   var el=document.getElementById('home-st-propostas'); if(el) el.textContent=_propContador;
-  if(_editandoPropostaId) toast('✅ Proposta atualizada e PDF gerado!');
+  if(_editandoPropostaId&&modo!=='share') toast('✅ Proposta atualizada e PDF gerado!');
+}
+
+function compartilharPropostaSalva(id){
+  editarProposta(id);
+  gerarPDFProposta('share');
 }
 // ── TABS ──────────────────────────────────────────
 function mostrarTabProposta(tab){
@@ -3292,7 +3320,7 @@ function renderHistorico(){
         '<td><strong>R$ '+_fmt(p.valor||0)+'</strong></td>'+
         '<td style="color:var(--green);font-weight:700">'+((p.payback||0)>0?p.payback.toFixed(1)+'a':'–')+'</td>'+
         '<td><span class="hist-badge-pag">'+(pl[p.pagamento]||p.pagamento||'–')+'</span></td>'+
-        '<td><div class="hist-action-cell"><button class="hist-edit-btn" onclick="editarProposta(\''+p.id+'\')" title="Editar proposta">✏️ Editar</button><button class="hist-del-btn" onclick="deletarProposta(\''+p.id+'\')" title="Excluir proposta">🗑</button></div></td></tr>';
+        '<td><div class="hist-action-cell"><button class="hist-edit-btn" onclick="editarProposta(\''+p.id+'\')" title="Editar proposta">✏️ Editar</button><button class="hist-share-btn" onclick="compartilharPropostaSalva(\''+p.id+'\')" title="Compartilhar proposta">📤 Compartilhar</button><button class="hist-del-btn" onclick="deletarProposta(\''+p.id+'\')" title="Excluir proposta">🗑</button></div></td></tr>';
     }).join('')+'</tbody></table></div>';
 }
 
