@@ -2184,7 +2184,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 
 // ── Globais de estado (declarados explicitamente para evitar poluição do escopo global)
 var firebaseOK = false, fbAuth = null, fbDb = null, usuarioAtual = null;
-var _unsubUsinas = null, _unsubPropostas = null;
+var _unsubUsinas = null, _unsubPropostas = null, _unsubModelos = null, _unsubContratos = null;
 var _toggleState = {ip: null, fiob: null};
 
 var FB_CONFIG = {
@@ -2276,9 +2276,11 @@ function initFirebase(){
         mods[2].getDoc(mods[2].doc(fbDb,'usuarios',user.uid)).then(function(snap){
           var perfil = snap.exists() ? snap.data() : {};
           usuarioAtual = Object.assign({uid:user.uid,email:user.email},perfil);
-          fbListenUsinas(user.uid).then(function(){
-          return fbListenPropostas(user.uid);
-        }).then(function(){ entrarNoApp(); });
+          fbListenUsinas(user.uid)
+          .then(function(){ return fbListenPropostas(user.uid); })
+          .then(function(){ return fbListenModelos(user.uid); })
+          .then(function(){ return fbListenContratos(user.uid); })
+          .then(function(){ entrarNoApp(); });
         });
       } else { usuarioAtual=null; mostrarAuth(); }
     });
@@ -2349,6 +2351,68 @@ function fbDelProposta(id){
   if(!firebaseOK||!usuarioAtual) return;
   var db=window._fbDb;
   db.deleteDoc(db.doc(fbDb,'dados',usuarioAtual.uid,'propostas',id)).catch(function(){});
+}
+function fbSvModelo(m){
+  if(!firebaseOK||!usuarioAtual) return;
+  var db=window._fbDb;
+  db.setDoc(db.doc(fbDb,'dados',usuarioAtual.uid,'ctr_modelos',m.id),m).catch(function(){});
+}
+function fbDelModelo(id){
+  if(!firebaseOK||!usuarioAtual) return;
+  var db=window._fbDb;
+  db.deleteDoc(db.doc(fbDb,'dados',usuarioAtual.uid,'ctr_modelos',id)).catch(function(){});
+}
+function fbSvContrato(c){
+  if(!firebaseOK||!usuarioAtual) return;
+  var db=window._fbDb;
+  db.setDoc(db.doc(fbDb,'dados',usuarioAtual.uid,'ctr_contratos',c.id),c).catch(function(){});
+}
+function fbDelContrato(id){
+  if(!firebaseOK||!usuarioAtual) return;
+  var db=window._fbDb;
+  db.deleteDoc(db.doc(fbDb,'dados',usuarioAtual.uid,'ctr_contratos',id)).catch(function(){});
+}
+function fbListenModelos(uid){
+  return new Promise(function(resolve){
+    var db=window._fbDb, first=true;
+    _unsubModelos=db.onSnapshot(db.collection(fbDb,'dados',uid,'ctr_modelos'),function(snap){
+      if(snap.empty&&first){
+        var local=_ctrLoad('ctr_modelos');
+        local.forEach(function(m){ db.setDoc(db.doc(fbDb,'dados',uid,'ctr_modelos',m.id),m).catch(function(){}); });
+        first=false; resolve(); return;
+      }
+      var arr=[];
+      snap.forEach(function(d){ arr.push(d.data()); });
+      arr.sort(function(a,b){ return (a.criadoEm||'').localeCompare(b.criadoEm||''); });
+      _ctrModelos=arr;
+      try{localStorage.setItem('ctr_modelos',JSON.stringify(arr));}catch(e){}
+      if(first){ first=false; resolve(); return; }
+      var sc=document.getElementById('screen-contratos');
+      if(sc&&sc.classList.contains('active')){ ctrRenderModelosList(); ctrRenderModeloSelect(); }
+      ctrAtualizarStats();
+    },function(){ resolve(); });
+  });
+}
+function fbListenContratos(uid){
+  return new Promise(function(resolve){
+    var db=window._fbDb, first=true;
+    _unsubContratos=db.onSnapshot(db.collection(fbDb,'dados',uid,'ctr_contratos'),function(snap){
+      if(snap.empty&&first){
+        var local=_ctrLoad('ctr_contratos');
+        local.forEach(function(c){ db.setDoc(db.doc(fbDb,'dados',uid,'ctr_contratos',c.id),c).catch(function(){}); });
+        first=false; resolve(); return;
+      }
+      var arr=[];
+      snap.forEach(function(d){ arr.push(d.data()); });
+      arr.sort(function(a,b){ return (b.criadoEm||'').localeCompare(a.criadoEm||''); });
+      _ctrContratos=arr;
+      try{localStorage.setItem('ctr_contratos',JSON.stringify(arr));}catch(e){}
+      if(first){ first=false; resolve(); return; }
+      var sc=document.getElementById('screen-contratos');
+      if(sc&&sc.classList.contains('active')){ ctrRenderLista(); }
+      ctrAtualizarStats();
+    },function(){ resolve(); });
+  });
 }
 function initOffline(){
   firebaseOK = false;
@@ -2422,6 +2486,8 @@ function fazerLogout(){
   fecharUserMenu();
   if(_unsubUsinas){ _unsubUsinas(); _unsubUsinas=null; }
   if(_unsubPropostas){ _unsubPropostas(); _unsubPropostas=null; }
+  if(_unsubModelos){ _unsubModelos(); _unsubModelos=null; }
+  if(_unsubContratos){ _unsubContratos(); _unsubContratos=null; }
   if(firebaseOK&&fbAuth){ window._fbAuth.signOut(fbAuth); }
   else { lsClrSession(); usuarioAtual=null; mostrarAuth(); }
 }
@@ -5766,8 +5832,8 @@ function _ctrLabelCampo(c){
 function irParaContratos(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-contratos').classList.add('active');
-  _ctrModelos=_ctrLoad('ctr_modelos');
-  _ctrContratos=_ctrLoad('ctr_contratos');
+  // Se sem Firebase, carregar do localStorage
+  if(!firebaseOK){ _ctrModelos=_ctrLoad('ctr_modelos'); _ctrContratos=_ctrLoad('ctr_contratos'); }
   mostrarTabContrato('modelos');
   ctrRenderModelosList();
   ctrRenderLista();
@@ -5861,11 +5927,13 @@ function ctrSalvarModelo(){
   var campos=_ctrDetectarCampos(texto);
   var modelo={id:'tpl_'+Date.now(),nome:nome,texto:texto,campos:campos,criadoEm:new Date().toISOString()};
   _ctrModelos.push(modelo);
-  _ctrSave('ctr_modelos',_ctrModelos);
+  try{localStorage.setItem('ctr_modelos',JSON.stringify(_ctrModelos));}catch(e){}
+  fbSvModelo(modelo);
   document.getElementById('tpl-nome').value='';
   document.getElementById('tpl-texto').value='';
   document.getElementById('tpl-campos-preview').innerHTML='';
   ctrRenderModelosList();
+  ctrRenderModeloSelect();
   ctrAtualizarStats();
   toast('✅ Modelo "'+nome+'" salvo com '+campos.length+' campos!');
 }
@@ -5895,7 +5963,8 @@ function ctrRenderModelosList(){
 function ctrExcluirModelo(id){
   if(!confirm('Excluir este modelo?')) return;
   _ctrModelos=_ctrModelos.filter(function(m){return m.id!==id;});
-  _ctrSave('ctr_modelos',_ctrModelos);
+  try{localStorage.setItem('ctr_modelos',JSON.stringify(_ctrModelos));}catch(e){}
+  fbDelModelo(id);
   ctrRenderModelosList();
   ctrAtualizarStats();
 }
@@ -6007,7 +6076,8 @@ function ctrGerarPDF(){
     criadoEm:new Date().toISOString(),status:status,campos:valores
   };
   _ctrContratos.unshift(contrato);
-  _ctrSave('ctr_contratos',_ctrContratos);
+  try{localStorage.setItem('ctr_contratos',JSON.stringify(_ctrContratos));}catch(e){}
+  fbSvContrato(contrato);
   ctrAtualizarStats();
 
   // Gerar PDF
@@ -6149,13 +6219,18 @@ function ctrRenderLista(){
 
 function ctrAlterarStatus(id,novoStatus){
   var c=_ctrContratos.find(function(x){return x.id===id;});
-  if(c){ c.status=novoStatus; _ctrSave('ctr_contratos',_ctrContratos); }
+  if(c){
+    c.status=novoStatus;
+    try{localStorage.setItem('ctr_contratos',JSON.stringify(_ctrContratos));}catch(e){}
+    fbSvContrato(c);
+  }
 }
 
 function ctrExcluirContrato(id){
   if(!confirm('Excluir este contrato?')) return;
   _ctrContratos=_ctrContratos.filter(function(c){return c.id!==id;});
-  _ctrSave('ctr_contratos',_ctrContratos);
+  try{localStorage.setItem('ctr_contratos',JSON.stringify(_ctrContratos));}catch(e){}
+  fbDelContrato(id);
   ctrRenderLista();
   ctrAtualizarStats();
 }
@@ -6177,7 +6252,8 @@ function ctrOnAnexar(inp){
     status:'assinado',arquivoNome:f.name
   };
   _ctrContratos.unshift(contrato);
-  _ctrSave('ctr_contratos',_ctrContratos);
+  try{localStorage.setItem('ctr_contratos',JSON.stringify(_ctrContratos));}catch(e){}
+  fbSvContrato(contrato);
   ctrRenderLista();
   ctrAtualizarStats();
   toast('📎 "'+nome+'" anexado!');
