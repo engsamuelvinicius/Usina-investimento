@@ -648,6 +648,12 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .prop-folio-item img{width:100%;height:100%;object-fit:cover}
 .prop-folio-rm{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;padding:2px 5px;line-height:1}
 .prop-rodape-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.prop-dados-padrao{background:var(--green-l);border:1.5px solid var(--green);border-radius:var(--r);padding:10px 14px;margin-bottom:8px}
+.prop-dados-padrao .pdn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.prop-dados-padrao .pdn-nome{font-size:13px;font-weight:600;color:var(--green-t)}
+.prop-dados-padrao .pdn-badge{font-size:10px;font-weight:700;color:var(--green);background:#fff;border:1px solid var(--green);border-radius:20px;padding:2px 8px}
+.prop-dados-padrao .pdn-info{font-size:11px;color:var(--text2);line-height:1.7}
+.prop-dados-padrao .pdn-link{font-size:11px;color:var(--green);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;margin-top:5px;display:inline-block}
 
 
 </style>
@@ -1301,9 +1307,20 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       <div class="prop-section">
         <div class="prop-section-label">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          Rodapé da proposta
-          <label style="margin-left:auto;font-size:11px;font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="p-rodape-padrao" checked onchange="toggleRodapaoPadrao()"> Usar dados das Configurações</label>
+          Dados da empresa no PDF
         </div>
+        <!-- Card visual: dados do perfil (visível quando usar padrão) -->
+        <div id="p-rodape-default-card" class="prop-dados-padrao">
+          <div class="pdn-header">
+            <span class="pdn-nome" id="pdn-nome">—</span>
+            <span class="pdn-badge">✓ Padrão</span>
+          </div>
+          <div class="pdn-info" id="pdn-info">Carregando...</div>
+          <button class="pdn-link" onclick="irParaConfiguracoesEmpresa()">✏️ Editar nas Configurações</button>
+          <span style="font-size:10px;color:var(--text2);margin-left:10px">ou</span>
+          <label style="font-size:11px;color:var(--text2);cursor:pointer;margin-left:6px"><input type="checkbox" id="p-rodape-padrao" checked onchange="toggleRodapaoPadrao()"> personalizar só nesta proposta</label>
+        </div>
+        <!-- Campos customizados (visíveis ao desmarcar "personalizar") -->
         <div id="p-rodape-campos" style="display:none">
           <div class="prop-rodape-grid">
             <div class="fr" style="margin-bottom:0"><label class="prop-label">CNPJ</label><input id="p-rod-cnpj" class="prop-input" placeholder="00.000.000/0001-00" oninput="atualizarRodapePreview()"></div>
@@ -1311,6 +1328,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             <div class="fr" style="margin-bottom:0"><label class="prop-label">E-mail</label><input id="p-rod-email" class="prop-input" placeholder="contato@empresa.com" oninput="atualizarRodapePreview()"></div>
             <div class="fr" style="margin-bottom:0"><label class="prop-label">Endereço</label><input id="p-rod-end" class="prop-input" placeholder="Rua, nº, Cidade/UF" oninput="atualizarRodapePreview()"></div>
           </div>
+          <button class="pdn-link" onclick="document.getElementById('p-rodape-padrao').checked=true;toggleRodapaoPadrao()" style="margin-top:8px">← Voltar a usar dados das Configurações</button>
         </div>
         <div id="p-rodape-preview" style="font-size:11px;color:var(--text2);margin-top:6px"></div>
       </div>
@@ -3047,6 +3065,7 @@ function mostrarTabProposta(tab){
   var btn=document.getElementById('btn-gerar-pdf'); if(btn) btn.style.display=tab==='form'?'flex':'none';
   var btnS=document.getElementById('btn-salvar-orc'); if(btnS) btnS.style.display=tab==='form'?'flex':'none';
   if(tab==='hist') renderHistorico();
+  if(tab==='form') atualizarRodapePreview();
 }
 // ── PORTFÓLIO ──────────────────────────────────────
 function portfolioAdd(input){
@@ -3105,19 +3124,37 @@ function removerLogoProposta(){
 function toggleRodapaoPadrao(){
   var chk=(document.getElementById('p-rodape-padrao')||{}).checked;
   var campos=document.getElementById('p-rodape-campos');
+  var card=document.getElementById('p-rodape-default-card');
   if(campos) campos.style.display=chk?'none':'block';
+  if(card){
+    card.style.borderColor=chk?'var(--green)':'var(--border)';
+    card.style.background=chk?'var(--green-l)':'var(--bg2)';
+  }
   atualizarRodapePreview();
 }
 function atualizarRodapePreview(){
   var preview=document.getElementById('p-rodape-preview'); if(!preview) return;
   var usarPadrao=(document.getElementById('p-rodape-padrao')||{}).checked!==false;
   var u=usuarioAtual||{};
+  var emailProp=u.emailProposta||u.email||'';
   var itens=[];
   if(usarPadrao){
     if(u.cnpj) itens.push('CNPJ: '+u.cnpj);
     if(u.contato) itens.push(u.contato);
-    if(u.email) itens.push(u.email);
+    if(emailProp) itens.push(emailProp);
     if(u.endereco) itens.push(u.endereco);
+    // Atualizar card visual
+    var nomeEl=document.getElementById('pdn-nome');
+    var infoEl=document.getElementById('pdn-info');
+    if(nomeEl) nomeEl.textContent=u.empresa||'(nome não configurado)';
+    if(infoEl){
+      var partes=[];
+      if(u.cnpj) partes.push('CNPJ: '+u.cnpj);
+      if(u.contato) partes.push(u.contato);
+      if(emailProp) partes.push(emailProp);
+      if(u.endereco) partes.push(u.endereco);
+      infoEl.textContent=partes.length?partes.join(' · '):'Configure seus dados em Configurações →';
+    }
   } else {
     var c=((document.getElementById('p-rod-cnpj')||{}).value)||'';
     var t=((document.getElementById('p-rod-tel')||{}).value)||'';
@@ -3125,7 +3162,7 @@ function atualizarRodapePreview(){
     var en=((document.getElementById('p-rod-end')||{}).value)||'';
     if(c) itens.push('CNPJ: '+c); if(t) itens.push(t); if(em) itens.push(em); if(en) itens.push(en);
   }
-  preview.textContent=itens.length?'No PDF: '+itens.join(' | '):'(rodapé vazio — configure em Configurações ou preencha acima)';
+  preview.textContent=itens.length?'No PDF: '+itens.join(' | '):'';
   // Atualizar footers no preview HTML em tempo real (multi-linha)
   var nomeEmpresaInp=((document.getElementById('p-nome-empresa')||{}).value)||'';
   var u2=usuarioAtual||{};
@@ -3139,6 +3176,13 @@ function atualizarRodapePreview(){
     var emailF=((document.getElementById('p-email')||{}).value)||'';
     covEl.textContent=empNome+(emailF?' · '+emailF:'');
   }
+}
+function irParaConfiguracoesEmpresa(){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var sg=document.getElementById('screen-geral');
+  if(sg) sg.classList.add('active');
+  var btnCfg=document.getElementById('tab-config');
+  if(btnCfg) switchTab('config',btnCfg);
 }
 
 // ── CITY AUTOCOMPLETE (IBGE) ───────────────────────
@@ -3782,7 +3826,8 @@ function salvarDadosConta(){
   u.cnpj=document.getElementById('cfg-cnpj').value.trim();
   u.endereco=document.getElementById('cfg-endereco').value.trim();
   u.contato=document.getElementById('cfg-contato').value.trim();
-  _persistirPerfil(u); atualizarPill(); toast('✅ Dados salvos!');
+  u.emailProposta=document.getElementById('cfg-emailproposta').value.trim();
+  _persistirPerfil(u); atualizarPill(); atualizarRodapePreview(); toast('✅ Dados salvos!');
 }
 function salvarCfg(){
   var u=usuarioAtual; if(!u||!u.config)return;
@@ -3925,7 +3970,8 @@ function renderConfiguracoes(){
     + '<div class="fr"><label>CNPJ</label><input type="text" id="cfg-cnpj" value="' + (u.cnpj||'') + '"></div>'
     + '<div class="fr"><label>Endereço</label><input type="text" id="cfg-endereco" value="' + (u.endereco||'') + '"></div>'
     + '<div class="fr"><label>Contato / WhatsApp</label><input type="tel" id="cfg-contato" value="' + (u.contato||'') + '"></div>'
-    + '<div class="fr"><label>E-mail (não editável)</label><input type="email" value="' + (u.email||'') + '" readonly style="background:var(--bg2);cursor:default;color:var(--text2)"></div>'
+    + '<div class="fr"><label>E-mail para propostas</label><input type="email" id="cfg-emailproposta" value="' + (u.emailProposta||'') + '" placeholder="contato@suaempresa.com"></div>'
+    + '<div class="fr"><label>E-mail de login (não editável)</label><input type="email" value="' + (u.email||'') + '" readonly style="background:var(--bg2);cursor:default;color:var(--text2)"></div>'
     + '<button class="btn-p" onclick="salvarDadosConta()" style="width:auto;padding:8px 20px">Salvar dados</button>';
   el.appendChild(secConta);
 
