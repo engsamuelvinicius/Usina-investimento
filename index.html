@@ -1890,6 +1890,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 
 // ── Globais de estado (declarados explicitamente para evitar poluição do escopo global)
 var firebaseOK = false, fbAuth = null, fbDb = null, usuarioAtual = null;
+var _unsubUsinas = null, _unsubPropostas = null;
 var _toggleState = {ip: null, fiob: null};
 
 var FB_CONFIG = {
@@ -1981,8 +1982,8 @@ function initFirebase(){
         mods[2].getDoc(mods[2].doc(fbDb,'usuarios',user.uid)).then(function(snap){
           var perfil = snap.exists() ? snap.data() : {};
           usuarioAtual = Object.assign({uid:user.uid,email:user.email},perfil);
-          fbLoadUsinas(user.uid).then(function(){
-          return fbLoadPropostas(user.uid);
+          fbListenUsinas(user.uid).then(function(){
+          return fbListenPropostas(user.uid);
         }).then(function(){ entrarNoApp(); });
         });
       } else { usuarioAtual=null; mostrarAuth(); }
@@ -1993,6 +1994,36 @@ function fbLoadUsinas(uid){
   return window._fbDb.getDoc(window._fbDb.doc(fbDb,'dados',uid)).then(function(s){
     if(s.exists()&&s.data().usinas) usinas=s.data().usinas;
   }).catch(function(){});
+}
+function fbListenUsinas(uid){
+  return new Promise(function(resolve){
+    var db=window._fbDb, first=true;
+    _unsubUsinas=db.onSnapshot(db.doc(fbDb,'dados',uid),function(s){
+      if(s.exists()&&s.data().usinas) usinas=s.data().usinas;
+      if(first){ first=false; resolve(); return; }
+      renderHome();
+      var sg=document.getElementById('screen-geral');
+      if(sg&&sg.classList.contains('active')) renderGeral();
+    },function(){ resolve(); });
+  });
+}
+function fbListenPropostas(uid){
+  return new Promise(function(resolve){
+    var db=window._fbDb, first=true;
+    _unsubPropostas=db.onSnapshot(db.collection(fbDb,'dados',uid,'propostas'),function(snap){
+      if(snap.empty&&first){
+        var local=_loadHist();
+        local.forEach(function(p){ db.setDoc(db.doc(fbDb,'dados',uid,'propostas',p.id),p).catch(function(){}); });
+        first=false; resolve(); return;
+      }
+      var arr=[];
+      snap.forEach(function(d){ arr.push(d.data()); });
+      arr.sort(function(a,b){ return b.data.localeCompare(a.data); });
+      try{localStorage.setItem('propostas_geradas',JSON.stringify(arr));}catch(e){}
+      if(first){ first=false; resolve(); return; }
+      renderHistorico();
+    },function(){ resolve(); });
+  });
 }
 function fbSvUsinas(){
   if(!firebaseOK||!usuarioAtual) return;
@@ -2095,6 +2126,8 @@ function fazerLogin(){
 }
 function fazerLogout(){
   fecharUserMenu();
+  if(_unsubUsinas){ _unsubUsinas(); _unsubUsinas=null; }
+  if(_unsubPropostas){ _unsubPropostas(); _unsubPropostas=null; }
   if(firebaseOK&&fbAuth){ window._fbAuth.signOut(fbAuth); }
   else { lsClrSession(); usuarioAtual=null; mostrarAuth(); }
 }
