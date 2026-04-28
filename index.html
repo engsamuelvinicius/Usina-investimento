@@ -1309,27 +1309,13 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           Dados da empresa no PDF
         </div>
-        <!-- Card visual: dados do perfil (visível quando usar padrão) -->
-        <div id="p-rodape-default-card" class="prop-dados-padrao">
-          <div class="pdn-header">
-            <span class="pdn-nome" id="pdn-nome">—</span>
-            <span class="pdn-badge">✓ Padrão</span>
-          </div>
-          <div class="pdn-info" id="pdn-info">Carregando...</div>
-          <button class="pdn-link" onclick="irParaConfiguracoesEmpresa()">✏️ Editar nas Configurações</button>
-          <span style="font-size:10px;color:var(--text2);margin-left:10px">ou</span>
-          <label style="font-size:11px;color:var(--text2);cursor:pointer;margin-left:6px"><input type="checkbox" id="p-rodape-padrao" checked onchange="toggleRodapaoPadrao()"> personalizar só nesta proposta</label>
+        <div class="prop-rodape-grid">
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">CNPJ</label><input id="p-rod-cnpj" class="prop-input" placeholder="00.000.000/0001-00" oninput="atualizarRodapePreview()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Telefone</label><input id="p-rod-tel" class="prop-input" placeholder="(84) 99999-0000" oninput="atualizarRodapePreview()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">E-mail</label><input id="p-rod-email" class="prop-input" placeholder="contato@empresa.com" oninput="atualizarRodapePreview()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Endereço</label><input id="p-rod-end" class="prop-input" placeholder="Rua, nº, Cidade/UF" oninput="atualizarRodapePreview()"></div>
         </div>
-        <!-- Campos customizados (visíveis ao desmarcar "personalizar") -->
-        <div id="p-rodape-campos" style="display:none">
-          <div class="prop-rodape-grid">
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">CNPJ</label><input id="p-rod-cnpj" class="prop-input" placeholder="00.000.000/0001-00" oninput="atualizarRodapePreview()"></div>
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">Telefone</label><input id="p-rod-tel" class="prop-input" placeholder="(84) 99999-0000" oninput="atualizarRodapePreview()"></div>
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">E-mail</label><input id="p-rod-email" class="prop-input" placeholder="contato@empresa.com" oninput="atualizarRodapePreview()"></div>
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">Endereço</label><input id="p-rod-end" class="prop-input" placeholder="Rua, nº, Cidade/UF" oninput="atualizarRodapePreview()"></div>
-          </div>
-          <button class="pdn-link" onclick="document.getElementById('p-rodape-padrao').checked=true;toggleRodapaoPadrao()" style="margin-top:8px">← Voltar a usar dados das Configurações</button>
-        </div>
+        <button onclick="salvarComopadraoDados()" style="margin-top:10px;padding:7px 14px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif">✓ Usar como padrão em todas as propostas</button>
         <div id="p-rodape-preview" style="font-size:11px;color:var(--text2);margin-top:6px"></div>
       </div>
 
@@ -2665,10 +2651,10 @@ function gerarPDFProposta(modo){
   var empresa=nomeEmpresaInpPDF||(usuarioAtual&&usuarioAtual.empresa)||'Sua Empresa';
   var contato=(usuarioAtual&&usuarioAtual.contato)||'';
   // Pre-computar rodInfo para usar em TODAS as páginas via addFooter
-  var _usarPadrao=(document.getElementById('p-rodape-padrao')||{}).checked!==false;
-  var _rodCnpj='',_rodTel='',_rodEmail='',_rodEnd='';
-  if(_usarPadrao){var _u=usuarioAtual||{};_rodCnpj=_u.cnpj||'';_rodTel=_u.contato||'';_rodEmail=_u.email||'';_rodEnd=_u.endereco||'';}
-  else{_rodCnpj=((document.getElementById('p-rod-cnpj')||{}).value)||'';_rodTel=((document.getElementById('p-rod-tel')||{}).value)||'';_rodEmail=((document.getElementById('p-rod-email')||{}).value)||'';_rodEnd=((document.getElementById('p-rod-end')||{}).value)||'';}
+  var _rodCnpj=((document.getElementById('p-rod-cnpj')||{}).value)||'';
+  var _rodTel=((document.getElementById('p-rod-tel')||{}).value)||'';
+  var _rodEmail=((document.getElementById('p-rod-email')||{}).value)||'';
+  var _rodEnd=((document.getElementById('p-rod-end')||{}).value)||'';
   var rodInfo=[_rodCnpj,_rodTel,_rodEmail,_rodEnd].filter(Boolean);
   var numProp='P'+new Date().getFullYear()+(Math.floor(Math.random()*90000)+10000);
   var hoje=_dataHoje();
@@ -3065,7 +3051,7 @@ function mostrarTabProposta(tab){
   var btn=document.getElementById('btn-gerar-pdf'); if(btn) btn.style.display=tab==='form'?'flex':'none';
   var btnS=document.getElementById('btn-salvar-orc'); if(btnS) btnS.style.display=tab==='form'?'flex':'none';
   if(tab==='hist') renderHistorico();
-  if(tab==='form') atualizarRodapePreview();
+  if(tab==='form'){ if(!_editandoPropostaId) preencherRodapaoDoPerfil(); atualizarRodapePreview(); }
 }
 // ── PORTFÓLIO ──────────────────────────────────────
 function portfolioAdd(input){
@@ -3121,47 +3107,38 @@ function removerLogoProposta(){
   initCorProposta();
 }
 // ── RODAPÉ PROPOSTA ────────────────────────────────
-function toggleRodapaoPadrao(){
-  var chk=(document.getElementById('p-rodape-padrao')||{}).checked;
-  var campos=document.getElementById('p-rodape-campos');
-  var card=document.getElementById('p-rodape-default-card');
-  if(campos) campos.style.display=chk?'none':'block';
-  if(card){
-    card.style.borderColor=chk?'var(--green)':'var(--border)';
-    card.style.background=chk?'var(--green-l)':'var(--bg2)';
-  }
-  atualizarRodapePreview();
+function preencherRodapaoDoPerfil(){
+  var u=usuarioAtual||{};
+  var cnpjEl=document.getElementById('p-rod-cnpj');
+  var telEl=document.getElementById('p-rod-tel');
+  var emailEl=document.getElementById('p-rod-email');
+  var endEl=document.getElementById('p-rod-end');
+  if(cnpjEl) cnpjEl.value=u.cnpj||'';
+  if(telEl) telEl.value=u.contato||'';
+  if(emailEl) emailEl.value=u.emailProposta||u.email||'';
+  if(endEl) endEl.value=u.endereco||'';
 }
+function salvarComopadraoDados(){
+  var u=usuarioAtual; if(!u) return;
+  u.cnpj=(document.getElementById('p-rod-cnpj')||{}).value||'';
+  u.contato=(document.getElementById('p-rod-tel')||{}).value||'';
+  u.emailProposta=(document.getElementById('p-rod-email')||{}).value||'';
+  u.endereco=(document.getElementById('p-rod-end')||{}).value||'';
+  var nomeEmp=((document.getElementById('p-nome-empresa')||{}).value)||'';
+  if(nomeEmp) u.empresa=nomeEmp;
+  _persistirPerfil(u); atualizarPill();
+  toast('✅ Dados salvos como padrão para todas as propostas!');
+}
+function toggleRodapaoPadrao(){ atualizarRodapePreview(); }
 function atualizarRodapePreview(){
   var preview=document.getElementById('p-rodape-preview'); if(!preview) return;
-  var usarPadrao=(document.getElementById('p-rodape-padrao')||{}).checked!==false;
   var u=usuarioAtual||{};
-  var emailProp=u.emailProposta||u.email||'';
+  var c=((document.getElementById('p-rod-cnpj')||{}).value)||'';
+  var t=((document.getElementById('p-rod-tel')||{}).value)||'';
+  var em=((document.getElementById('p-rod-email')||{}).value)||'';
+  var en=((document.getElementById('p-rod-end')||{}).value)||'';
   var itens=[];
-  if(usarPadrao){
-    if(u.cnpj) itens.push('CNPJ: '+u.cnpj);
-    if(u.contato) itens.push(u.contato);
-    if(emailProp) itens.push(emailProp);
-    if(u.endereco) itens.push(u.endereco);
-    // Atualizar card visual
-    var nomeEl=document.getElementById('pdn-nome');
-    var infoEl=document.getElementById('pdn-info');
-    if(nomeEl) nomeEl.textContent=u.empresa||'(nome não configurado)';
-    if(infoEl){
-      var partes=[];
-      if(u.cnpj) partes.push('CNPJ: '+u.cnpj);
-      if(u.contato) partes.push(u.contato);
-      if(emailProp) partes.push(emailProp);
-      if(u.endereco) partes.push(u.endereco);
-      infoEl.textContent=partes.length?partes.join(' · '):'Configure seus dados em Configurações →';
-    }
-  } else {
-    var c=((document.getElementById('p-rod-cnpj')||{}).value)||'';
-    var t=((document.getElementById('p-rod-tel')||{}).value)||'';
-    var em=((document.getElementById('p-rod-email')||{}).value)||'';
-    var en=((document.getElementById('p-rod-end')||{}).value)||'';
-    if(c) itens.push('CNPJ: '+c); if(t) itens.push(t); if(em) itens.push(em); if(en) itens.push(en);
-  }
+  if(c) itens.push('CNPJ: '+c); if(t) itens.push(t); if(em) itens.push(em); if(en) itens.push(en);
   preview.textContent=itens.length?'No PDF: '+itens.join(' | '):'';
   // Atualizar footers no preview HTML em tempo real (multi-linha)
   var nomeEmpresaInp=((document.getElementById('p-nome-empresa')||{}).value)||'';
@@ -3349,6 +3326,8 @@ function cancelarEdicao(){
   if(_propLogoBase64){ removerLogoProposta(); }
   // Limpar nome empresa override
   var ne=document.getElementById('p-nome-empresa'); if(ne) ne.value='';
+  // Repreencher rodapé com dados do perfil para nova proposta
+  if(typeof preencherRodapaoDoPerfil==='function') preencherRodapaoDoPerfil();
 }
 function _setBannerEdicao(cliente){
   _editandoPropostaId=null; // será redefinido depois
@@ -3389,11 +3368,12 @@ function editarProposta(id){
   sv('p-gar-inst',s.garInst||'2'); sv('p-mon-anos',s.monAnos||'2');
   sv('p-nome-empresa',s.nomeEmpresa||'');
   _propLogoBase64=s.propLogo||null;
-  // Restaurar rodapé
-  var rodPad=document.getElementById('p-rodape-padrao');
-  if(rodPad) rodPad.checked=s.rodapaoPadrao!==false;
-  sv('p-rod-cnpj',s.rodCnpj||''); sv('p-rod-tel',s.rodTel||''); sv('p-rod-email',s.rodEmail||''); sv('p-rod-end',s.rodEnd||'');
-  if(typeof toggleRodapaoPadrao==='function') toggleRodapaoPadrao();
+  // Restaurar rodapé — usar valores salvos ou fallback para perfil
+  var _u=usuarioAtual||{};
+  var cnpjEl=document.getElementById('p-rod-cnpj'); if(cnpjEl) cnpjEl.value=s.rodCnpj||_u.cnpj||'';
+  var telEl=document.getElementById('p-rod-tel'); if(telEl) telEl.value=s.rodTel||_u.contato||'';
+  var emailRodEl=document.getElementById('p-rod-email'); if(emailRodEl) emailRodEl.value=s.rodEmail||_u.emailProposta||_u.email||'';
+  var endEl=document.getElementById('p-rod-end'); if(endEl) endEl.value=s.rodEnd||_u.endereco||'';
   initCorProposta();
   if(s.modoCalc) { setModoCalc(s.modoCalc);
     if(s.modoCalc==='auto'){ sv('p-wmodulo',s.wMod); sv('p-kinversor',s.kInv); sv('p-margem',s.margem); }
