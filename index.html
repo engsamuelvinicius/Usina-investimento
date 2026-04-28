@@ -1995,42 +1995,170 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 
     <!-- ── TAB NOVO CONTRATO ── -->
     <div id="ctr-tab-novo" style="display:none">
-      <div class="card" style="margin-bottom:12px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:12px">Gerar Contrato</div>
 
-        <div class="fr" style="margin-bottom:10px">
-          <label class="prop-label">Modelo de contrato</label>
-          <select id="ctr-select-modelo" class="prop-input" onchange="ctrRenderCamposForm()">
-            <option value="">— Selecione um modelo —</option>
-          </select>
+      <!-- Modelo + OCR -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="ctr-campo-grid" style="align-items:end;margin-bottom:0">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Modelo de contrato</label>
+            <select id="ctr-select-modelo" class="prop-input" onchange="ctrRenderCamposForm()">
+              <option value="">— Selecione um modelo —</option>
+            </select>
+          </div>
+          <div>
+            <label class="prop-label">Preencher via documento</label>
+            <button id="ctr-btn-ocr" onclick="document.getElementById('ctr-ocr-input').click()" style="width:100%;padding:9px 14px;background:var(--blue-bg);color:var(--blue-t);border:1px solid var(--blue-b);border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Outfit',sans-serif">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Escanear documento / foto
+            </button>
+            <input type="file" id="ctr-ocr-input" accept="image/*,.pdf" capture="environment" style="display:none" onchange="ctrEscanearDocumento(this)">
+          </div>
         </div>
-
-        <div id="ctr-campos-form"></div>
-
-        <div class="fr" style="margin-top:10px;margin-bottom:10px">
-          <label class="prop-label">Status do contrato</label>
-          <select id="ctr-status-sel" class="prop-input">
-            <option value="rascunho">Rascunho</option>
-            <option value="vigente">Vigente</option>
-            <option value="assinado">Assinado</option>
-            <option value="encerrado">Encerrado</option>
-          </select>
+        <div id="ctr-ocr-status" style="display:none;margin-top:10px;padding:10px 12px;background:var(--blue-bg);border:1px solid var(--blue-b);border-radius:var(--r);font-size:12px;color:var(--blue-t);display:flex;align-items:center;gap:8px">
+          <span class="spin" style="border-color:var(--blue-b);border-top-color:var(--blue-t)"></span>
+          Extraindo dados do documento com IA...
         </div>
+      </div>
 
-        <button class="btn-p" onclick="ctrGerarPDF()" style="width:100%;margin-top:4px">
+      <!-- Dados do Cliente -->
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Dados do Cliente
+        </div>
+        <div class="fr" style="margin-bottom:8px">
+          <label class="prop-label">Nome completo</label>
+          <input id="ctr-f-nome" class="prop-input" placeholder="Nome completo do cliente">
+        </div>
+        <div class="ctr-campo-grid" style="margin-bottom:8px">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">CPF</label>
+            <input id="ctr-f-cpf" class="prop-input" placeholder="000.000.000-00">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">CNPJ <span style="font-weight:400;color:var(--text2)">(se PJ)</span></label>
+            <input id="ctr-f-cnpj" class="prop-input" placeholder="00.000.000/0001-00">
+          </div>
+        </div>
+        <div class="fr" style="margin-bottom:8px">
+          <label class="prop-label">Endereço completo</label>
+          <input id="ctr-f-endereco" class="prop-input" placeholder="Rua, nº, Bairro">
+        </div>
+        <div class="ctr-campo-grid">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Cidade</label>
+            <input id="ctr-f-cidade" class="prop-input" placeholder="Cidade">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Estado</label>
+            <input id="ctr-f-estado" class="prop-input" placeholder="RN">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sistema Fotovoltaico -->
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          Sistema Fotovoltaico
+        </div>
+        <div class="ctr-campo-grid" style="margin-bottom:8px">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Potência total (kWp)</label>
+            <input id="ctr-f-kwp" class="prop-input" placeholder="Ex: 6.6">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Geração média (kWh/mês)</label>
+            <input id="ctr-f-geracao" class="prop-input" placeholder="Ex: 800">
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Módulos</div>
+        <div class="ctr-campo-grid" style="margin-bottom:8px;grid-template-columns:1fr 1fr 1fr">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Quantidade</label>
+            <input id="ctr-f-nmod" class="prop-input" placeholder="Ex: 16">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Marca</label>
+            <input id="ctr-f-marcamod" class="prop-input" placeholder="Ex: Risen">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Potência (Wp)</label>
+            <input id="ctr-f-wpmod" class="prop-input" placeholder="Ex: 410">
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Inversor</div>
+        <div class="ctr-campo-grid" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Quantidade</label>
+            <input id="ctr-f-ninv" class="prop-input" placeholder="Ex: 1">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Marca</label>
+            <input id="ctr-f-marcainv" class="prop-input" placeholder="Ex: Growatt">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Potência (kW)</label>
+            <input id="ctr-f-kinv" class="prop-input" placeholder="Ex: 5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Financeiro -->
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Financeiro
+        </div>
+        <div class="ctr-campo-grid" style="margin-bottom:8px">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Valor total (R$)</label>
+            <input id="ctr-f-valor" class="prop-input" placeholder="Ex: 25000,00">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Forma de pagamento</label>
+            <input id="ctr-f-pagamento" class="prop-input" placeholder="Ex: Financiamento, À vista, Boleto">
+          </div>
+        </div>
+        <div class="ctr-campo-grid">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Nº de parcelas</label>
+            <input id="ctr-f-parcelas" class="prop-input" placeholder="Ex: 60">
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Valor da parcela (R$)</label>
+            <input id="ctr-f-vparcela" class="prop-input" placeholder="Ex: 450,00">
+          </div>
+        </div>
+      </div>
+
+      <!-- Campos extras do modelo (preenchidos automaticamente) -->
+      <div id="ctr-campos-extras" style="display:none" class="card" style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Campos adicionais do modelo</div>
+        <div id="ctr-campos-extras-inner" class="ctr-campo-grid"></div>
+      </div>
+
+      <!-- Status + Gerar -->
+      <div class="card">
+        <div class="ctr-campo-grid" style="margin-bottom:12px">
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Status do contrato</label>
+            <select id="ctr-status-sel" class="prop-input">
+              <option value="rascunho">Rascunho</option>
+              <option value="vigente">Vigente</option>
+              <option value="assinado">Assinado</option>
+              <option value="encerrado">Encerrado</option>
+            </select>
+          </div>
+          <div class="fr" style="margin-bottom:0">
+            <label class="prop-label">Data do contrato</label>
+            <input id="ctr-f-data" class="prop-input" placeholder="dd/mm/aaaa">
+          </div>
+        </div>
+        <button class="btn-p" onclick="ctrGerarPDF()" style="width:100%">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Gerar Contrato em PDF
         </button>
-      </div>
-
-      <div class="card" style="background:var(--blue-bg);border-color:var(--blue-b)">
-        <div style="font-size:13px;font-weight:600;color:var(--blue-t);margin-bottom:6px">💡 Como usar</div>
-        <div style="font-size:12px;color:var(--blue-t);line-height:1.7">
-          1. Crie um modelo na aba <strong>Modelos</strong> com seu contrato e marcadores <code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px">{{CAMPO}}</code><br>
-          2. Selecione o modelo acima<br>
-          3. Preencha os dados do cliente (campos do perfil já vêm preenchidos)<br>
-          4. Clique <strong>Gerar Contrato em PDF</strong> — o contrato será baixado e salvo na lista
-        </div>
       </div>
     </div>
 
@@ -5779,6 +5907,31 @@ function ctrUsarModelo(id){
   ctrRenderCamposForm();
 }
 
+// Mapeamento: campo do template → ID do input fixo no formulário
+var CTR_CAMPO_MAP={
+  NOME:'ctr-f-nome',NOME_CLIENTE:'ctr-f-nome',NOME_CONTRATANTE:'ctr-f-nome',NOME_RESPONSAVEL:'ctr-f-nome',
+  CPF:'ctr-f-cpf',
+  CNPJ_CLIENTE:'ctr-f-cnpj',CNPJ:'ctr-f-cnpj',
+  RG:'ctr-f-rg',
+  ENDERECO:'ctr-f-endereco',ENDERECO_OBRA:'ctr-f-endereco',ENDERECO_CLIENTE:'ctr-f-endereco',
+  CIDADE:'ctr-f-cidade',ESTADO:'ctr-f-estado',CEP:'ctr-f-cep',
+  EMAIL:'ctr-f-email',TELEFONE:'ctr-f-tel',CELULAR:'ctr-f-tel',
+  POTENCIA:'ctr-f-kwp',KWP:'ctr-f-kwp',POTENCIA_SISTEMA:'ctr-f-kwp',TAMANHO_SISTEMA:'ctr-f-kwp',
+  GERACAO_MEDIA:'ctr-f-geracao',GERACAO:'ctr-f-geracao',KWH_MES:'ctr-f-geracao',
+  NUM_MODULOS:'ctr-f-nmod',QUANTIDADE_MODULOS:'ctr-f-nmod',QTDE_MODULOS:'ctr-f-nmod',MODULOS:'ctr-f-nmod',
+  MARCA_MODULO:'ctr-f-marcamod',FABRICANTE_MODULO:'ctr-f-marcamod',
+  POTENCIA_MODULO:'ctr-f-wpmod',WP_MODULO:'ctr-f-wpmod',POTENCIA_PLACA:'ctr-f-wpmod',
+  NUM_INVERSORES:'ctr-f-ninv',QUANTIDADE_INVERSORES:'ctr-f-ninv',INVERSORES:'ctr-f-ninv',
+  MARCA_INVERSOR:'ctr-f-marcainv',FABRICANTE_INVERSOR:'ctr-f-marcainv',
+  POTENCIA_INVERSOR:'ctr-f-kinv',KW_INVERSOR:'ctr-f-kinv',
+  VALOR:'ctr-f-valor',VALOR_TOTAL:'ctr-f-valor',PRECO:'ctr-f-valor',
+  PAGAMENTO:'ctr-f-pagamento',FORMA_PAGAMENTO:'ctr-f-pagamento',CONDICOES_PAGAMENTO:'ctr-f-pagamento',
+  NUM_PARCELAS:'ctr-f-parcelas',PARCELAS:'ctr-f-parcelas',
+  VALOR_PARCELA:'ctr-f-vparcela',
+  DATA:'ctr-f-data',DATA_HOJE:'ctr-f-data',DATA_CONTRATO:'ctr-f-data',DATA_ASSINATURA:'ctr-f-data',
+  EMPRESA:'ctr-f-empresa',CNPJ_EMPRESA:'ctr-f-cnpjemp',REPRESENTANTE:'ctr-f-rep'
+};
+
 /* ── NOVO CONTRATO ── */
 function ctrRenderModeloSelect(){
   var sel=document.getElementById('ctr-select-modelo'); if(!sel) return;
@@ -5790,29 +5943,31 @@ function ctrRenderModeloSelect(){
 }
 
 function ctrRenderCamposForm(){
+  // Preencher campos da empresa do perfil
+  var u=usuarioAtual||{};
+  var emp=document.getElementById('ctr-f-empresa'); if(emp&&!emp.value) emp.value=u.empresa||'';
+  var cnjEmp=document.getElementById('ctr-f-cnpjemp'); if(cnjEmp&&!cnjEmp.value) cnjEmp.value=u.cnpj||'';
+  var dataEl=document.getElementById('ctr-f-data'); if(dataEl&&!dataEl.value) dataEl.value=_dataHoje();
+
+  // Campos extras do modelo (não cobertos pelos campos fixos)
   var sel=document.getElementById('ctr-select-modelo');
   var modeloId=sel?sel.value:'';
   var modelo=_ctrModelos.find(function(m){return m.id===modeloId;});
-  var el=document.getElementById('ctr-campos-form'); if(!el) return;
-  if(!modelo){el.innerHTML='';return;}
-  if(!modelo.campos.length){
-    el.innerHTML='<div style="font-size:12px;color:var(--text2);padding:8px;background:var(--bg2);border-radius:var(--r)">Nenhum campo <code>{{CAMPO}}</code> detectado neste modelo. O PDF será gerado com o texto original.</div>';
-    return;
-  }
-  var u=usuarioAtual||{};
-  var prefill={
-    EMPRESA:u.empresa||'', CNPJ_EMPRESA:u.cnpj||'',
-    TELEFONE:u.contato||'', EMAIL:u.emailProposta||u.email||'',
-    ENDERECO:u.endereco||'', DATA_HOJE:_dataHoje(), DATA:_dataHoje()
-  };
-  el.innerHTML='<div class="ctr-campo-grid">'
-    +modelo.campos.map(function(c){
-      var label=_ctrLabelCampo(c);
-      var val=_escHtml(prefill[c]||'');
-      return '<div class="fr" style="margin-bottom:0"><label class="prop-label">'+_escHtml(label)+'</label>'
-        +'<input class="prop-input" id="ctr-f-'+c+'" value="'+val+'" placeholder="'+_escHtml(label)+'"></div>';
-    }).join('')
-    +'</div>';
+  var extrasDiv=document.getElementById('ctr-campos-extras');
+  var extrasInner=document.getElementById('ctr-campos-extras-inner');
+  if(!extrasDiv||!extrasInner) return;
+
+  if(!modelo||!modelo.campos.length){ extrasDiv.style.display='none'; return; }
+
+  // Identificar campos do modelo que NÃO estão nos fixos
+  var extras=modelo.campos.filter(function(c){ return !CTR_CAMPO_MAP[c]; });
+  if(!extras.length){ extrasDiv.style.display='none'; return; }
+
+  extrasDiv.style.display='block';
+  extrasInner.innerHTML=extras.map(function(c){
+    return '<div class="fr" style="margin-bottom:0"><label class="prop-label">'+_escHtml(_ctrLabelCampo(c))+'</label>'
+      +'<input class="prop-input" id="ctr-extra-'+c+'" placeholder="'+_escHtml(_ctrLabelCampo(c))+'"></div>';
+  }).join('');
 }
 
 function ctrGerarPDF(){
@@ -5821,15 +5976,28 @@ function ctrGerarPDF(){
   var modelo=_ctrModelos.find(function(m){return m.id===modeloId;});
   if(!modelo){toast('Selecione um modelo primeiro.','warn');return;}
 
+  // Coletar valores dos campos fixos + extras
   var valores={};
+  // Mapear campos do modelo para os inputs fixos
   modelo.campos.forEach(function(c){
-    var inp=document.getElementById('ctr-f-'+c);
-    valores[c]=inp?inp.value:'';
+    var fixoId=CTR_CAMPO_MAP[c];
+    if(fixoId){
+      var inp=document.getElementById(fixoId);
+      valores[c]=inp?inp.value:'';
+    } else {
+      var extra=document.getElementById('ctr-extra-'+c);
+      valores[c]=extra?extra.value:'';
+    }
   });
+  // Adicionar campos da empresa do perfil se não estiverem no modelo
+  var u=usuarioAtual||{};
+  if(!valores['EMPRESA']) valores['EMPRESA']=u.empresa||'';
+  if(!valores['CNPJ_EMPRESA']) valores['CNPJ_EMPRESA']=u.cnpj||'';
+  if(!valores['DATA']&&!valores['DATA_HOJE']) valores['DATA']=_dataHoje();
 
-  var textoFinal=modelo.texto.replace(/\{\{([A-Z0-9_]+)\}\}/g,function(match,c){return valores[c]!==undefined?valores[c]:match;});
+  var textoFinal=modelo.texto.replace(/\{\{([A-Z0-9_]+)\}\}/g,function(match,c){return valores[c]!==undefined&&valores[c]!==''?valores[c]:match;});
 
-  var clienteNome=valores['NOME_CLIENTE']||valores['NOME']||valores['NOME_CONTRATANTE']||'Cliente';
+  var clienteNome=((document.getElementById('ctr-f-nome')||{}).value)||valores['NOME_CLIENTE']||valores['NOME']||'Cliente';
   var status=(document.getElementById('ctr-status-sel')||{}).value||'rascunho';
 
   var contrato={
@@ -5879,6 +6047,64 @@ function ctrGerarPDF(){
   doc.save(filename);
   toast('✅ Contrato gerado e salvo na lista!');
   mostrarTabContrato('lista');
+}
+
+/* ── OCR / ESCANEAR DOCUMENTO ── */
+async function ctrEscanearDocumento(inp){
+  if(!inp.files||!inp.files[0]) return;
+  var f=inp.files[0];
+  inp.value='';
+
+  // Mostrar loading
+  var st=document.getElementById('ctr-ocr-status');
+  if(st){ st.style.display='flex'; st.querySelector('span').style.display='inline-block'; }
+  var btn=document.getElementById('ctr-btn-ocr');
+  if(btn){ btn.disabled=true; btn.style.opacity='.6'; }
+
+  try {
+    // Converter para base64
+    var base64=await new Promise(function(resolve,reject){
+      var rd=new FileReader();
+      rd.onload=function(e){ resolve(e.target.result); };
+      rd.onerror=reject;
+      rd.readAsDataURL(f);
+    });
+
+    var resp=await fetch('/api/extrair-contrato',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(usuarioAtual&&usuarioAtual.uid||'')},
+      body:JSON.stringify({imagemBase64:base64})
+    });
+    var json=await resp.json();
+
+    if(!resp.ok||!json.ok){
+      toast((json.erro||'Erro ao extrair dados.'),'warn');
+      return;
+    }
+
+    ctrPreencherOCR(json.dados);
+    toast('✅ Dados extraídos! Revise e corrija se necessário.');
+  } catch(e) {
+    toast('Erro de conexão: '+e.message,'warn');
+  } finally {
+    if(st) st.style.display='none';
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+  }
+}
+
+function ctrPreencherOCR(d){
+  if(!d) return;
+  var set=function(id,v){ var el=document.getElementById(id); if(el&&v) el.value=v; };
+  set('ctr-f-nome', d.nome);
+  set('ctr-f-cpf',  d.cpf);
+  set('ctr-f-cnpj', d.cnpj);
+  set('ctr-f-rg',   d.rg);
+  set('ctr-f-endereco', d.endereco);
+  set('ctr-f-cidade',   d.cidade);
+  set('ctr-f-estado',   d.estado);
+  set('ctr-f-cep',      d.cep);
+  set('ctr-f-email',    d.email);
+  set('ctr-f-tel',      d.telefone||d.celular);
 }
 
 /* ── LISTA DE CONTRATOS ── */
