@@ -173,16 +173,15 @@ async function refreshAllSolis(api) {
     (await Promise.all(extra)).forEach(pg => { if (pg.records) records.push(...pg.records); });
   }
 
-  // Log first record to diagnose actual field names / values in Vercel logs
+  // Log para diagnóstico — mensagens curtas para não truncar no Vercel
+  console.log('[SOL] n=' + records.length);
   if (records.length > 0) {
     const s0 = records[0];
-    console.log('[Solis refreshAll] total:', records.length,
-      '| sample id:', s0.id || s0.stationId,
-      '| stationStatus:', s0.stationStatus,
-      '| status:', s0.status,
-      '| state:', s0.state,
-      '| power:', s0.power,
-      '| keys:', Object.keys(s0).join(','));
+    console.log('[SOL] keys=' + Object.keys(s0).join(','));
+    console.log('[SOL] stationStatus=' + s0.stationStatus + ' status=' + s0.status + ' power=' + s0.power);
+    // Log status de até 20 plantas: id:statusVal
+    const slice = records.slice(0, 20).map(s => (s.id||s.stationId)+':'+(s.stationStatus??s.status??'?'));
+    console.log('[SOL] statuses=' + slice.join(' '));
   }
 
   const result = {};
