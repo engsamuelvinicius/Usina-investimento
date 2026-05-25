@@ -12,9 +12,37 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
 
-  const { brand, platId, api } = req.body || {};
-  if (!brand || !platId) return res.status(400).json({ error: 'brand e platId são obrigatórios' });
+  const { brand, platId, api, action } = req.body || {};
   if (!api || typeof api !== 'object') return res.status(400).json({ error: 'Credenciais (api) ausentes' });
+
+  // ── Ação: listar todas as plantas da conta ───────────────
+  if (action === 'list') {
+    if (!brand) return res.status(400).json({ error: 'brand obrigatório' });
+    try {
+      let plants;
+      switch (brand) {
+        case 'solarman':
+        case 'sofar':
+        case 'deye':
+        case 'intelbras': plants = await listSolarman(api); break;
+        case 'growatt':   plants = await listGrowatt(api);  break;
+        case 'huawei':    plants = await listHuawei(api);   break;
+        case 'solis':     plants = await listSolis(api);    break;
+        case 'solplanet': plants = await listSolplanet(api);break;
+        case 'foxess':    plants = await listFoxess(api);   break;
+        case 'goodwe':    plants = await listGoodwe(api);   break;
+        case 'saj':       plants = await listSaj(api);      break;
+        case 'sungrow':   plants = await listSungrow(api);  break;
+        default: return res.status(400).json({ error: 'Listagem não disponível para: ' + brand });
+      }
+      return res.status(200).json({ plants });
+    } catch (err) {
+      console.error('[monitor-proxy list]', brand, err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  if (!brand || !platId) return res.status(400).json({ error: 'brand e platId são obrigatórios' });
 
   try {
     let data;
@@ -415,6 +443,135 @@ async function fetchSaj(platId, api) {
     potenciaAtual: parseFloat(d.nowPower          || 0) / 1000,
     fonte: 'saj'
   };
+}
+
+// ══════════════════════════════════════════════════════════
+// FUNÇÕES DE LISTAGEM (action: 'list')
+// ══════════════════════════════════════════════════════════
+
+function _mapPlant(id, nome, potencia, endereco, lat, lng) {
+  return { id: String(id||''), nome: String(nome||'Sem nome'), potencia: parseFloat(potencia||0)||0, endereco: String(endereco||''), lat: lat||null, lng: lng||null };
+}
+
+// ── Solarman list ────────────────────────────────────────
+async function listSolarman(api) {
+  const base = 'https://globalapi.solarmanpv.com';
+  const tokenRes = await httpPost(`${base}/account/v1.0/token?appId=${api.appid}&language=pt`, {
+    appSecret: api.secret, email: api.email, password: api.senha
+  });
+  if (!tokenRes.access_token) throw new Error('Falha auth Solarman');
+  const token = tokenRes.access_token;
+
+  const r = await httpPost(`${base}/station/v1.0/list?language=pt`, { page: 1, size: 100 },
+    { Authorization: `Bearer ${token}`, appId: api.appid });
+  return (r.list || r.stationList || []).map(s =>
+    _mapPlant(s.id||s.stationId, s.name||s.stationName, s.installedCapacity, [s.city,s.province].filter(Boolean).join(', '), s.lat, s.lng));
+}
+
+// ── Growatt list ─────────────────────────────────────────
+async function listGrowatt(api) {
+  const base = 'https://openapi.growatt.com';
+  const loginRes = await httpPost(`${base}/v1/user/login`, {
+    account: api.user, password: crypto.createHash('md5').update(api.pass).digest('hex')
+  });
+  if (!loginRes.data?.token) throw new Error('Falha auth Growatt');
+  const r = await httpGet(`${base}/v1/plant/list?page=1&perPage=100`, { token: loginRes.data.token });
+  return ((r.data||{}).plants||[]).map(p =>
+    _mapPlant(p.plant_id, p.plant_name, p.peak_power_actual||p.nominal_power, [p.city,p.country].filter(Boolean).join(', ')));
+}
+
+// ── Huawei list ──────────────────────────────────────────
+async function listHuawei(api) {
+  const domainMap = { eu5:'eu5.fusionsolar.huawei.com', intl:'intl.fusionsolar.huawei.com', cn:'uni003eu.fusionsolar.huawei.com' };
+  const host = domainMap[api.dom||'intl']||domainMap.intl;
+  const base = `https://${host}/thirdData`;
+  const loginRes = await httpPost(`${base}/login`, { userName: api.user, systemCode: api.pass });
+  const xsrf = loginRes['xsrf-token'] || loginRes.data?.['xsrf-token'];
+  if (!xsrf) throw new Error('Falha auth Huawei');
+  const r = await httpPost(`${base}/getStationList`, { pageNo: 1, pageSize: 100 }, { 'xsrf-token': xsrf });
+  return ((r?.data?.list)||[]).map(s =>
+    _mapPlant(s.dn||s.stationCode, s.name||s.stationName, s.capacity||s.installedCapacity, s.address));
+}
+
+// ── Solis list ───────────────────────────────────────────
+async function listSolis(api) {
+  const base = 'https://www.soliscloud.com:13333';
+  const body = JSON.stringify({ pageNo: 1, pageSize: 100, stationName: '' });
+  const path = '/v1/api/stationList';
+  const contentMd5 = crypto.createHash('md5').update(body).digest('base64');
+  const date = new Date().toUTCString();
+  const stringToSign = `POST\n${contentMd5}\napplication/json\n${date}\n${path}`;
+  const hmac = crypto.createHmac('sha1', api.secret).update(stringToSign).digest('base64');
+  const r = await httpPost(`${base}${path}`, JSON.parse(body), {
+    'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
+  });
+  if (!r || r.code !== '0') throw new Error('Erro Solis list: ' + (r?.msg||JSON.stringify(r)));
+  return (r.data?.page?.records||[]).map(s =>
+    _mapPlant(s.id, s.stationName, s.installedCapacity||s.capacity, [s.city,s.province].filter(Boolean).join(', '), s.latitude, s.longitude));
+}
+
+// ── Solplanet list ───────────────────────────────────────
+async function listSolplanet(api) {
+  const base = 'https://api.solplanet.net';
+  const loginRes = await httpPost(`${base}/v2/user/login`, { account: api.user, password: api.pass });
+  if (!loginRes.data?.token) throw new Error('Falha auth Solplanet');
+  const r = await httpGet(`${base}/v2/plant/list?page=1&limit=100`, { Authorization: `Bearer ${loginRes.data.token}` });
+  return ((r.data?.list||r.data)||[]).map(p =>
+    _mapPlant(p.plantId||p.id, p.plantName||p.name, p.capacity||p.installedCapacity, p.address));
+}
+
+// ── FoxESS list ──────────────────────────────────────────
+async function listFoxess(api) {
+  const base = 'https://www.foxesscloud.com/op/v0';
+  const ts = Date.now().toString();
+  const sig = crypto.createHash('md5').update(`${api.apikey}\\n${ts}`).digest('hex');
+  const r = await httpPost(`${base}/plant/list`, { currentPage: 1, pageSize: 100 },
+    { token: api.apikey, timestamp: ts, signature: sig, lang: 'pt' });
+  return ((r.result?.data)||[]).map(p =>
+    _mapPlant(p.plantID||p.id, p.name, p.capacity, p.country));
+}
+
+// ── GoodWe list ──────────────────────────────────────────
+async function listGoodwe(api) {
+  const base = 'https://www.semsportal.com/api';
+  const emptyToken = JSON.stringify({ timestamp:'', uid:'', token:'', client:'web', version:'', company_id:'' });
+  const loginRes = await httpPost(`${base}/v2/Common/CrossLogin`,
+    { account: api.email, pwd: api.pass, is_local: false, lang: '_pt' }, { Token: emptyToken });
+  const d = loginRes.data;
+  if (!d?.token) throw new Error('Falha auth GoodWe');
+  const authToken = JSON.stringify({ timestamp: d.timestamp, uid: d.uid, token: d.token, client: 'web', version: '', company_id: '' });
+  const r = await httpPost(`${base}/v3/PowerStation/GetMonitorInfo`,
+    { page_index: 1, page_size: 100 }, { Token: authToken });
+  return ((r.data?.list)||[]).map(p =>
+    _mapPlant(p.id||p.stationId, p.name||p.stationName, p.capacity||p.powerstation_capacity, [p.city,p.country].filter(Boolean).join(', ')));
+}
+
+// ── SAJ list ─────────────────────────────────────────────
+async function listSaj(api) {
+  const ts = Date.now();
+  const nonce = crypto.randomBytes(8).toString('hex');
+  const sign = crypto.createHmac('sha1', api.secret).update(`${api.appid}${ts}${nonce}`).digest('hex');
+  const loginRes = await httpPost('https://fop.saj-electric.com/saj/login', {},
+    { appid: api.appid, timestamp: ts, nonce, sign, 'Content-Type': 'application/x-www-form-urlencoded' });
+  if (!loginRes.obj?.token) throw new Error('Falha auth SAJ');
+  const r = await httpPost('https://fop.saj-electric.com/saj/monitor/site/getSiteList',
+    { pageNo: 1, pageSize: 100 }, { Authorization: loginRes.obj.token });
+  return ((r.obj?.records||r.obj)||[]).map(p =>
+    _mapPlant(p.plantuid||p.id, p.name, p.designCapacity||p.capacity, p.address));
+}
+
+// ── Sungrow list ─────────────────────────────────────────
+async function listSungrow(api) {
+  const base = 'https://augateway.isolarcloud.com';
+  const loginRes = await httpPost(`${base}/v1/userService/login`, {
+    appkey: api.appkey, user_account: api.user, user_password: api.pass, org_id: '',
+    msg_datetime: new Date().toISOString().replace(/[TZ.-]/g,'').slice(0,14)
+  });
+  if (!loginRes.result_data?.token) throw new Error('Falha auth Sungrow');
+  const r = await httpPost(`${base}/v1/powerStationService/getPowerStationList`,
+    { appkey: api.appkey, token: loginRes.result_data.token, page_size: 100, cur_page: 1 });
+  return (r.result_data?.pageList||[]).map(p =>
+    _mapPlant(p.ps_id, p.ps_name, p.design_capacity||p.capacity, [p.city,p.country].filter(Boolean).join(', '), p.latitude, p.longitude));
 }
 
 // ── Helpers ──────────────────────────────────────────────

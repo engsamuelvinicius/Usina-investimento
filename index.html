@@ -3531,6 +3531,14 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           Configure as credenciais de API de cada fabricante de inversor que você utiliza. Somente configure os que você realmente tem. As credenciais são salvas com segurança e usadas para buscar dados em tempo real.
         </div>
 
+        <div style="margin-bottom:16px">
+          <button class="btn-p" onclick="monAbrirImportar()" style="display:inline-flex;align-items:center;gap:8px;font-size:13px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+            Importar Plantas da API
+          </button>
+          <span style="font-size:11px;color:var(--text2);margin-left:10px">Busca automaticamente todas as usinas das contas configuradas abaixo</span>
+        </div>
+
         <div class="st" style="margin-top:0">Inversores / Plataformas de Monitoramento</div>
         <div class="mon-api-grid" id="mon-api-cards">
           <!-- Solarman -->
@@ -4385,6 +4393,37 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       <button onclick="document.getElementById('mon-modal-detalhe').classList.remove('open')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2)">✕</button>
     </div>
     <div id="mon-detalhe-content"></div>
+  </div>
+</div>
+
+<!-- ── Modal: Importar Plantas da API ── -->
+<div id="mon-modal-import" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)monFecharImportar()">
+  <div style="background:var(--bg);border-radius:var(--rl);width:100%;max-width:680px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)">
+      <div>
+        <div style="font-size:15px;font-weight:700;font-family:'Syne',sans-serif">Importar Plantas da API</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px" id="mon-import-subtitle">Buscando usinas nas plataformas configuradas...</div>
+      </div>
+      <button onclick="monFecharImportar()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2);line-height:1">✕</button>
+    </div>
+    <div id="mon-import-body" style="flex:1;overflow-y:auto;padding:20px">
+      <div style="text-align:center;padding:40px 20px">
+        <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:#1E6B2E;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div>
+        <div style="color:var(--text2);font-size:13px">Conectando às APIs...</div>
+      </div>
+    </div>
+    <div id="mon-import-footer" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)">
+      <label style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="mon-import-selectall" onchange="monImportSelectAll(this.checked)"> Selecionar todas
+      </label>
+      <div style="display:flex;gap:8px">
+        <button class="btn-s" onclick="monFecharImportar()">Cancelar</button>
+        <button class="btn-p" id="mon-import-confirm" onclick="monConfirmarImportacao()" style="display:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Importar selecionadas
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -13323,6 +13362,153 @@ function monAtualizarHomeStats(){
   s('home-mon-plantas',total||'0');
   s('home-mon-online',online||'0');
   s('home-mon-alertas',alertas||'0');
+}
+
+// ════════════════════════════════════════════════════════
+// IMPORTAR PLANTAS DA API
+// ════════════════════════════════════════════════════════
+
+var _monImportCandidatos = [];
+
+function monAbrirImportar(){
+  // Monta lista de brands com credenciais salvas
+  var brands = Object.keys(_monApiFields).filter(function(b){
+    var api = _monApis[b]||{};
+    return Object.values(api).some(function(v){ return v && v.trim && v.trim().length > 0; });
+  });
+  if(!brands.length){
+    toast('Configure ao menos uma API de inversor primeiro.');
+    return;
+  }
+
+  var modal = document.getElementById('mon-modal-import');
+  modal.style.display = 'flex';
+  document.getElementById('mon-import-body').innerHTML =
+    '<div style="text-align:center;padding:40px 20px">'
+    +'<div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:#1E6B2E;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div>'
+    +'<div style="color:var(--text2);font-size:13px">Conectando a '+brands.length+' plataforma(s)...</div>'
+    +'</div>';
+  document.getElementById('mon-import-subtitle').textContent = 'Buscando usinas nas plataformas configuradas...';
+  document.getElementById('mon-import-confirm').style.display = 'none';
+  document.getElementById('mon-import-selectall').checked = false;
+  _monImportCandidatos = [];
+
+  var resultados = {};
+  var pendentes = brands.length;
+
+  function done(brand, plants, erro){
+    if(plants && plants.length) resultados[brand] = plants;
+    pendentes--;
+    if(pendentes <= 0) _monRenderImportResultados(resultados);
+  }
+
+  brands.forEach(function(brand){
+    fetch('/api/monitor-proxy', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ brand: brand, api: _monApis[brand]||{}, action:'list' })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.plants) done(brand, data.plants, null);
+      else done(brand, [], data.error||'sem retorno');
+    })
+    .catch(function(e){ done(brand, [], e.message); });
+  });
+}
+
+function _monRenderImportResultados(resultados){
+  var total = Object.values(resultados).reduce(function(s,a){ return s+a.length; },0);
+  var sub = document.getElementById('mon-import-subtitle');
+
+  if(!total){
+    sub.textContent = 'Nenhuma planta encontrada.';
+    document.getElementById('mon-import-body').innerHTML =
+      '<div style="text-align:center;padding:40px 20px;color:var(--text2)">'
+      +'<div style="font-size:32px;margin-bottom:12px">🔍</div>'
+      +'<div style="font-size:14px;font-weight:600;margin-bottom:8px">Nenhuma planta encontrada</div>'
+      +'<div style="font-size:12px;line-height:1.6">Verifique se as credenciais estão corretas e se a API está ativada no portal do inversor.</div>'
+      +'</div>';
+    return;
+  }
+
+  var jaExistentes = _monPlantas.map(function(p){ return p.platId+''; });
+  var novas = 0;
+  var html = '';
+
+  Object.keys(resultados).forEach(function(brand){
+    var plants = resultados[brand];
+    if(!plants.length) return;
+    html += '<div style="margin-bottom:18px">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px">'
+      +monBrandIcon(brand)+' '+monBrandNome(brand)+' <span style="font-weight:400;text-transform:none;letter-spacing:0">('+plants.length+' usina'+(plants.length>1?'s':'')+')</span></div>';
+    plants.forEach(function(p, i){
+      var idx = _monImportCandidatos.length;
+      _monImportCandidatos.push(Object.assign({}, p, {brand: brand}));
+      var existe = jaExistentes.indexOf(p.id+'') >= 0;
+      if(!existe) novas++;
+      html += '<label style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;cursor:'+(existe?'default':'pointer')+';opacity:'+(existe?'.5':'1')+'">'
+        +'<input type="checkbox" class="mon-import-cb" value="'+idx+'" '+(existe?'disabled checked':'')+' style="width:15px;height:15px;flex-shrink:0">'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.nome+'</div>'
+        +'<div style="font-size:11px;color:var(--text2);margin-top:2px">'
+        +(p.potencia ? p.potencia.toFixed(1)+' kWp' : '')
+        +(p.potencia && p.endereco ? ' · ' : '')
+        +(p.endereco ? p.endereco : '')
+        +(existe ? ' <em style="color:#E65100">· já importada</em>' : '')
+        +'</div>'
+        +'</div>'
+        +'</label>';
+    });
+    html += '</div>';
+  });
+
+  sub.textContent = total+' usina(s) encontrada(s) · '+novas+' nova(s) disponível(is)';
+  document.getElementById('mon-import-body').innerHTML = html;
+  if(novas > 0) document.getElementById('mon-import-confirm').style.display = 'inline-flex';
+}
+
+function monImportSelectAll(checked){
+  document.querySelectorAll('.mon-import-cb:not(:disabled)').forEach(function(cb){ cb.checked = checked; });
+}
+
+function monFecharImportar(){
+  document.getElementById('mon-modal-import').style.display = 'none';
+}
+
+function monConfirmarImportacao(){
+  var checks = document.querySelectorAll('.mon-import-cb:checked:not(:disabled)');
+  if(!checks.length){ toast('Selecione ao menos uma usina.'); return; }
+
+  var importadas = 0;
+  checks.forEach(function(cb){
+    var p = _monImportCandidatos[parseInt(cb.value)];
+    if(!p) return;
+    var nova = {
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6)+importadas,
+      nome: p.nome,
+      potencia: p.potencia||null,
+      endereco: p.endereco||'',
+      lat: p.lat||null,
+      lng: p.lng||null,
+      brand: p.brand,
+      platId: p.id+'',
+      geracaoEsperadaDia: null,
+      geracaoEsperadaMes: null,
+      status: 'desconhecido',
+      ultima: {},
+      obs: ''
+    };
+    _monPlantas.push(nova);
+    importadas++;
+  });
+
+  if(importadas){
+    monPersistirPlantas();
+    monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monAtualizarHomeStats();
+    monFecharImportar();
+    toast(importadas+' usina(s) importada(s)! Buscando dados...');
+    setTimeout(function(){ monRefresh(true); }, 600);
+  }
 }
 
 // ════════════════════════════════════════════════════════
