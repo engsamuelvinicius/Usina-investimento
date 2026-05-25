@@ -12991,15 +12991,20 @@ function monAnalisarPerformance(planta){
   var ult = planta.ultima||{};
   var esp = planta.geracaoEsperadaMes||0;
   if(!esp || ult.geracaoMes==null) return;
-  var pct = Math.round(ult.geracaoMes/esp*100);
+  // Pro-rata: compara geração acumulada vs expectativa proporcional ao dia do mês
+  var hoje = new Date();
+  var diaAtual = hoje.getDate();
+  var diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+  var espProRata = esp * (diaAtual / diasNoMes);
+  var pct = Math.round(ult.geracaoMes / espProRata * 100);
   var limBaixo = _monCfg.pctBaixo||80;
   var limAlto  = _monCfg.pctAlto||120;
   if(pct < limBaixo){
     planta.status = 'alerta';
-    monGerarAlerta(planta,'abaixo','Geração de '+ult.geracaoMes.toFixed(1)+' kWh no mês representa '+pct+'% dos '+esp+' kWh esperados.',pct);
+    monGerarAlerta(planta,'abaixo','Geração de '+ult.geracaoMes.toFixed(1)+' kWh no mês representa '+pct+'% dos '+espProRata.toFixed(1)+' kWh esperados até hoje.',pct);
   } else if(pct > limAlto){
     planta.status = 'online';
-    monGerarAlerta(planta,'acima','Geração de '+ult.geracaoMes.toFixed(1)+' kWh está '+pct+'% acima do esperado ('+esp+' kWh/mês).',pct);
+    monGerarAlerta(planta,'acima','Geração de '+ult.geracaoMes.toFixed(1)+' kWh está '+pct+'% acima do esperado até hoje ('+espProRata.toFixed(1)+' kWh).',pct);
   } else {
     planta.status = 'online';
   }

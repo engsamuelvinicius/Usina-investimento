@@ -198,12 +198,9 @@ async function refreshAllSolis(api) {
       //    power = 0, day = 0  → sem geração nenhuma hoje → offline
       const power     = parseFloat(s.power     || 0);
       const dayEnergy = parseFloat(s.dayEnergy || 0);
-      const alarmNum  = parseInt(s.alarmNum || s.alarmCount || 0);
 
-      if (power > 0) {
-        statusApi = alarmNum > 0 ? 'alerta' : 'online';
-      } else if (dayEnergy > 0) {
-        statusApi = alarmNum > 0 ? 'alerta' : 'online';
+      if (power > 0 || dayEnergy > 0) {
+        statusApi = 'online';
       } else {
         statusApi = 'offline';
       }
