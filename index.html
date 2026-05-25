@@ -3452,7 +3452,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="mon-kpi kpi-offline"><div class="mon-kpi-label">Offline</div><div class="mon-kpi-val" id="mon-k-offline">–</div><div class="mon-kpi-sub">sem comunicação</div></div>
           <div class="mon-kpi kpi-alerta"><div class="mon-kpi-label">Com Alerta</div><div class="mon-kpi-val" id="mon-k-alerta">–</div><div class="mon-kpi-sub">abaixo do esperado</div></div>
           <div class="mon-kpi kpi-geracao"><div class="mon-kpi-label">Geração Hoje</div><div class="mon-kpi-val" id="mon-k-hoje">–</div><div class="mon-kpi-sub" id="mon-k-hoje-sub">kWh total</div></div>
-          <div class="mon-kpi"><div class="mon-kpi-label">Potência Atual</div><div class="mon-kpi-val" id="mon-k-pot">–</div><div class="mon-kpi-sub">kW instantâneo</div></div>
+          <div class="mon-kpi"><div class="mon-kpi-label">Potência Atual</div><div class="mon-kpi-val" id="mon-k-pot">–</div><div class="mon-kpi-sub" id="mon-k-pot-sub">kW instantâneo</div></div>
         </div>
 
         <!-- Legenda do mapa -->
@@ -4373,10 +4373,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       </div>
       <div class="fr"><label>ID da Planta na plataforma</label><input type="text" id="mon-plant-platid" placeholder="ID da usina no inversor"></div>
     </div>
-    <div class="two">
-      <div class="fr"><label>Geração diária esperada (kWh/dia)</label><input type="number" id="mon-plant-esp-dia" placeholder="Ex: 28.5" step="0.1" min="0" oninput="monCalcEspMes()"></div>
-      <div class="fr"><label>Geração mensal esperada (kWh/mês)</label><input type="number" id="mon-plant-esp-mes" placeholder="Calculado automaticamente" step="1" min="0" readonly style="background:var(--bg2);color:var(--text2)"></div>
-    </div>
+    <div class="fr"><label>Geração mensal esperada (kWh/mês)</label><input type="number" id="mon-plant-esp-mes" placeholder="Ex: 870" step="1" min="0"></div>
     <div class="fr"><label>Observações</label><input type="text" id="mon-plant-obs" placeholder="Informações adicionais (opcional)"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
       <button class="btn-s" onclick="monFecharModal()">Cancelar</button>
@@ -12792,10 +12789,10 @@ function monAtualizarMarcadores(){
     var marker = L.marker([lat,lng], { icon: monIconeMapa(status) });
     var ult = p.ultima||{};
     var perfHtml = '';
-    if(p.geracaoEsperadaDia>0 && ult.geracaoHoje!=null){
-      var pct = Math.round(ult.geracaoHoje/p.geracaoEsperadaDia*100);
+    if(p.geracaoEsperadaMes>0 && ult.geracaoMes!=null){
+      var pct = Math.round(ult.geracaoMes/p.geracaoEsperadaMes*100);
       var cor = pct>=80?'#2E8B57':(pct>=50?'#F9A825':'#E53935');
-      perfHtml = '<div style="margin-top:7px;font-size:11px;color:#666">Performance hoje</div>'
+      perfHtml = '<div style="margin-top:7px;font-size:11px;color:#666">Performance no mês</div>'
         +'<div style="background:#eee;height:6px;border-radius:4px;margin-top:4px;overflow:hidden">'
         +'<div style="width:'+Math.min(pct,100)+'%;height:6px;background:'+cor+';border-radius:4px"></div></div>'
         +'<div style="font-size:11px;font-weight:700;color:'+cor+';margin-top:3px">'+pct+'% do esperado</div>';
@@ -12828,6 +12825,7 @@ function monRenderKpis(){
   var alerta=_monPlantas.filter(function(p){return p.status==='alerta';}).length;
   var hoje=_monPlantas.reduce(function(s,p){ return s+(p.ultima&&p.ultima.geracaoHoje?p.ultima.geracaoHoje:0); },0);
   var pot=_monPlantas.reduce(function(s,p){ return s+(p.ultima&&p.ultima.potenciaAtual?p.ultima.potenciaAtual:0); },0);
+  var potInst=_monPlantas.reduce(function(s,p){ return s+(p.potencia||0); },0);
   function s(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
   s('mon-k-total',total||'0');
   s('mon-k-online',online||'0');
@@ -12835,6 +12833,8 @@ function monRenderKpis(){
   s('mon-k-alerta',alerta||'0');
   s('mon-k-hoje', hoje>0 ? (hoje>=1000?(hoje/1000).toFixed(1)+' MWh':hoje.toFixed(1)+' kWh') : '–');
   s('mon-k-pot', pot>0 ? pot.toFixed(2)+' kW' : '–');
+  var subPot=document.getElementById('mon-k-pot-sub');
+  if(subPot) subPot.textContent=potInst>0?(potInst>=1000?(potInst/1000).toFixed(2)+' MWp instalados':potInst.toFixed(1)+' kWp instalados'):'kW instantâneo';
   // Count tabs
   var cP=document.getElementById('mon-tab-plantas-count');
   if(cP) cP.textContent=total;
@@ -12893,8 +12893,9 @@ function monRenderPlantas(){
 
 function monCalcPerf(p){
   var ult = p.ultima||{};
-  if(!p.geracaoEsperadaDia||ult.geracaoHoje==null) return null;
-  return Math.round(ult.geracaoHoje/p.geracaoEsperadaDia*100);
+  if(!p.geracaoEsperadaMes) return null;
+  if(ult.geracaoMes!=null) return Math.round(ult.geracaoMes/p.geracaoEsperadaMes*100);
+  return null;
 }
 
 // ── Alertas ──────────────────────────────────────────────
@@ -12988,17 +12989,17 @@ function monGerarAlerta(planta, tipo, msg, pct){
 
 function monAnalisarPerformance(planta){
   var ult = planta.ultima||{};
-  var esp = planta.geracaoEsperadaDia||0;
-  if(!esp || ult.geracaoHoje==null) return;
-  var pct = Math.round(ult.geracaoHoje/esp*100);
+  var esp = planta.geracaoEsperadaMes||0;
+  if(!esp || ult.geracaoMes==null) return;
+  var pct = Math.round(ult.geracaoMes/esp*100);
   var limBaixo = _monCfg.pctBaixo||80;
   var limAlto  = _monCfg.pctAlto||120;
   if(pct < limBaixo){
     planta.status = 'alerta';
-    monGerarAlerta(planta,'abaixo','Geração de '+ult.geracaoHoje.toFixed(1)+' kWh representa apenas '+pct+'% dos '+esp+' kWh esperados.',pct);
+    monGerarAlerta(planta,'abaixo','Geração de '+ult.geracaoMes.toFixed(1)+' kWh no mês representa '+pct+'% dos '+esp+' kWh esperados.',pct);
   } else if(pct > limAlto){
     planta.status = 'online';
-    monGerarAlerta(planta,'acima','Geração de '+ult.geracaoHoje.toFixed(1)+' kWh está '+pct+'% acima do esperado ('+esp+' kWh).',pct);
+    monGerarAlerta(planta,'acima','Geração de '+ult.geracaoMes.toFixed(1)+' kWh está '+pct+'% acima do esperado ('+esp+' kWh/mês).',pct);
   } else {
     planta.status = 'online';
   }
@@ -13036,6 +13037,7 @@ function monRefresh(manual){
         monGerarAlerta(_monPlantas[idx],'offline','Falha ao comunicar com a plataforma '+monBrandNome(planta.brand)+': '+erro);
       } else if(dados){
         _monPlantas[idx].ultima = Object.assign({ ts: new Date().toISOString() }, dados);
+        _monPlantas[idx].status = 'online';
         monAnalisarPerformance(_monPlantas[idx]);
       }
       done();
@@ -13103,12 +13105,11 @@ function monAbrirModalPlanta(id){
       document.getElementById('mon-plant-lng').value  = p.lng||'';
       document.getElementById('mon-plant-brand').value = p.brand||'manual';
       document.getElementById('mon-plant-platid').value = p.platId||'';
-      document.getElementById('mon-plant-esp-dia').value = p.geracaoEsperadaDia||'';
       document.getElementById('mon-plant-esp-mes').value = p.geracaoEsperadaMes||'';
       document.getElementById('mon-plant-obs').value  = p.obs||'';
     }
   } else {
-    ['mon-plant-nome','mon-plant-kwp','mon-plant-endereco','mon-plant-lat','mon-plant-lng','mon-plant-platid','mon-plant-esp-dia','mon-plant-esp-mes','mon-plant-obs'].forEach(function(i){ document.getElementById(i).value=''; });
+    ['mon-plant-nome','mon-plant-kwp','mon-plant-endereco','mon-plant-lat','mon-plant-lng','mon-plant-platid','mon-plant-esp-mes','mon-plant-obs'].forEach(function(i){ document.getElementById(i).value=''; });
     document.getElementById('mon-plant-brand').value='manual';
   }
   document.getElementById('mon-geocode-status').textContent='';
@@ -13133,7 +13134,7 @@ function monSalvarPlanta(){
     lat: lat, lng: lng,
     brand: document.getElementById('mon-plant-brand').value||'manual',
     platId: document.getElementById('mon-plant-platid').value.trim(),
-    geracaoEsperadaDia: parseFloat(document.getElementById('mon-plant-esp-dia').value)||null,
+    geracaoEsperadaDia: null,
     geracaoEsperadaMes: parseFloat(document.getElementById('mon-plant-esp-mes').value)||null,
     obs: document.getElementById('mon-plant-obs').value.trim(),
     status: 'desconhecido',
@@ -13198,10 +13199,10 @@ function monAbrirDetalhe(id){
     +'<b>Potência atual:</b> '+(ult.potenciaAtual!=null?ult.potenciaAtual.toFixed(2)+' kW':'–')+'<br>'
     +(ult.ts?'<b>Última atualização:</b> '+monFormatarData(ult.ts):'')
     +'</div></div></div>'
-    +(perf!=null?'<div class="st">Performance hoje</div>'
+    +(perf!=null?'<div class="st">Performance no mês</div>'
     +'<div style="background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:14px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-    +'<span style="font-size:13px;color:var(--text2)">'+ult.geracaoHoje.toFixed(1)+' kWh gerados vs. '+p.geracaoEsperadaDia+' kWh esperados</span>'
+    +'<span style="font-size:13px;color:var(--text2)">'+(ult.geracaoMes!=null?ult.geracaoMes.toFixed(1):0)+' kWh gerados vs. '+p.geracaoEsperadaMes+' kWh/mês esperados</span>'
     +'<span style="font-size:18px;font-weight:700;color:'+perfCor+'">'+perf+'%</span>'
     +'</div>'
     +'<div style="background:var(--border);height:10px;border-radius:6px;overflow:hidden">'
@@ -13232,7 +13233,7 @@ function monRefreshPlanta(id){
     var idx = _monPlantas.findIndex(function(x){return x.id===id;});
     if(idx<0) return;
     if(erro){ toast('Erro: '+erro,'warn'); _monPlantas[idx].status='offline'; }
-    else if(dados){ _monPlantas[idx].ultima=Object.assign({ts:new Date().toISOString()},dados); monAnalisarPerformance(_monPlantas[idx]); }
+    else if(dados){ _monPlantas[idx].ultima=Object.assign({ts:new Date().toISOString()},dados); _monPlantas[idx].status='online'; monAnalisarPerformance(_monPlantas[idx]); }
     monPersistirPlantas();
     monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores();
     monAbrirDetalhe(id);
