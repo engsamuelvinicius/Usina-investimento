@@ -12636,16 +12636,19 @@ function monCarregarDados(cb){
     _monAlertas = JSON.parse(localStorage.getItem('mon_alertas_'+uid)||'[]');
     _monApis    = JSON.parse(localStorage.getItem('mon_apis_'+uid)||'{}');
     _monCfg     = JSON.parse(localStorage.getItem('mon_cfg_'+uid)||JSON.stringify(_monCfg));
-    // Sync Firestore
+    // Sync Firestore — SDK modular v10 (fbDb.collection não existe no modular)
+    var _db = window._fbDb;
+    var _colPlantas = _db.collection(fbDb, 'usuarios', uid, 'mon_plantas');
+    var _colAlertas = _db.collection(fbDb, 'usuarios', uid, 'mon_alertas');
+    var _docApis    = _db.doc(fbDb, 'usuarios', uid, 'mon_config', 'apis');
     if(_monUnsubPlantas) _monUnsubPlantas();
-    _monUnsubPlantas = fbDb.collection('usuarios').doc(uid).collection('mon_plantas')
-      .onSnapshot(function(snap){
-        _monPlantas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
-        localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
-        monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monAtualizarHomeStats();
-      }, function(){});
-    // .get() direto garante carregamento imediato — não depende do onSnapshot disparar
-    fbDb.collection('usuarios').doc(uid).collection('mon_plantas').get()
+    _monUnsubPlantas = _db.onSnapshot(_colPlantas, function(snap){
+      _monPlantas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
+      localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
+      monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monAtualizarHomeStats();
+    }, function(){});
+    // .get() direto — garante carregamento imediato sem depender do onSnapshot
+    _db.getDocs(_colPlantas)
       .then(function(snap){
         if(snap && !snap.empty){
           _monPlantas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
@@ -12656,23 +12659,21 @@ function monCarregarDados(cb){
         }
       }).catch(function(){});
     if(_monUnsubAlertas) _monUnsubAlertas();
-    _monUnsubAlertas = fbDb.collection('usuarios').doc(uid).collection('mon_alertas')
-      .orderBy('ts','desc').limit(100)
-      .onSnapshot(function(snap){
+    _monUnsubAlertas = _db.onSnapshot(
+      _db.query(_colAlertas, _db.orderBy('ts','desc'), _db.limit(100)),
+      function(snap){
         _monAlertas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
         localStorage.setItem('mon_alertas_'+uid, JSON.stringify(_monAlertas));
         monRenderAlertas(); monAtualizarBadgeAlertas();
       }, function(){});
-    // Sync credenciais de API do Firestore — garante que persistem após refresh
     if(_monUnsubApis) _monUnsubApis();
-    _monUnsubApis = fbDb.collection('usuarios').doc(uid).collection('mon_config').doc('apis')
-      .onSnapshot(function(doc){
-        if(doc.exists){
-          _monApis = doc.data()||{};
-          localStorage.setItem('mon_apis_'+uid, JSON.stringify(_monApis));
-          monPreencherApis();
-        }
-      }, function(){});
+    _monUnsubApis = _db.onSnapshot(_docApis, function(snap){
+      if(snap.exists()){
+        _monApis = snap.data()||{};
+        localStorage.setItem('mon_apis_'+uid, JSON.stringify(_monApis));
+        monPreencherApis();
+      }
+    }, function(){});
     if(cb) cb();
   } else {
     var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
@@ -12688,8 +12689,9 @@ function monPersistirPlantas(){
   var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
   localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
   if(firebaseOK && fbDb && usuarioAtual){
+    var _db = window._fbDb;
     _monPlantas.forEach(function(p){
-      fbDb.collection('usuarios').doc(uid).collection('mon_plantas').doc(p.id).set(p).catch(function(){});
+      _db.setDoc(_db.doc(fbDb,'usuarios',uid,'mon_plantas',p.id), p).catch(function(){});
     });
   }
 }
@@ -12698,8 +12700,9 @@ function monPersistirAlertas(){
   var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
   localStorage.setItem('mon_alertas_'+uid, JSON.stringify(_monAlertas));
   if(firebaseOK && fbDb && usuarioAtual){
+    var _db = window._fbDb;
     _monAlertas.slice(0,100).forEach(function(a){
-      if(a.id) fbDb.collection('usuarios').doc(uid).collection('mon_alertas').doc(a.id).set(a).catch(function(){});
+      if(a.id) _db.setDoc(_db.doc(fbDb,'usuarios',uid,'mon_alertas',a.id), a).catch(function(){});
     });
   }
 }
@@ -12708,8 +12711,7 @@ function monPersistirApis(){
   var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
   localStorage.setItem('mon_apis_'+uid, JSON.stringify(_monApis));
   if(firebaseOK && fbDb && usuarioAtual){
-    fbDb.collection('usuarios').doc(uid).collection('mon_config').doc('apis')
-      .set(_monApis).catch(function(){});
+    window._fbDb.setDoc(window._fbDb.doc(fbDb,'usuarios',uid,'mon_config','apis'), _monApis).catch(function(){});
   }
 }
 
@@ -13162,7 +13164,7 @@ function monExcluirPlanta(id){
   monPersistirAlertas();
   // Remove do Firestore
   if(firebaseOK && fbDb && usuarioAtual){
-    fbDb.collection('usuarios').doc(usuarioAtual.uid).collection('mon_plantas').doc(id).delete().catch(function(){});
+    window._fbDb.deleteDoc(window._fbDb.doc(fbDb,'usuarios',usuarioAtual.uid,'mon_plantas',id)).catch(function(){});
   }
   monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monRenderAlertas(); monAtualizarBadgeAlertas(); monAtualizarHomeStats();
   toast('Planta removida.');
@@ -13571,10 +13573,11 @@ function monConfirmarImportacao(){
     // Batch write em blocos de 400 (limite Firestore = 500)
     var blocos = [];
     for(var i = 0; i < novas.length; i += 400) blocos.push(novas.slice(i, i+400));
+    var _db = window._fbDb;
     var promessas = blocos.map(function(bloco){
-      var batch = fbDb.batch();
+      var batch = _db.writeBatch(fbDb);
       bloco.forEach(function(p){
-        batch.set(fbDb.collection('usuarios').doc(uid).collection('mon_plantas').doc(p.id), p);
+        batch.set(_db.doc(fbDb,'usuarios',uid,'mon_plantas',p.id), p);
       });
       return batch.commit();
     });
