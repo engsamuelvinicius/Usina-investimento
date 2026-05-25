@@ -462,9 +462,18 @@ async function listSolarman(api) {
   if (!tokenRes.access_token) throw new Error('Falha auth Solarman');
   const token = tokenRes.access_token;
 
-  const r = await httpPost(`${base}/station/v1.0/list?language=pt`, { page: 1, size: 100 },
-    { Authorization: `Bearer ${token}`, appId: api.appid });
-  return (r.list || r.stationList || []).map(s =>
+  // Busca paginada — 100 por página
+  let page = 1; const allStations = [];
+  while (true) {
+    const r = await httpPost(`${base}/station/v1.0/list?language=pt`, { page, size: 100 },
+      { Authorization: `Bearer ${token}`, appId: api.appid });
+    const list = r.list || r.stationList || [];
+    list.forEach(s => allStations.push(s));
+    if (list.length < 100) break;
+    page++;
+    if (page > 20) break; // segurança: máx 2000 plantas
+  }
+  return allStations.map(s =>
     _mapPlant(s.id||s.stationId, s.name||s.stationName, s.installedCapacity, [s.city,s.province].filter(Boolean).join(', '), s.lat, s.lng));
 }
 
@@ -493,25 +502,43 @@ async function listHuawei(api) {
     _mapPlant(s.dn||s.stationCode, s.name||s.stationName, s.capacity||s.installedCapacity, s.address));
 }
 
-// ── Solis list ───────────────────────────────────────────
+// ── Solis list (paginado) ────────────────────────────────
 async function listSolis(api) {
   const base = 'https://www.soliscloud.com:13333';
-  // Endpoint correto: userStationList (stationList não existe no Solis v1)
-  const bodyObj = { pageNo: 1, pageSize: 20 };
-  const bodyStr = JSON.stringify(bodyObj);
   const path = '/v1/api/userStationList';
-  const contentMd5 = crypto.createHash('md5').update(bodyStr).digest('base64');
-  const date = new Date().toUTCString();
-  const contentType = 'application/json';
-  const stringToSign = `POST\n${contentMd5}\n${contentType}\n${date}\n${path}`;
-  const hmac = crypto.createHmac('sha1', api.secret).update(stringToSign).digest('base64');
-  const r = await httpPost(`${base}${path}`, bodyObj, {
-    'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
-  });
-  if (!r || r.code !== '0') {
-    throw new Error(`Solis API erro ${r?.code||'?'}: ${r?.msg||r?.message||JSON.stringify(r).slice(0,200)}`);
+  const PAGE_SIZE = 20; // Solis limita a 20 por página
+
+  async function fetchPage(pageNo) {
+    const bodyObj = { pageNo, pageSize: PAGE_SIZE };
+    const bodyStr = JSON.stringify(bodyObj);
+    const contentMd5 = crypto.createHash('md5').update(bodyStr).digest('base64');
+    const date = new Date().toUTCString();
+    const stringToSign = `POST\n${contentMd5}\napplication/json\n${date}\n${path}`;
+    const hmac = crypto.createHmac('sha1', api.secret).update(stringToSign).digest('base64');
+    const r = await httpPost(`${base}${path}`, bodyObj, {
+      'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
+    });
+    if (!r || r.code !== '0') {
+      throw new Error(`Solis API erro ${r?.code||'?'}: ${r?.msg||r?.message||JSON.stringify(r).slice(0,200)}`);
+    }
+    return r.data?.page || r.data || {};
   }
-  return (r.data?.page?.records || r.data?.records || []).map(s =>
+
+  // Busca página 1 e descobre o total
+  const first = await fetchPage(1);
+  const total = parseInt(first.total || first.count || 0);
+  const records = first.records || [];
+
+  // Busca páginas restantes em paralelo
+  if (total > PAGE_SIZE) {
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const extraPages = [];
+    for (let p = 2; p <= totalPages; p++) extraPages.push(fetchPage(p));
+    const extras = await Promise.all(extraPages);
+    extras.forEach(pg => { if (pg.records) records.push(...pg.records); });
+  }
+
+  return records.map(s =>
     _mapPlant(s.id, s.stationName||s.name, s.installedCapacity||s.capacity,
       [s.city, s.province||s.state].filter(Boolean).join(', '), s.latitude, s.longitude));
 }
