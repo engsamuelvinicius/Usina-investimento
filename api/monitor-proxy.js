@@ -19,16 +19,23 @@ module.exports = async (req, res) => {
   try {
     let data;
     switch (brand) {
-      case 'solarman': data = await fetchSolarman(platId, api); break;
-      case 'growatt':  data = await fetchGrowatt(platId, api);  break;
-      case 'huawei':   data = await fetchHuawei(platId, api);   break;
-      case 'solis':    data = await fetchSolis(platId, api);    break;
-      case 'sofar':    data = await fetchSolarman(platId, api, 'sofar'); break; // Sofar usa Solarman API
-      case 'deye':     data = await fetchSolarman(platId, api, 'deye');  break; // Deye usa Solarman API
-      case 'solplanet':data = await fetchSolplanet(platId, api);break;
-      case 'fronius':  data = await fetchFronius(platId, api);  break;
-      case 'auxsol':   data = await fetchAuxsol(platId, api);   break;
-      default: return res.status(400).json({ error: 'Marca não suportada: ' + brand });
+      case 'solarman':  data = await fetchSolarman(platId, api); break;
+      case 'growatt':   data = await fetchGrowatt(platId, api);  break;
+      case 'huawei':    data = await fetchHuawei(platId, api);   break;
+      case 'solis':     data = await fetchSolis(platId, api);    break;
+      case 'sofar':     data = await fetchSolarman(platId, api, 'sofar'); break;
+      case 'deye':      data = await fetchSolarman(platId, api, 'deye');  break;
+      case 'solplanet': data = await fetchSolplanet(platId, api);break;
+      case 'fronius':   data = await fetchFronius(platId, api);  break;
+      case 'auxsol':    data = await fetchAuxsol(platId, api);   break;
+      case 'intelbras': data = await fetchSolarman(platId, api, 'intelbras'); break;
+      case 'sungrow':   data = await fetchSungrow(platId, api);  break;
+      case 'hoymiles':  data = await fetchHoymiles(platId, api); break;
+      case 'goodwe':    data = await fetchGoodwe(platId, api);   break;
+      case 'sma':       data = await fetchSma(platId, api);      break;
+      case 'foxess':    data = await fetchFoxess(platId, api);   break;
+      case 'saj':       data = await fetchSaj(platId, api);      break;
+      default: return res.status(400).json({ error: 'Marca não suportada para API automática: ' + brand });
     }
     return res.status(200).json(data);
   } catch (err) {
@@ -261,6 +268,152 @@ async function fetchAuxsol(platId, api) {
     geracaoTotal:  parseFloat(d.energy_total    || d.geracaoTotal   || 0),
     potenciaAtual: parseFloat(d.current_power   || d.potenciaAtual  || 0) / 1000,
     fonte: 'auxsol'
+  };
+}
+
+// ── Sungrow iSolarCloud ──────────────────────────────────
+// Documentação: https://augateway.isolarcloud.com
+async function fetchSungrow(platId, api) {
+  const base = 'https://augateway.isolarcloud.com';
+  const loginRes = await httpPost(`${base}/v1/userService/login`, {
+    appkey: api.appkey,
+    user_account: api.user,
+    user_password: api.pass,
+    org_id: '',
+    msg_datetime: new Date().toISOString().replace(/[TZ.-]/g, '').slice(0, 14)
+  });
+  if (!loginRes.result_data?.token) throw new Error('Falha no login Sungrow: ' + JSON.stringify(loginRes));
+  const token = loginRes.result_data.token;
+
+  const dataRes = await httpPost(`${base}/v1/powerStationService/queryDeviceList`, {
+    appkey: api.appkey, token: token, ps_id: platId
+  });
+  const d = (dataRes.result_data || [])[0] || {};
+  return {
+    geracaoHoje:   parseFloat(d.today_energy || 0),
+    geracaoMes:    parseFloat(d.month_energy || 0),
+    geracaoTotal:  parseFloat(d.total_energy || 0),
+    potenciaAtual: parseFloat(d.curr_power   || 0) / 1000,
+    fonte: 'sungrow'
+  };
+}
+
+// ── Hoymiles S-Miles Cloud ───────────────────────────────
+// Documentação: https://global.hoymiles.com/platform/api/gateway
+async function fetchHoymiles(platId, api) {
+  const base = 'https://global.hoymiles.com/platform/api/gateway';
+  const loginRes = await httpPost(`${base}/iam/auth_login`, {
+    body: { user_name: api.user, password: crypto.createHash('md5').update(api.pass).digest('hex') }
+  });
+  const token = loginRes.data?.token;
+  if (!token) throw new Error('Falha no login Hoymiles');
+
+  const dataRes = await httpPost(`${base}/pvm-data/api/0/station/real`, {
+    body: { sid: platId }
+  }, { Cookie: `hm_token_locale=${token}` });
+  const d = dataRes.data || {};
+  return {
+    geracaoHoje:   parseFloat(d.today_eq  || 0),
+    geracaoMes:    parseFloat(d.month_eq  || 0),
+    geracaoTotal:  parseFloat(d.total_eq  || 0),
+    potenciaAtual: parseFloat(d.real_power || 0),
+    fonte: 'hoymiles'
+  };
+}
+
+// ── GoodWe SEMS ──────────────────────────────────────────
+// Documentação: https://www.semsportal.com/Swagger
+async function fetchGoodwe(platId, api) {
+  const base = 'https://www.semsportal.com/api';
+  const loginRes = await httpPost(`${base}/v2/Common/CrossLogin`, {
+    account: api.email,
+    pwd: api.pass,
+    is_local: false,
+    lang: '_pt'
+  }, { Token: JSON.stringify({ timestamp: '', uid: '', token: '', client: 'web', version: '', company_id: '' }) });
+
+  const data = loginRes.data;
+  if (!data?.token) throw new Error('Falha no login GoodWe');
+  const authToken = JSON.stringify({ timestamp: data.timestamp, uid: data.uid, token: data.token, client: 'web', version: '', company_id: '' });
+
+  const stationRes = await httpPost(`${base}/v3/PowerStation/GetMonitorDetailByPowerstationId`, {
+    powerStationId: platId
+  }, { Token: authToken });
+  const d = stationRes.data?.kpi || {};
+  return {
+    geracaoHoje:   parseFloat(d.power          || 0),
+    geracaoMes:    parseFloat(d.month_generation|| 0),
+    geracaoTotal:  parseFloat(d.total_power     || 0),
+    potenciaAtual: parseFloat(d.pac             || 0) / 1000,
+    fonte: 'goodwe'
+  };
+}
+
+// ── SMA Sunny Portal (Ennexos) ───────────────────────────
+// Documentação: https://ennexos.sunnyportal.com/xom/api
+async function fetchSma(platId, api) {
+  const base = 'https://ennexos.sunnyportal.com/xom/api/v1';
+  const tokenRes = await httpPost(`${base}/token`, `grant_type=client_credentials&client_id=${encodeURIComponent(api.clientid)}&client_secret=${encodeURIComponent(api.clientsecret)}`, {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  });
+  if (!tokenRes.access_token) throw new Error('Falha na autenticação SMA');
+  const token = tokenRes.access_token;
+
+  const dataRes = await httpGet(`${base}/systems/${platId}/measurements/live`, { Authorization: `Bearer ${token}` });
+  const ch = (dataRes.measurements || []);
+  const findVal = (type) => { const c = ch.find(m => m.channelId === type); return c ? parseFloat(c.values?.[0]?.value || 0) : 0; };
+  return {
+    geracaoHoje:   findVal('DayEnergy') / 1000,
+    geracaoTotal:  findVal('TotalEnergy') / 1000,
+    potenciaAtual: findVal('PVPower') / 1000,
+    fonte: 'sma'
+  };
+}
+
+// ── FoxESS Cloud ─────────────────────────────────────────
+// Documentação: https://www.foxesscloud.com/public/i18n/en/OpenApiInfomation.html
+async function fetchFoxess(platId, api) {
+  const base = 'https://www.foxesscloud.com/op/v0';
+  const ts = Date.now().toString();
+  const signature = crypto.createHash('md5').update(`${api.apikey}\\n${ts}`).digest('hex');
+
+  const headers = { 'token': api.apikey, 'timestamp': ts, 'signature': signature, 'lang': 'pt' };
+  const dataRes = await httpPost(`${base}/device/real/queryPower`, { sn: platId, variables: ['pvPower','generationPower','energyToday','energyTotal','monthEnergy'] }, headers);
+  const d = dataRes.result || {};
+  const find = (k) => (d.datas || []).find(x => x.variable === k)?.value || 0;
+  return {
+    geracaoHoje:   parseFloat(find('energyToday')),
+    geracaoMes:    parseFloat(find('monthEnergy')),
+    geracaoTotal:  parseFloat(find('energyTotal')),
+    potenciaAtual: parseFloat(find('generationPower')) / 1000,
+    fonte: 'foxess'
+  };
+}
+
+// ── SAJ eSolar ───────────────────────────────────────────
+// Documentação: https://fop.saj-electric.com/api
+async function fetchSaj(platId, api) {
+  const base = 'https://fop.saj-electric.com/saj/login';
+  const ts = Date.now();
+  const nonce = crypto.randomBytes(8).toString('hex');
+  const sign = crypto.createHmac('sha1', api.appsecret).update(`${api.appid}${ts}${nonce}`).digest('hex');
+
+  const loginRes = await httpPost(base, {}, {
+    appid: api.appid, timestamp: ts, nonce: nonce, sign: sign, 'Content-Type': 'application/x-www-form-urlencoded'
+  });
+  if (!loginRes.obj?.token) throw new Error('Falha no login SAJ');
+  const token = loginRes.obj.token;
+
+  const dataRes = await httpPost('https://fop.saj-electric.com/saj/monitor/site/getSiteRealTimeData', {
+    plantuid: platId
+  }, { Authorization: token });
+  const d = dataRes.obj || {};
+  return {
+    geracaoHoje:   parseFloat(d.todayElectricity  || 0),
+    geracaoMes:    parseFloat(d.monthElectricity  || 0),
+    geracaoTotal:  parseFloat(d.totalElectricity  || 0),
+    potenciaAtual: parseFloat(d.nowPower          || 0) / 1000,
+    fonte: 'saj'
   };
 }
 
