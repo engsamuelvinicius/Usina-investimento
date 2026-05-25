@@ -15,6 +15,26 @@ module.exports = async (req, res) => {
   const { brand, platId, api, action } = req.body || {};
   if (!api || typeof api !== 'object') return res.status(400).json({ error: 'Credenciais (api) ausentes' });
 
+  // ── Ação: refresh em lote (status + dados de todas as plantas) ──
+  if (action === 'refresh_all') {
+    if (!brand) return res.status(400).json({ error: 'brand obrigatório' });
+    try {
+      let plants;
+      switch (brand) {
+        case 'solis':     plants = await refreshAllSolis(api);    break;
+        case 'solarman':
+        case 'sofar':
+        case 'deye':
+        case 'intelbras': plants = await refreshAllSolarman(api); break;
+        default: return res.status(400).json({ error: 'refresh_all não disponível para: ' + brand });
+      }
+      return res.status(200).json({ plants });
+    } catch (err) {
+      console.error('[monitor-proxy refresh_all]', brand, err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   // ── Ação: listar todas as plantas da conta ───────────────
   if (action === 'list') {
     if (!brand) return res.status(400).json({ error: 'brand obrigatório' });
@@ -115,6 +135,95 @@ function httpGet(url, headers = {}) {
     reqH.on('error', reject);
     reqH.end();
   });
+}
+
+// ══════════════════════════════════════════════════════════
+// FUNÇÕES DE REFRESH EM LOTE (status real de cada planta)
+// ══════════════════════════════════════════════════════════
+
+// Solis: usa userStationList (único endpoint que retorna stationStatus por planta)
+// Retorna: { [platId]: { statusApi, geracaoHoje, geracaoMes, potenciaAtual } }
+async function refreshAllSolis(api) {
+  const base = 'https://www.soliscloud.com:13333';
+  const path = '/v1/api/userStationList';
+  const PAGE_SIZE = 20;
+
+  async function fetchPage(pageNo) {
+    const bodyObj = { pageNo, pageSize: PAGE_SIZE };
+    const bodyStr = JSON.stringify(bodyObj);
+    const contentMd5 = crypto.createHash('md5').update(bodyStr).digest('base64');
+    const date = new Date().toUTCString();
+    const stringToSign = `POST\n${contentMd5}\napplication/json\n${date}\n${path}`;
+    const hmac = crypto.createHmac('sha1', api.secret).update(stringToSign).digest('base64');
+    const r = await httpPost(`${base}${path}`, bodyObj, {
+      'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
+    });
+    if (!r || r.code !== '0') throw new Error(`Solis userStationList erro: ${r?.msg||JSON.stringify(r).slice(0,200)}`);
+    return r.data?.page || r.data || {};
+  }
+
+  const first = await fetchPage(1);
+  const total = parseInt(first.total || first.count || 0);
+  const records = [...(first.records || [])];
+
+  if (total > PAGE_SIZE) {
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const extra = [];
+    for (let p = 2; p <= totalPages; p++) extra.push(fetchPage(p));
+    (await Promise.all(extra)).forEach(pg => { if (pg.records) records.push(...pg.records); });
+  }
+
+  const result = {};
+  records.forEach(s => {
+    const id = String(s.id || s.stationId || '');
+    if (!id) return;
+    // stationStatus Solis: 0=normal/online, 1=offline, 2=alarm
+    const st = parseInt(s.stationStatus ?? 0);
+    result[id] = {
+      geracaoHoje:   parseFloat(s.dayEnergy    || 0),
+      geracaoMes:    parseFloat(s.monthEnergy  || 0),
+      geracaoTotal:  parseFloat(s.allEnergy    || 0),
+      potenciaAtual: parseFloat(s.power        || 0),
+      statusApi:     st === 1 ? 'offline' : (st === 2 ? 'alerta' : 'online')
+    };
+  });
+  return result;
+}
+
+// Solarman: usa station/v1.0/list (inclui status por planta)
+async function refreshAllSolarman(api) {
+  const base = 'https://globalapi.solarmanpv.com';
+  const tokenRes = await httpPost(`${base}/account/v1.0/token?appId=${api.appid}&language=pt`, {
+    appSecret: api.secret, email: api.email, password: api.senha
+  });
+  if (!tokenRes.access_token) throw new Error('Falha auth Solarman');
+  const token = tokenRes.access_token;
+
+  let page = 1; const allStations = [];
+  while (true) {
+    const r = await httpPost(`${base}/station/v1.0/list?language=pt`, { page, size: 100 },
+      { Authorization: `Bearer ${token}`, appId: api.appid });
+    const list = r.list || r.stationList || [];
+    list.forEach(s => allStations.push(s));
+    if (list.length < 100) break;
+    if (++page > 20) break;
+  }
+
+  const result = {};
+  allStations.forEach(s => {
+    const id = String(s.id || s.stationId || '');
+    if (!id) return;
+    // status Solarman: 0=offline, 1=normal
+    const st = typeof s.status === 'number' ? s.status : 1;
+    result[id] = {
+      geracaoHoje:   parseFloat(s.generationValue || s.todayEnergy || 0),
+      geracaoMes:    parseFloat(s.monthEnergy || 0),
+      geracaoTotal:  parseFloat(s.totalEnergy || 0),
+      potenciaAtual: parseFloat(s.generatingPower || s.power || 0) / 1000,
+      statusApi:     st === 0 ? 'offline' : 'online'
+    };
+  });
+  return result;
 }
 
 // ── Solarman / Sofar / Deye ──────────────────────────────

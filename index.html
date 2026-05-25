@@ -13005,6 +13005,9 @@ function monAnalisarPerformance(planta){
   }
 }
 
+// ── Marcas que suportam refresh em lote (action: refresh_all) ──
+var _MON_BATCH_BRANDS = ['solis','solarman','sofar','deye','intelbras'];
+
 // ── Atualização de dados (refresh) ──────────────────────
 function monRefresh(manual){
   var btn = document.getElementById('mon-refresh-btn');
@@ -13014,34 +13017,81 @@ function monRefresh(manual){
 
   var plantasComApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
   var plantasManuais = _monPlantas.filter(function(p){ return !p.brand || p.brand==='manual' || !p.platId; });
+  plantasManuais.forEach(function(p){ if(!p.status) p.status = 'desconhecido'; });
 
-  // Plantas manuais mantêm status calculado localmente
-  plantasManuais.forEach(function(p){
-    if(!p.status) p.status = 'desconhecido';
+  if(!plantasComApi.length){ monFinalizarRefresh(btn, label); return; }
+
+  // Agrupa plantas por marca
+  var porBrand = {};
+  plantasComApi.forEach(function(p){
+    if(!porBrand[p.brand]) porBrand[p.brand] = [];
+    porBrand[p.brand].push(p);
   });
+  var marcas = Object.keys(porBrand);
+  var marcasDone = 0;
+  function brandDone(){ marcasDone++; if(marcasDone >= marcas.length) monFinalizarRefresh(btn, label); }
 
-  if(!plantasComApi.length){
-    monFinalizarRefresh(btn, label);
-    return;
+  function aplicarDados(planta, dados){
+    var idx = _monPlantas.findIndex(function(p){ return p.id===planta.id; });
+    if(idx<0) return;
+    _monPlantas[idx].ultima = Object.assign({ ts: new Date().toISOString() }, dados);
+    _monPlantas[idx].status = dados.statusApi || 'online';
+    // Remove alertas offline falsos quando planta volta ao ar
+    if(_monPlantas[idx].status !== 'offline'){
+      _monAlertas = _monAlertas.filter(function(a){ return !(a.plantaId===planta.id && a.tipo==='offline' && !a.lido); });
+      monAnalisarPerformance(_monPlantas[idx]);
+    }
   }
 
-  var pendentes = plantasComApi.length;
-  function done(){ pendentes--; if(pendentes<=0) monFinalizarRefresh(btn,label); }
+  marcas.forEach(function(brand){
+    var plantas = porBrand[brand];
+    var api = _monApis[brand]||{};
 
-  plantasComApi.forEach(function(planta){
-    monBuscarDadosPlanta(planta, function(dados, erro){
-      var idx = _monPlantas.findIndex(function(p){ return p.id===planta.id; });
-      if(idx<0){ done(); return; }
-      if(erro){
-        _monPlantas[idx].status = 'offline';
-        monGerarAlerta(_monPlantas[idx],'offline','Falha ao comunicar com a plataforma '+monBrandNome(planta.brand)+': '+erro);
-      } else if(dados){
-        _monPlantas[idx].ultima = Object.assign({ ts: new Date().toISOString() }, dados);
-        _monPlantas[idx].status = dados.statusApi || 'online';
-        if(_monPlantas[idx].status !== 'offline') monAnalisarPerformance(_monPlantas[idx]);
-      }
-      done();
-    });
+    if(_MON_BATCH_BRANDS.indexOf(brand) >= 0){
+      // Refresh em lote: uma chamada retorna dados de todas as plantas da marca
+      fetch('/api/monitor-proxy', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ brand: brand, api: api, action: 'refresh_all' })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var batchData = data.plants || {};
+        plantas.forEach(function(planta){
+          var d = batchData[planta.platId] || batchData[String(planta.platId)];
+          if(d){
+            aplicarDados(planta, d);
+          } else {
+            var idx = _monPlantas.findIndex(function(p){ return p.id===planta.id; });
+            if(idx>=0) _monPlantas[idx].status = 'offline';
+          }
+        });
+        brandDone();
+      })
+      .catch(function(){
+        plantas.forEach(function(planta){
+          var idx = _monPlantas.findIndex(function(p){ return p.id===planta.id; });
+          if(idx>=0) _monPlantas[idx].status = 'offline';
+        });
+        brandDone();
+      });
+    } else {
+      // Refresh individual por planta (marcas sem batch)
+      var pendentes = plantas.length;
+      function plantaDone(){ pendentes--; if(pendentes<=0) brandDone(); }
+      plantas.forEach(function(planta){
+        monBuscarDadosPlanta(planta, function(dados, erro){
+          var idx = _monPlantas.findIndex(function(p){ return p.id===planta.id; });
+          if(idx<0){ plantaDone(); return; }
+          if(erro){
+            _monPlantas[idx].status = 'offline';
+            monGerarAlerta(_monPlantas[idx],'offline','Falha: '+monBrandNome(planta.brand)+': '+erro);
+          } else if(dados){
+            aplicarDados(planta, dados);
+          }
+          plantaDone();
+        });
+      });
+    }
   });
 }
 
