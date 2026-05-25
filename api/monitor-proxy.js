@@ -496,10 +496,10 @@ async function listHuawei(api) {
 // ── Solis list ───────────────────────────────────────────
 async function listSolis(api) {
   const base = 'https://www.soliscloud.com:13333';
-  // Body sem campos extras — Solis rejeita campos não esperados na assinatura
+  // Endpoint correto: userStationList (stationList não existe no Solis v1)
   const bodyObj = { pageNo: 1, pageSize: 20 };
   const bodyStr = JSON.stringify(bodyObj);
-  const path = '/v1/api/stationList';
+  const path = '/v1/api/userStationList';
   const contentMd5 = crypto.createHash('md5').update(bodyStr).digest('base64');
   const date = new Date().toUTCString();
   const contentType = 'application/json';
