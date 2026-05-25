@@ -353,7 +353,7 @@ async function fetchGoodwe(platId, api) {
 // Documentação: https://ennexos.sunnyportal.com/xom/api
 async function fetchSma(platId, api) {
   const base = 'https://ennexos.sunnyportal.com/xom/api/v1';
-  const tokenRes = await httpPost(`${base}/token`, `grant_type=client_credentials&client_id=${encodeURIComponent(api.clientid)}&client_secret=${encodeURIComponent(api.clientsecret)}`, {
+  const tokenRes = await httpPost(`${base}/token`, `grant_type=client_credentials&client_id=${encodeURIComponent(api.clientid)}&client_secret=${encodeURIComponent(api.secret)}`, {
     'Content-Type': 'application/x-www-form-urlencoded'
   });
   if (!tokenRes.access_token) throw new Error('Falha na autenticação SMA');
@@ -396,7 +396,7 @@ async function fetchSaj(platId, api) {
   const base = 'https://fop.saj-electric.com/saj/login';
   const ts = Date.now();
   const nonce = crypto.randomBytes(8).toString('hex');
-  const sign = crypto.createHmac('sha1', api.appsecret).update(`${api.appid}${ts}${nonce}`).digest('hex');
+  const sign = crypto.createHmac('sha1', api.secret).update(`${api.appid}${ts}${nonce}`).digest('hex');
 
   const loginRes = await httpPost(base, {}, {
     appid: api.appid, timestamp: ts, nonce: nonce, sign: sign, 'Content-Type': 'application/x-www-form-urlencoded'

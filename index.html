@@ -12550,6 +12550,7 @@ var _monIntervalId = null;
 var _monGeocodeTimer = null;
 var _monUnsubPlantas = null;
 var _monUnsubAlertas = null;
+var _monUnsubApis    = null;
 
 // ── Inicialização ────────────────────────────────────────
 function monInit(){
@@ -12589,6 +12590,16 @@ function monCarregarDados(cb){
         localStorage.setItem('mon_alertas_'+uid, JSON.stringify(_monAlertas));
         monRenderAlertas(); monAtualizarBadgeAlertas();
       });
+    // Sync credenciais de API do Firestore — garante que persistem após refresh
+    if(_monUnsubApis) _monUnsubApis();
+    _monUnsubApis = fbDb.collection('usuarios').doc(uid).collection('mon_config').doc('apis')
+      .onSnapshot(function(doc){
+        if(doc.exists){
+          _monApis = doc.data()||{};
+          localStorage.setItem('mon_apis_'+uid, JSON.stringify(_monApis));
+          monPreencherApis();
+        }
+      }, function(){});
     if(cb) cb();
   } else {
     var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
@@ -12623,6 +12634,10 @@ function monPersistirAlertas(){
 function monPersistirApis(){
   var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
   localStorage.setItem('mon_apis_'+uid, JSON.stringify(_monApis));
+  if(firebaseOK && fbDb && usuarioAtual){
+    fbDb.collection('usuarios').doc(uid).collection('mon_config').doc('apis')
+      .set(_monApis).catch(function(){});
+  }
 }
 
 function monPersistirCfg(){
@@ -12639,6 +12654,7 @@ function monSwitchTab(tab){
   if(btn) btn.classList.add('active');
   if(sec) sec.classList.add('active');
   if(tab==='visao') monIniciarMapa();
+  if(tab==='config') monPreencherApis();
 }
 
 // ── Mapa Leaflet ─────────────────────────────────────────
@@ -13149,12 +13165,28 @@ function monRefreshPlanta(id){
 }
 
 // ── APIs de inversores ───────────────────────────────────
+var _monApiFields={
+  solarman:['appid','secret','email','senha'],
+  growatt:['user','pass'],
+  huawei:['user','pass','dom'],
+  solis:['id','secret'],
+  sofar:['appid','secret','email','senha'],
+  deye:['appid','secret','email','senha'],
+  solplanet:['user','pass'],
+  fronius:['keyid','keyval'],
+  auxsol:['user','pass'],
+  sungrow:['appkey','secret','user','pass'],
+  hoymiles:['user','pass'],
+  goodwe:['token','email','pass'],
+  sma:['clientid','secret'],
+  foxess:['apikey'],
+  saj:['appid','secret'],
+  intelbras:['appid','secret','email','senha']
+};
 function monPreencherApis(){
-  var brands = ['solarman','growatt','huawei','solis','sofar','deye','solplanet','fronius','auxsol'];
-  brands.forEach(function(b){
-    var api = _monApis[b]||{};
-    var fields = { solarman:['appid','secret','email','senha'], growatt:['user','pass'], huawei:['user','pass'], solis:['id','secret'], sofar:['appid','secret','email','senha'], deye:['appid','secret','email','senha'], solplanet:['user','pass'], fronius:['keyid','keyval'], auxsol:['user','pass'] };
-    (fields[b]||[]).forEach(function(f){
+  Object.keys(_monApiFields).forEach(function(b){
+    var api=_monApis[b]||{};
+    _monApiFields[b].forEach(function(f){
       var el=document.getElementById('mon-api-'+b+'-'+f);
       if(el) el.value=api[f]||'';
     });
@@ -13176,9 +13208,8 @@ function monAtualizarStatusApi(brand){
 }
 
 function monSalvarApi(brand){
-  var fields={solarman:['appid','secret','email','senha'],growatt:['user','pass'],huawei:['user','pass','dom'],solis:['id','secret'],sofar:['appid','secret','email','senha'],deye:['appid','secret','email','senha'],solplanet:['user','pass'],fronius:['keyid','keyval'],auxsol:['user','pass']};
   var api={};
-  (fields[brand]||[]).forEach(function(f){
+  (_monApiFields[brand]||[]).forEach(function(f){
     var el=document.getElementById('mon-api-'+brand+'-'+f);
     if(el) api[f]=el.value.trim();
   });
