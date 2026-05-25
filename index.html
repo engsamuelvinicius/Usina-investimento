@@ -1407,9 +1407,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="mod-name" style="color:#e8f5ec">Monitoramento</div>
           <div class="mod-desc" style="color:rgba(255,255,255,.45)">Central de monitoramento em tempo real com mapa interativo, alertas de performance e integração com todos os principais inversores.</div>
           <div class="mod-stats-row">
-            <div class="mod-stat-box" style="background:rgba(255,255,255,.06)"><div class="mod-stat-v" id="home-mon-plantas" style="color:#6dde8f">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Plantas</div></div>
-            <div class="mod-stat-box" style="background:rgba(255,255,255,.06)"><div class="mod-stat-v" id="home-mon-online" style="color:#6dde8f">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Online</div></div>
-            <div class="mod-stat-box" style="background:rgba(255,255,255,.06)"><div class="mod-stat-v" id="home-mon-alertas" style="color:#6dde8f">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Alertas</div></div>
+            <div class="mod-stat-box" style="background:rgba(255,255,255,.06);cursor:pointer;transition:background .15s" onmouseenter="this.style.background='rgba(109,222,143,.15)'" onmouseleave="this.style.background='rgba(255,255,255,.06)'" onclick="irParaMonitor('todas')" title="Ver todas as plantas"><div class="mod-stat-v" id="home-mon-plantas" style="color:#6dde8f">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Total</div></div>
+            <div class="mod-stat-box" style="background:rgba(255,255,255,.06);cursor:pointer;transition:background .15s" onmouseenter="this.style.background='rgba(109,222,143,.15)'" onmouseleave="this.style.background='rgba(255,255,255,.06)'" onclick="irParaMonitor('online')" title="Ver plantas online"><div class="mod-stat-v" id="home-mon-online" style="color:#6dde8f">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Online</div></div>
+            <div class="mod-stat-box" style="background:rgba(255,255,255,.06);cursor:pointer;transition:background .15s" onmouseenter="this.style.background='rgba(150,150,150,.15)'" onmouseleave="this.style.background='rgba(255,255,255,.06)'" onclick="irParaMonitor('offline')" title="Ver plantas offline"><div class="mod-stat-v" id="home-mon-offline" style="color:#9e9e9e">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Offline</div></div>
+            <div class="mod-stat-box" style="background:rgba(255,255,255,.06);cursor:pointer;transition:background .15s" onmouseenter="this.style.background='rgba(255,179,0,.15)'" onmouseleave="this.style.background='rgba(255,255,255,.06)'" onclick="irParaMonitor('alerta')" title="Ver plantas com alerta"><div class="mod-stat-v" id="home-mon-alertas" style="color:#FFB300">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Alertas</div></div>
           </div>
           <button class="mod-btn" style="background:linear-gradient(135deg,#1a4422,#2E8B57);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(109,222,143,.2)">
             Monitorar agora
@@ -3496,6 +3497,24 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
               <option value="auxsol">Auxsol</option>
               <option value="manual">Manual</option>
             </select>
+            <select id="mon-sort" onchange="monRenderPlantas()">
+              <option value="">Ordenar: padrão</option>
+              <optgroup label="── Ordenar ──">
+                <option value="az">A → Z</option>
+                <option value="za">Z → A</option>
+                <option value="estado">Por estado</option>
+                <option value="cidade">Por cidade</option>
+                <option value="kwp-asc">Potência: menor → maior</option>
+                <option value="kwp-desc">Potência: maior → menor</option>
+              </optgroup>
+              <optgroup label="── Filtrar por faixa ──">
+                <option value="kwp-0-5">0 – 5 kWp</option>
+                <option value="kwp-5-10">5 – 10 kWp</option>
+                <option value="kwp-10-20">10 – 20 kWp</option>
+                <option value="kwp-20-100">20 – 100 kWp</option>
+                <option value="kwp-100+">Acima de 100 kWp</option>
+              </optgroup>
+            </select>
           </div>
           <button class="btn-p" onclick="monAbrirModalPlanta(null)" style="font-size:12px;padding:7px 14px">+ Adicionar Planta</button>
         </div>
@@ -4323,8 +4342,15 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       <div class="fr"><label>Nome da Planta *</label><input type="text" id="mon-plant-nome" placeholder="Ex: Residência João Silva"></div>
       <div class="fr"><label>Potência Instalada (kWp)</label><input type="number" id="mon-plant-kwp" placeholder="Ex: 6.6" step="0.1" min="0"></div>
     </div>
-    <div class="fr"><label>Endereço completo *</label>
-      <input type="text" id="mon-plant-endereco" placeholder="Rua, número, cidade, estado" oninput="monDebounceGeocode()">
+    <div class="two">
+      <div class="fr"><label>Cidade</label><input type="text" id="mon-plant-cidade" placeholder="Ex: Ribeirão Preto"></div>
+      <div class="fr"><label>Estado (UF)</label><input type="text" id="mon-plant-estado" placeholder="Ex: SP" maxlength="2" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+    </div>
+    <div class="fr"><label>Endereço completo (rua e número)</label>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <input type="text" id="mon-plant-endereco" placeholder="Rua, número" oninput="monDebounceGeocode()" style="flex:1">
+        <button type="button" onclick="monGeocodeCidadeEstado()" style="white-space:nowrap;padding:7px 12px;font-size:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--text);font-family:'Outfit',sans-serif">🔍 Localizar</button>
+      </div>
       <div id="mon-geocode-status"></div>
     </div>
     <div class="two">
@@ -4372,6 +4398,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         </select>
       </div>
       <div class="fr"><label>ID da Planta na plataforma</label><input type="text" id="mon-plant-platid" placeholder="ID da usina no inversor"></div>
+    </div>
+    <div class="fr"><label>SN do Inversor (número de série)</label><input type="text" id="mon-plant-sn" placeholder="Ex: 2212345678901"></div>
+    <div class="two">
+      <div class="fr"><label>Data de instalação</label><input type="date" id="mon-plant-instalado-em"></div>
+      <div class="fr"><label>Garantia do equipamento até</label><input type="date" id="mon-plant-garantia-ate"></div>
     </div>
     <div class="fr"><label>Geração mensal esperada (kWh/mês)</label><input type="number" id="mon-plant-esp-mes" placeholder="Ex: 870" step="1" min="0"></div>
     <div class="fr"><label>Observações</label><input type="text" id="mon-plant-obs" placeholder="Informações adicionais (opcional)"></div>
@@ -11614,9 +11645,10 @@ function irParaFluxo(){
   document.getElementById('screen-fluxo').classList.add('active');
   fxRefresh();
 }
-function irParaMonitor(){
+function irParaMonitor(filtro){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-monitor').classList.add('active');
+  if(filtro && filtro !== 'todas') _monPendingFiltro = filtro;
   if(usuarioAtual && firebaseOK && fbDb){
     monInit();
   } else {
@@ -12599,6 +12631,7 @@ var _monMarkers = {};
 var _monIntervalId = null;
 var _monGeocodeTimer = null;
 var _monUnsubPlantas = null;
+var _monPendingFiltro = null;
 var _monUnsubAlertas = null;
 var _monUnsubApis    = null;
 
@@ -12845,32 +12878,68 @@ function monRenderKpis(){
 
 // ── Plantas ─────────────────────────────────────────────
 function monRenderPlantas(){
+  // Aplica filtro pendente (vindo da home via irParaMonitor)
+  if(_monPendingFiltro){
+    monSwitchTab('plantas');
+    var sfPend = document.getElementById('mon-filtro-status');
+    if(sfPend) sfPend.value = _monPendingFiltro;
+    _monPendingFiltro = null;
+  }
   var grid = document.getElementById('mon-plantas-grid');
   if(!grid) return;
-  var busca = (document.getElementById('mon-busca')||{}).value||'';
+  var busca   = (document.getElementById('mon-busca')||{}).value||'';
   var fStatus = (document.getElementById('mon-filtro-status')||{}).value||'';
   var fBrand  = (document.getElementById('mon-filtro-brand')||{}).value||'';
+  var sort    = (document.getElementById('mon-sort')||{}).value||'';
   var lista = _monPlantas.filter(function(p){
     if(busca && p.nome.toLowerCase().indexOf(busca.toLowerCase())<0) return false;
     if(fStatus && p.status!==fStatus) return false;
     if(fBrand && p.brand!==fBrand) return false;
+    // Filtros por faixa de potência
+    var kw = p.potencia||0;
+    if(sort==='kwp-0-5'    && !(kw<5))          return false;
+    if(sort==='kwp-5-10'   && !(kw>=5&&kw<10))  return false;
+    if(sort==='kwp-10-20'  && !(kw>=10&&kw<20)) return false;
+    if(sort==='kwp-20-100' && !(kw>=20&&kw<100))return false;
+    if(sort==='kwp-100+'   && !(kw>=100))        return false;
     return true;
   });
+  // Ordenação
+  if(sort==='az')        lista.sort(function(a,b){ return a.nome.localeCompare(b.nome,'pt'); });
+  else if(sort==='za')   lista.sort(function(a,b){ return b.nome.localeCompare(a.nome,'pt'); });
+  else if(sort==='estado') lista.sort(function(a,b){ var r=(a.estado||'').localeCompare(b.estado||'','pt'); return r||a.nome.localeCompare(b.nome,'pt'); });
+  else if(sort==='cidade') lista.sort(function(a,b){ var r=(a.cidade||'').localeCompare(b.cidade||'','pt'); return r||a.nome.localeCompare(b.nome,'pt'); });
+  else if(sort==='kwp-asc')  lista.sort(function(a,b){ return (a.potencia||0)-(b.potencia||0); });
+  else if(sort==='kwp-desc') lista.sort(function(a,b){ return (b.potencia||0)-(a.potencia||0); });
+
   if(!lista.length){
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text2);font-size:13px">'
       +((_monPlantas.length>0)?'Nenhuma planta encontrada com esses filtros.':'Nenhuma planta cadastrada ainda.<br><button class="btn-p" onclick="monAbrirModalPlanta(null)" style="margin-top:14px;font-size:13px">+ Adicionar primeira planta</button>')
       +'</div>';
     return;
   }
+  var hoje = new Date();
   grid.innerHTML = lista.map(function(p){
     var status = p.status||'desconhecido';
     var ult = p.ultima||{};
     var perf = monCalcPerf(p);
-    var perfClass = perf==null?'':perf>=100?'perf-great':perf>=80?'perf-ok':perf>=50?'perf-warn':'perf-bad';
     var perfCor = perf==null?'var(--border)':perf>=100?'#1565C0':perf>=80?'#2E8B57':perf>=50?'#F9A825':'#E53935';
+    // Localização: prefere cidade+estado, fallback endereço
+    var locDisplay = (p.cidade&&p.estado) ? p.cidade+' – '+p.estado : (p.cidade||p.estado||(p.endereco||'Sem endereço'));
+    // Badge de garantia
+    var garantiaBadge = '';
+    if(p.garantiaAte){
+      var gDate = new Date(p.garantiaAte);
+      var diasG = Math.ceil((gDate-hoje)/(1000*60*60*24));
+      if(diasG<0)   garantiaBadge = ' <span style="font-size:9px;background:#FFCDD2;color:#B71C1C;padding:1px 5px;border-radius:4px;white-space:nowrap">Garantia exp.</span>';
+      else if(diasG<90) garantiaBadge = ' <span style="font-size:9px;background:#FFF3E0;color:#E65100;padding:1px 5px;border-radius:4px;white-space:nowrap">Gar. '+diasG+'d</span>';
+    }
     return '<div class="mon-plant-card status-'+status+'">'
       +'<div class="mon-plant-header">'
-      +'<div><div class="mon-plant-name">'+p.nome+'</div><div class="mon-plant-addr">📍 '+(p.endereco||'Sem endereço')+'</div></div>'
+      +'<div style="min-width:0"><div class="mon-plant-name">'+p.nome+garantiaBadge+'</div>'
+      +'<div class="mon-plant-addr">📍 '+locDisplay+'</div>'
+      +(p.sn?'<div style="font-size:10px;color:var(--text2);margin-top:2px">SN: '+p.sn+'</div>':'')
+      +'</div>'
       +'<span class="badge '+(status==='online'?'bv':status==='alerta'?'by':status==='offline'?'':'')+'" style="'+(status==='offline'?'background:#f5f5f5;color:#757575':'')+'">'+monStatusLabel(status)+'</span>'
       +'</div>'
       +'<div class="mon-plant-body">'
@@ -13165,16 +13234,21 @@ function monAbrirModalPlanta(id){
     if(p){
       document.getElementById('mon-plant-nome').value = p.nome||'';
       document.getElementById('mon-plant-kwp').value  = p.potencia||'';
+      document.getElementById('mon-plant-cidade').value = p.cidade||'';
+      document.getElementById('mon-plant-estado').value = p.estado||'';
       document.getElementById('mon-plant-endereco').value = p.endereco||'';
       document.getElementById('mon-plant-lat').value  = p.lat||'';
       document.getElementById('mon-plant-lng').value  = p.lng||'';
       document.getElementById('mon-plant-brand').value = p.brand||'manual';
       document.getElementById('mon-plant-platid').value = p.platId||'';
+      document.getElementById('mon-plant-sn').value = p.sn||'';
+      document.getElementById('mon-plant-instalado-em').value = p.instaladoEm||'';
+      document.getElementById('mon-plant-garantia-ate').value = p.garantiaAte||'';
       document.getElementById('mon-plant-esp-mes').value = p.geracaoEsperadaMes||'';
       document.getElementById('mon-plant-obs').value  = p.obs||'';
     }
   } else {
-    ['mon-plant-nome','mon-plant-kwp','mon-plant-endereco','mon-plant-lat','mon-plant-lng','mon-plant-platid','mon-plant-esp-mes','mon-plant-obs'].forEach(function(i){ document.getElementById(i).value=''; });
+    ['mon-plant-nome','mon-plant-kwp','mon-plant-cidade','mon-plant-estado','mon-plant-endereco','mon-plant-lat','mon-plant-lng','mon-plant-platid','mon-plant-sn','mon-plant-instalado-em','mon-plant-garantia-ate','mon-plant-esp-mes','mon-plant-obs'].forEach(function(i){ document.getElementById(i).value=''; });
     document.getElementById('mon-plant-brand').value='manual';
   }
   document.getElementById('mon-geocode-status').textContent='';
@@ -13195,10 +13269,15 @@ function monSalvarPlanta(){
     id: id||(Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
     nome: nome,
     potencia: parseFloat(document.getElementById('mon-plant-kwp').value)||null,
+    cidade: document.getElementById('mon-plant-cidade').value.trim(),
+    estado: document.getElementById('mon-plant-estado').value.trim().toUpperCase(),
     endereco: document.getElementById('mon-plant-endereco').value.trim(),
     lat: lat, lng: lng,
     brand: document.getElementById('mon-plant-brand').value||'manual',
     platId: document.getElementById('mon-plant-platid').value.trim(),
+    sn: document.getElementById('mon-plant-sn').value.trim(),
+    instaladoEm: document.getElementById('mon-plant-instalado-em').value||null,
+    garantiaAte: document.getElementById('mon-plant-garantia-ate').value||null,
     geracaoEsperadaDia: null,
     geracaoEsperadaMes: parseFloat(document.getElementById('mon-plant-esp-mes').value)||null,
     obs: document.getElementById('mon-plant-obs').value.trim(),
@@ -13251,10 +13330,18 @@ function monAbrirDetalhe(id){
     '<div class="two" style="margin-bottom:14px">'
     +'<div><div class="st" style="margin-top:0">Informações</div>'
     +'<div style="font-size:13px;line-height:2;color:var(--text)">'
+    +((p.cidade||p.estado)?'<b>Cidade/Estado:</b> '+(p.cidade||'')+(p.cidade&&p.estado?' – ':'')+(p.estado||'')+'<br>':'')
     +'<b>Endereço:</b> '+(p.endereco||'–')+'<br>'
     +'<b>Potência:</b> '+(p.potencia||'–')+' kWp<br>'
     +'<b>Inversor:</b> '+monBrandNome(p.brand)+'<br>'
     +(p.platId?'<b>ID na plataforma:</b> '+p.platId+'<br>':'')
+    +(p.sn?'<b>SN do inversor:</b> '+p.sn+'<br>':'')
+    +(p.instaladoEm?'<b>Instalado em:</b> '+p.instaladoEm.split('-').reverse().join('/')+'<br>':'')
+    +(p.garantiaAte?(function(){
+        var gDate=new Date(p.garantiaAte); var diasG=Math.ceil((gDate-new Date())/(1000*60*60*24));
+        var cor=diasG<0?'color:#B71C1C':diasG<90?'color:#E65100':'';
+        return '<b>Garantia até:</b> <span style="'+cor+'">'+p.garantiaAte.split('-').reverse().join('/')+(diasG<0?' (expirada)':diasG<90?' ('+diasG+'d restantes)':'')+'</span><br>';
+      })():'')
     +(p.obs?'<b>Obs:</b> '+p.obs+'<br>':'')
     +'</div></div>'
     +'<div><div class="st" style="margin-top:0">Última leitura</div>'
@@ -13390,8 +13477,12 @@ function monGeocodeEndereco(){
   var end = (document.getElementById('mon-plant-endereco')||{}).value||'';
   if(end.length<8) return;
   var status = document.getElementById('mon-geocode-status');
+  // Enriquece a busca com cidade+estado se disponíveis
+  var cidade = (document.getElementById('mon-plant-cidade')||{}).value||'';
+  var estado = (document.getElementById('mon-plant-estado')||{}).value||'';
+  var q = end + (cidade?' '+cidade:'') + (estado?', '+estado:'') + ', Brasil';
   if(status) status.textContent='🔍 Buscando coordenadas...';
-  var url = 'https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(end)+'&limit=1&countrycodes=br';
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(q)+'&limit=1&countrycodes=br';
   fetch(url, { headers:{'Accept':'application/json','User-Agent':'GS360-SolarMonitor/1.0'} })
     .then(function(r){return r.json();})
     .then(function(data){
@@ -13406,6 +13497,34 @@ function monGeocodeEndereco(){
     })
     .catch(function(){
       if(status) status.textContent='⚠️ Erro ao buscar coordenadas.';
+    });
+}
+
+function monGeocodeCidadeEstado(){
+  var cidade = ((document.getElementById('mon-plant-cidade')||{}).value||'').trim();
+  var estado = ((document.getElementById('mon-plant-estado')||{}).value||'').trim();
+  var end    = ((document.getElementById('mon-plant-endereco')||{}).value||'').trim();
+  var status = document.getElementById('mon-geocode-status');
+  var q = '';
+  if(end)             q = end+(cidade?', '+cidade:'')+(estado?', '+estado:'')+', Brasil';
+  else if(cidade)     q = cidade+(estado?', '+estado:'')+', Brasil';
+  else { if(status) status.textContent='⚠️ Informe ao menos a cidade para localizar.'; return; }
+  if(status) status.textContent='🔍 Localizando...';
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(q)+'&limit=1&countrycodes=br';
+  fetch(url, { headers:{'Accept':'application/json','User-Agent':'GS360-SolarMonitor/1.0'} })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data&&data.length>0){
+        var lat=parseFloat(data[0].lat), lng=parseFloat(data[0].lon);
+        document.getElementById('mon-plant-lat').value=lat.toFixed(6);
+        document.getElementById('mon-plant-lng').value=lng.toFixed(6);
+        if(status) status.textContent='✅ Localizado: '+lat.toFixed(4)+', '+lng.toFixed(4)+' — '+data[0].display_name.split(',').slice(0,3).join(',');
+      } else {
+        if(status) status.textContent='⚠️ Local não encontrado. Verifique cidade/estado ou informe as coordenadas manualmente.';
+      }
+    })
+    .catch(function(){
+      if(status) status.textContent='⚠️ Erro ao localizar.';
     });
 }
 
@@ -13460,10 +13579,12 @@ function monToggleInstr(brand){
 function monAtualizarHomeStats(){
   var total=_monPlantas.length;
   var online=_monPlantas.filter(function(p){return p.status==='online';}).length;
+  var offline=_monPlantas.filter(function(p){return p.status==='offline';}).length;
   var alertas=_monAlertas.filter(function(a){return !a.lido;}).length;
   function s(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
   s('home-mon-plantas',total||'0');
   s('home-mon-online',online||'0');
+  s('home-mon-offline',offline||'0');
   s('home-mon-alertas',alertas||'0');
 }
 
