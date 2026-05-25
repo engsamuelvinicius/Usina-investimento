@@ -11620,7 +11620,21 @@ function irParaFluxo(){
 function irParaMonitor(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-monitor').classList.add('active');
-  monInit();
+  if(usuarioAtual && firebaseOK && fbDb){
+    monInit();
+  } else {
+    var _monAuthTentativas = 0;
+    var _monAuthTimer = setInterval(function(){
+      _monAuthTentativas++;
+      if(usuarioAtual && firebaseOK && fbDb){
+        clearInterval(_monAuthTimer);
+        monInit();
+      } else if(_monAuthTentativas >= 25){
+        clearInterval(_monAuthTimer);
+        monInit();
+      }
+    }, 200);
+  }
 }
 
 function fxAtualizarCardHome(){
@@ -12629,7 +12643,18 @@ function monCarregarDados(cb){
         _monPlantas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
         localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
         monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monAtualizarHomeStats();
-      });
+      }, function(){});
+    // .get() direto garante carregamento imediato — não depende do onSnapshot disparar
+    fbDb.collection('usuarios').doc(uid).collection('mon_plantas').get()
+      .then(function(snap){
+        if(snap && !snap.empty){
+          _monPlantas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
+          localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
+          monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monAtualizarHomeStats();
+          var plantasComApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
+          if(plantasComApi.length > 0) monRefresh(false);
+        }
+      }).catch(function(){});
     if(_monUnsubAlertas) _monUnsubAlertas();
     _monUnsubAlertas = fbDb.collection('usuarios').doc(uid).collection('mon_alertas')
       .orderBy('ts','desc').limit(100)
@@ -12637,7 +12662,7 @@ function monCarregarDados(cb){
         _monAlertas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
         localStorage.setItem('mon_alertas_'+uid, JSON.stringify(_monAlertas));
         monRenderAlertas(); monAtualizarBadgeAlertas();
-      });
+      }, function(){});
     // Sync credenciais de API do Firestore — garante que persistem após refresh
     if(_monUnsubApis) _monUnsubApis();
     _monUnsubApis = fbDb.collection('usuarios').doc(uid).collection('mon_config').doc('apis')
