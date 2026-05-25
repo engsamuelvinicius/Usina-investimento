@@ -173,29 +173,41 @@ async function refreshAllSolis(api) {
     (await Promise.all(extra)).forEach(pg => { if (pg.records) records.push(...pg.records); });
   }
 
-  // Log diagnóstico compacto — primeiros 20 chars visíveis no MCP
-  {
-    const sv = records.slice(0, 8).map(s => s.status).join(',');
-    console.log('SOL:'+records.length+' st='+sv);
-  }
-
   const result = {};
   records.forEach(s => {
     const id = String(s.id || s.stationId || '');
     if (!id) return;
 
-    // Tenta os dois nomes de campo que a API Solis usa dependendo da versão:
-    // v1 usa 'status', v2 usa 'stationStatus'. Valores conhecidos: 0=offline, 1=normal, 2=alarm
+    // 1. Tentativa direta: campos de status conhecidos da API Solis
+    //    stationStatus (v2) ou status (v1): 0=offline, 1=normal, 2=alarm
     const rawStatus = s.stationStatus !== undefined ? s.stationStatus
                     : s.status        !== undefined ? s.status
+                    : s.collectionStatus !== undefined ? s.collectionStatus
                     : null;
-    const st = rawStatus !== null ? parseInt(rawStatus) : null;
 
-    // Mapeamento: 0=offline, 1=normal/online, 2=alarm/alerta, null=desconhecido→online
     let statusApi;
-    if      (st === 0)    statusApi = 'offline';
-    else if (st === 2)    statusApi = 'alerta';
-    else                  statusApi = 'online'; // 1=normal, null=desconhecido, outros
+    if (rawStatus !== null) {
+      const st = parseInt(rawStatus);
+      if      (st === 0) statusApi = 'offline';
+      else if (st === 2) statusApi = 'alerta';
+      else               statusApi = 'online';
+    } else {
+      // 2. Heurística quando a API não retorna campo de status (caso desta conta Solis):
+      //    power > 0           → gerando agora → online
+      //    power = 0, day > 0  → gerou hoje mas parou → online (noturno ou nuvem)
+      //    power = 0, day = 0  → sem geração nenhuma hoje → offline
+      const power     = parseFloat(s.power     || 0);
+      const dayEnergy = parseFloat(s.dayEnergy || 0);
+      const alarmNum  = parseInt(s.alarmNum || s.alarmCount || 0);
+
+      if (power > 0) {
+        statusApi = alarmNum > 0 ? 'alerta' : 'online';
+      } else if (dayEnergy > 0) {
+        statusApi = alarmNum > 0 ? 'alerta' : 'online';
+      } else {
+        statusApi = 'offline';
+      }
+    }
 
     result[id] = {
       geracaoHoje:   parseFloat(s.dayEnergy    || 0),
@@ -369,18 +381,24 @@ async function fetchSolis(platId, api) {
 
   if (!result || result.code !== '0') throw new Error('Erro Solis: ' + JSON.stringify(result));
   const d = result.data || {};
-  // stationDetail pode não retornar status; tenta os dois campos conhecidos
-  // Mapeamento: 0=offline, 1=normal/online, 2=alarm
   const rawStatus = d.stationStatus !== undefined ? d.stationStatus
                   : d.status        !== undefined ? d.status
                   : null;
-  const st = rawStatus !== null ? parseInt(rawStatus) : null;
+  let statusApi;
+  if (rawStatus !== null) {
+    const st = parseInt(rawStatus);
+    statusApi = st === 0 ? 'offline' : (st === 2 ? 'alerta' : 'online');
+  } else {
+    const power     = parseFloat(d.power     || 0);
+    const dayEnergy = parseFloat(d.dayEnergy || 0);
+    statusApi = power > 0 ? 'online' : (dayEnergy > 0 ? 'online' : 'offline');
+  }
   return {
     geracaoHoje:   parseFloat(d.dayEnergy     || 0),
     geracaoMes:    parseFloat(d.monthEnergy   || 0),
     geracaoTotal:  parseFloat(d.allEnergy     || 0),
     potenciaAtual: parseFloat(d.power         || 0),
-    statusApi:     st === 0 ? 'offline' : (st === 2 ? 'alerta' : 'online'),
+    statusApi,
     fonte: 'solis'
   };
 }
