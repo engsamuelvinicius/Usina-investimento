@@ -173,11 +173,10 @@ async function refreshAllSolis(api) {
     (await Promise.all(extra)).forEach(pg => { if (pg.records) records.push(...pg.records); });
   }
 
-  // Log diagnóstico — UMA linha para aparecer no MCP
-  if (records.length > 0) {
-    const s0 = records[0];
-    const vals = records.slice(0, 8).map(s => s.stationStatus + '/' + s.status).join(' ');
-    console.log('SOL n=' + records.length + ' s0stSt=' + s0.stationStatus + ' s0st=' + s0.status + ' k=' + Object.keys(s0).slice(0,8).join(',') + ' | ' + vals);
+  // Log diagnóstico compacto — primeiros 20 chars visíveis no MCP
+  {
+    const sv = records.slice(0, 8).map(s => s.status).join(',');
+    console.log('SOL:'+records.length+' st='+sv);
   }
 
   const result = {};
