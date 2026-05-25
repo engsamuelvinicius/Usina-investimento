@@ -496,18 +496,24 @@ async function listHuawei(api) {
 // ── Solis list ───────────────────────────────────────────
 async function listSolis(api) {
   const base = 'https://www.soliscloud.com:13333';
-  const body = JSON.stringify({ pageNo: 1, pageSize: 100, stationName: '' });
+  // Body sem campos extras — Solis rejeita campos não esperados na assinatura
+  const bodyObj = { pageNo: 1, pageSize: 20 };
+  const bodyStr = JSON.stringify(bodyObj);
   const path = '/v1/api/stationList';
-  const contentMd5 = crypto.createHash('md5').update(body).digest('base64');
+  const contentMd5 = crypto.createHash('md5').update(bodyStr).digest('base64');
   const date = new Date().toUTCString();
-  const stringToSign = `POST\n${contentMd5}\napplication/json\n${date}\n${path}`;
+  const contentType = 'application/json';
+  const stringToSign = `POST\n${contentMd5}\n${contentType}\n${date}\n${path}`;
   const hmac = crypto.createHmac('sha1', api.secret).update(stringToSign).digest('base64');
-  const r = await httpPost(`${base}${path}`, JSON.parse(body), {
+  const r = await httpPost(`${base}${path}`, bodyObj, {
     'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
   });
-  if (!r || r.code !== '0') throw new Error('Erro Solis list: ' + (r?.msg||JSON.stringify(r)));
-  return (r.data?.page?.records||[]).map(s =>
-    _mapPlant(s.id, s.stationName, s.installedCapacity||s.capacity, [s.city,s.province].filter(Boolean).join(', '), s.latitude, s.longitude));
+  if (!r || r.code !== '0') {
+    throw new Error(`Solis API erro ${r?.code||'?'}: ${r?.msg||r?.message||JSON.stringify(r).slice(0,200)}`);
+  }
+  return (r.data?.page?.records || r.data?.records || []).map(s =>
+    _mapPlant(s.id, s.stationName||s.name, s.installedCapacity||s.capacity,
+      [s.city, s.province||s.state].filter(Boolean).join(', '), s.latitude, s.longitude));
 }
 
 // ── Solplanet list ───────────────────────────────────────

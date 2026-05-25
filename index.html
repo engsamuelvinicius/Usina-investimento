@@ -13394,12 +13394,14 @@ function monAbrirImportar(){
   _monImportCandidatos = [];
 
   var resultados = {};
+  var erros = {};
   var pendentes = brands.length;
 
   function done(brand, plants, erro){
     if(plants && plants.length) resultados[brand] = plants;
+    if(erro) erros[brand] = erro;
     pendentes--;
-    if(pendentes <= 0) _monRenderImportResultados(resultados);
+    if(pendentes <= 0) _monRenderImportResultados(resultados, erros);
   }
 
   brands.forEach(function(brand){
@@ -13409,24 +13411,40 @@ function monAbrirImportar(){
     })
     .then(function(r){ return r.json(); })
     .then(function(data){
-      if(data.plants) done(brand, data.plants, null);
-      else done(brand, [], data.error||'sem retorno');
+      if(data.plants && data.plants.length) done(brand, data.plants, null);
+      else done(brand, [], data.error || (data.plants ? 'API retornou lista vazia' : 'Resposta inesperada da API'));
     })
-    .catch(function(e){ done(brand, [], e.message); });
+    .catch(function(e){ done(brand, [], 'Erro de rede: '+e.message); });
   });
 }
 
-function _monRenderImportResultados(resultados){
+function _monRenderImportResultados(resultados, erros){
+  erros = erros || {};
   var total = Object.values(resultados).reduce(function(s,a){ return s+a.length; },0);
   var sub = document.getElementById('mon-import-subtitle');
 
   if(!total){
     sub.textContent = 'Nenhuma planta encontrada.';
+    var erroHtml = '';
+    if(Object.keys(erros).length){
+      erroHtml = '<div style="margin-top:20px;text-align:left">'
+        +'<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">Detalhes dos erros por plataforma:</div>';
+      Object.keys(erros).forEach(function(b){
+        erroHtml += '<div style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:11px">'
+          +'<strong style="color:#E65100">'+monBrandNome(b)+':</strong> '
+          +'<span style="color:var(--text);word-break:break-all">'+erros[b]+'</span>'
+          +'</div>';
+      });
+      erroHtml += '</div>';
+    }
     document.getElementById('mon-import-body').innerHTML =
-      '<div style="text-align:center;padding:40px 20px;color:var(--text2)">'
+      '<div style="padding:30px 10px;color:var(--text2)">'
+      +'<div style="text-align:center;margin-bottom:16px">'
       +'<div style="font-size:32px;margin-bottom:12px">🔍</div>'
-      +'<div style="font-size:14px;font-weight:600;margin-bottom:8px">Nenhuma planta encontrada</div>'
-      +'<div style="font-size:12px;line-height:1.6">Verifique se as credenciais estão corretas e se a API está ativada no portal do inversor.</div>'
+      +'<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Nenhuma planta encontrada</div>'
+      +'<div style="font-size:12px">Verifique se as credenciais estão corretas e se a API está ativada no portal.</div>'
+      +'</div>'
+      +erroHtml
       +'</div>';
     return;
   }
