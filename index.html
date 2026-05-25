@@ -12603,9 +12603,15 @@ function monInit(){
     monAtualizarBadgeAlertas();
     monAtualizarHomeStats();
     monIniciarAutoRefresh();
-    // Refresh automático na abertura do módulo
-    var plantasComApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
-    if(plantasComApi.length > 0) setTimeout(function(){ monRefresh(false); }, 800);
+    // Aguarda onSnapshot popular _monPlantas do Firestore e re-renderiza
+    setTimeout(function(){
+      monRenderKpis();
+      monRenderPlantas();
+      monAtualizarMarcadores();
+      monAtualizarHomeStats();
+      var plantasComApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
+      if(plantasComApi.length > 0) monRefresh(false);
+    }, 1500);
   });
 }
 
@@ -13548,7 +13554,16 @@ function monConfirmarImportacao(){
       return batch.commit();
     });
     Promise.all(promessas)
-      .then(finalizarImport)
+      .then(function(){
+        // Atualiza _monPlantas imediatamente — não espera onSnapshot chegar
+        novas.forEach(function(p){ _monPlantas.push(p); });
+        localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
+        monRenderKpis();
+        monRenderPlantas();
+        monAtualizarMarcadores();
+        monAtualizarHomeStats();
+        finalizarImport();
+      })
       .catch(function(err){
         if(btn){ btn.disabled = false; btn.textContent = 'Importar selecionadas'; }
         toast('Erro ao salvar: '+err.message, 'warn');
