@@ -12603,6 +12603,9 @@ function monInit(){
     monAtualizarBadgeAlertas();
     monAtualizarHomeStats();
     monIniciarAutoRefresh();
+    // Refresh automático na abertura do módulo
+    var plantasComApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
+    if(plantasComApi.length > 0) setTimeout(function(){ monRefresh(false); }, 800);
   });
 }
 
@@ -13041,12 +13044,13 @@ function monBuscarDadosPlanta(planta, cb){
 // ── Auto-refresh ─────────────────────────────────────────
 function monIniciarAutoRefresh(){
   if(_monIntervalId) clearInterval(_monIntervalId);
-  var minutos = parseInt(_monCfg.intervalo)||0;
-  if(minutos>0){
+  var minutos = parseInt(_monCfg.intervalo)||10; // padrão 10 min
+  if(minutos > 0){
     _monIntervalId = setInterval(function(){
-      var sc = document.getElementById('screen-monitor');
-      if(sc && sc.classList.contains('active')) monRefresh(false);
-    }, minutos*60*1000);
+      // Atualiza sempre em background — não depende da tela ativa
+      var plantasComApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
+      if(plantasComApi.length > 0) monRefresh(false);
+    }, minutos * 60 * 1000);
   }
 }
 
@@ -13497,12 +13501,13 @@ function monConfirmarImportacao(){
   var checks = document.querySelectorAll('.mon-import-cb:checked:not(:disabled)');
   if(!checks.length){ toast('Selecione ao menos uma usina.'); return; }
 
-  var importadas = 0;
+  // Monta lista de plantas a salvar
+  var novas = [];
   checks.forEach(function(cb){
     var p = _monImportCandidatos[parseInt(cb.value)];
     if(!p) return;
-    var nova = {
-      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6)+importadas,
+    novas.push({
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6)+novas.length,
       nome: p.nome,
       potencia: p.potencia||null,
       endereco: p.endereco||'',
@@ -13513,19 +13518,47 @@ function monConfirmarImportacao(){
       geracaoEsperadaDia: null,
       geracaoEsperadaMes: null,
       status: 'desconhecido',
-      ultima: {},
-      obs: ''
-    };
-    _monPlantas.push(nova);
-    importadas++;
+      ultima: null,
+      obs: '',
+      criadoEm: new Date().toISOString()
+    });
   });
+  if(!novas.length) return;
 
-  if(importadas){
-    monPersistirPlantas();
-    monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monAtualizarHomeStats();
+  var btn = document.getElementById('mon-import-confirm');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando...'; }
+
+  var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
+
+  function finalizarImport(){
     monFecharImportar();
-    toast(importadas+' usina(s) importada(s)! Buscando dados...');
-    setTimeout(function(){ monRefresh(true); }, 600);
+    toast(novas.length+' usina(s) importada(s)! Buscando dados...');
+    setTimeout(function(){ monRefresh(true); }, 1200);
+  }
+
+  if(firebaseOK && fbDb && usuarioAtual){
+    // Batch write em blocos de 400 (limite Firestore = 500)
+    var blocos = [];
+    for(var i = 0; i < novas.length; i += 400) blocos.push(novas.slice(i, i+400));
+    var promessas = blocos.map(function(bloco){
+      var batch = fbDb.batch();
+      bloco.forEach(function(p){
+        batch.set(fbDb.collection('usuarios').doc(uid).collection('mon_plantas').doc(p.id), p);
+      });
+      return batch.commit();
+    });
+    Promise.all(promessas)
+      .then(finalizarImport)
+      .catch(function(err){
+        if(btn){ btn.disabled = false; btn.textContent = 'Importar selecionadas'; }
+        toast('Erro ao salvar: '+err.message, 'warn');
+      });
+  } else {
+    // Fallback localStorage
+    novas.forEach(function(p){ _monPlantas.push(p); });
+    localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
+    monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monAtualizarHomeStats();
+    finalizarImport();
   }
 }
 
