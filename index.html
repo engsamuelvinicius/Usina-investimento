@@ -12638,9 +12638,9 @@ function monCarregarDados(cb){
     _monCfg     = JSON.parse(localStorage.getItem('mon_cfg_'+uid)||JSON.stringify(_monCfg));
     // Sync Firestore — SDK modular v10 (fbDb.collection não existe no modular)
     var _db = window._fbDb;
-    var _colPlantas = _db.collection(fbDb, 'usuarios', uid, 'mon_plantas');
-    var _colAlertas = _db.collection(fbDb, 'usuarios', uid, 'mon_alertas');
-    var _docApis    = _db.doc(fbDb, 'usuarios', uid, 'mon_config', 'apis');
+    var _colPlantas = _db.collection(fbDb, 'dados', uid, 'mon_plantas');
+    var _colAlertas = _db.collection(fbDb, 'dados', uid, 'mon_alertas');
+    var _docApis    = _db.doc(fbDb, 'dados', uid, 'mon_config', 'apis');
     if(_monUnsubPlantas) _monUnsubPlantas();
     _monUnsubPlantas = _db.onSnapshot(_colPlantas, function(snap){
       _monPlantas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
@@ -12691,7 +12691,7 @@ function monPersistirPlantas(){
   if(firebaseOK && fbDb && usuarioAtual){
     var _db = window._fbDb;
     _monPlantas.forEach(function(p){
-      _db.setDoc(_db.doc(fbDb,'usuarios',uid,'mon_plantas',p.id), p).catch(function(){});
+      _db.setDoc(_db.doc(fbDb,'dados',uid,'mon_plantas',p.id), p).catch(function(){});
     });
   }
 }
@@ -12702,7 +12702,7 @@ function monPersistirAlertas(){
   if(firebaseOK && fbDb && usuarioAtual){
     var _db = window._fbDb;
     _monAlertas.slice(0,100).forEach(function(a){
-      if(a.id) _db.setDoc(_db.doc(fbDb,'usuarios',uid,'mon_alertas',a.id), a).catch(function(){});
+      if(a.id) _db.setDoc(_db.doc(fbDb,'dados',uid,'mon_alertas',a.id), a).catch(function(){});
     });
   }
 }
@@ -12711,7 +12711,7 @@ function monPersistirApis(){
   var uid = (usuarioAtual&&usuarioAtual.uid)||'local';
   localStorage.setItem('mon_apis_'+uid, JSON.stringify(_monApis));
   if(firebaseOK && fbDb && usuarioAtual){
-    window._fbDb.setDoc(window._fbDb.doc(fbDb,'usuarios',uid,'mon_config','apis'), _monApis).catch(function(){});
+    window._fbDb.setDoc(window._fbDb.doc(fbDb,'dados',uid,'mon_config','apis'), _monApis).catch(function(){});
   }
 }
 
@@ -13164,7 +13164,7 @@ function monExcluirPlanta(id){
   monPersistirAlertas();
   // Remove do Firestore
   if(firebaseOK && fbDb && usuarioAtual){
-    window._fbDb.deleteDoc(window._fbDb.doc(fbDb,'usuarios',usuarioAtual.uid,'mon_plantas',id)).catch(function(){});
+    window._fbDb.deleteDoc(window._fbDb.doc(fbDb,'dados',usuarioAtual.uid,'mon_plantas',id)).catch(function(){});
   }
   monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores(); monRenderAlertas(); monAtualizarBadgeAlertas(); monAtualizarHomeStats();
   toast('Planta removida.');
@@ -13577,7 +13577,7 @@ function monConfirmarImportacao(){
     var promessas = blocos.map(function(bloco){
       var batch = _db.writeBatch(fbDb);
       bloco.forEach(function(p){
-        batch.set(_db.doc(fbDb,'usuarios',uid,'mon_plantas',p.id), p);
+        batch.set(_db.doc(fbDb,'dados',uid,'mon_plantas',p.id), p);
       });
       return batch.commit();
     });
