@@ -13037,8 +13037,8 @@ function monRefresh(manual){
         monGerarAlerta(_monPlantas[idx],'offline','Falha ao comunicar com a plataforma '+monBrandNome(planta.brand)+': '+erro);
       } else if(dados){
         _monPlantas[idx].ultima = Object.assign({ ts: new Date().toISOString() }, dados);
-        _monPlantas[idx].status = 'online';
-        monAnalisarPerformance(_monPlantas[idx]);
+        _monPlantas[idx].status = dados.statusApi || 'online';
+        if(_monPlantas[idx].status !== 'offline') monAnalisarPerformance(_monPlantas[idx]);
       }
       done();
     });
@@ -13233,7 +13233,7 @@ function monRefreshPlanta(id){
     var idx = _monPlantas.findIndex(function(x){return x.id===id;});
     if(idx<0) return;
     if(erro){ toast('Erro: '+erro,'warn'); _monPlantas[idx].status='offline'; }
-    else if(dados){ _monPlantas[idx].ultima=Object.assign({ts:new Date().toISOString()},dados); _monPlantas[idx].status='online'; monAnalisarPerformance(_monPlantas[idx]); }
+    else if(dados){ _monPlantas[idx].ultima=Object.assign({ts:new Date().toISOString()},dados); _monPlantas[idx].status=dados.statusApi||'online'; if(_monPlantas[idx].status!=='offline') monAnalisarPerformance(_monPlantas[idx]); }
     monPersistirPlantas();
     monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores();
     monAbrirDetalhe(id);

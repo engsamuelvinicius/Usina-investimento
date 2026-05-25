@@ -140,13 +140,16 @@ async function fetchSolarman(platId, api, brand) {
   if (!dataRes || dataRes.code !== '0') throw new Error('Erro ao buscar dados: ' + JSON.stringify(dataRes));
 
   const d = dataRes.stationDataItems || dataRes;
+  // status Solarman: 0=offline, 1=normal; ausente→online por padrão
+  const smStatus = typeof dataRes.status === 'number' ? dataRes.status : 1;
   return {
     geracaoHoje:   parseFloat(d.generationValue    || d.todayEnergy    || 0),
     geracaoMes:    parseFloat(d.monthEnergy         || 0),
     geracaoTotal:  parseFloat(d.totalEnergy         || 0),
-    potenciaAtual: parseFloat(d.generatingPower     || d.power         || 0) / 1000, // W → kW
+    potenciaAtual: parseFloat(d.generatingPower     || d.power         || 0) / 1000,
     irradiacao:    parseFloat(d.irradiation         || 0),
     co2Reduzido:   parseFloat(d.co2Reduction        || 0),
+    statusApi:     smStatus === 0 ? 'offline' : 'online',
     fonte: 'solarman'
   };
 }
@@ -170,11 +173,14 @@ async function fetchGrowatt(platId, api) {
   });
 
   const d = (plantRes.data || {});
+  // status Growatt: 0=offline, 1=online, 2=alarm
+  const gwStatus = parseInt(d.status ?? 1);
   return {
     geracaoHoje:   parseFloat(d.eToday || 0),
     geracaoMes:    parseFloat(d.eMonth || 0),
     geracaoTotal:  parseFloat(d.eTotal || 0),
     potenciaAtual: parseFloat(d.power  || 0) / 1000,
+    statusApi:     gwStatus === 0 ? 'offline' : (gwStatus === 2 ? 'alerta' : 'online'),
     fonte: 'growatt'
   };
 }
@@ -201,6 +207,8 @@ async function fetchHuawei(platId, api) {
   const items = stationRes?.data?.list || [];
   const item  = items[0] || {};
   const dataMap = item.dataItemMap || {};
+  // run_state Huawei: 1=disconnected/offline, 2=faulty, 3=normal
+  const hwState = parseInt(item.stationStatus || dataMap.run_state || 3);
 
   return {
     geracaoHoje:   parseFloat(dataMap.day_power     || 0),
@@ -208,6 +216,7 @@ async function fetchHuawei(platId, api) {
     geracaoTotal:  parseFloat(dataMap.total_power   || 0),
     potenciaAtual: parseFloat(dataMap.active_power  || 0) / 1000,
     capacidade:    parseFloat(dataMap.installed_capacity || 0),
+    statusApi:     hwState === 1 ? 'offline' : (hwState === 2 ? 'alerta' : 'online'),
     fonte: 'huawei'
   };
 }
@@ -233,11 +242,14 @@ async function fetchSolis(platId, api) {
 
   if (!result || result.code !== '0') throw new Error('Erro Solis: ' + JSON.stringify(result));
   const d = result.data || {};
+  // stationStatus Solis: 0=normal, 1=offline, 2=alarm
+  const solisStatus = d.stationStatus;
   return {
     geracaoHoje:   parseFloat(d.dayEnergy     || 0),
     geracaoMes:    parseFloat(d.monthEnergy   || 0),
     geracaoTotal:  parseFloat(d.allEnergy     || 0),
     potenciaAtual: parseFloat(d.power         || 0),
+    statusApi:     solisStatus === 1 ? 'offline' : (solisStatus === 2 ? 'alerta' : 'online'),
     fonte: 'solis'
   };
 }
