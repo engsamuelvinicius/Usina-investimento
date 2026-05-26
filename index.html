@@ -4857,6 +4857,12 @@ function entrarNoApp(){
   aplicarTema(cfg.corPrimaria||'#1E6B2E',cfg.corSecundaria||'#2E8B57');
   atualizarPill();
   _ctrCarregarArquivosLocais(); // restaura arquivos anexados do localStorage
+  // Pré-carrega plantas do cache para a home mostrar dados imediatamente
+  if(usuarioAtual){
+    var _uid=usuarioAtual.uid;
+    var _cached=JSON.parse(localStorage.getItem('mon_plantas_'+_uid)||'[]');
+    if(_cached.length) _monPlantas=_cached;
+  }
   document.getElementById('screen-home').classList.add('active');
   renderHome();
   monIniciarHomeStats();
@@ -4894,6 +4900,8 @@ function renderHome(){
   var eMod=document.getElementById('home-st-modelos'); if(eMod) eMod.textContent=ctrM.length||'0';
   // Stats fluxo de caixa
   fxAtualizarCardHome();
+  // Stats monitoramento — usa _monPlantas já carregado (cache ou Firestore)
+  monAtualizarHomeStats();
 }
 function irParaUsinas(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
