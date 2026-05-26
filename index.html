@@ -3753,14 +3753,29 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
               <button class="mon-api-save" onclick="monSalvarApi('solplanet')">Salvar credenciais</button>
               <button class="mon-api-instr-btn" onclick="monToggleInstr('solplanet')" id="mon-instr-btn-solplanet">📖 Como obter as credenciais</button>
               <div class="mon-api-instr" id="mon-instr-solplanet">
-                <div class="mon-api-instr-title">🔑 Obtendo credenciais AISWEI/Solplanet</div>
+                <div class="mon-api-instr-title">🔑 Obtendo credenciais AISWEI / Solplanet</div>
+                <div style="font-size:11px;color:var(--text2);margin-bottom:10px;padding:8px 10px;background:var(--bg2);border-radius:6px;border-left:3px solid #01579B">
+                  ⚠️ <strong>Atenção:</strong> as credenciais abaixo são diferentes do seu login no portal web.<br>
+                  São chaves de API que a Solplanet precisa liberar para sua conta de instalador.
+                </div>
                 <ul class="mon-api-steps">
-                  <li><span class="step-n">1</span><span>Acesse <a class="mon-api-instr-link" href="https://cloud.solplanet.net" target="_blank">cloud.solplanet.net</a> com sua conta de <strong>instalador Pro</strong>.</span></li>
-                  <li><span class="step-n">2</span><span>Vá em <strong>Conta → Gerenciamento de API</strong> e solicite acesso à API para desenvolvedor.</span></li>
-                  <li><span class="step-n">3</span><span>A Solplanet enviará via e-mail: <strong>APP Key</strong>, <strong>APP Secret</strong>, <strong>API Key</strong> e <strong>Token</strong>.</span></li>
-                  <li><span class="step-n">4</span><span>Cole cada valor no campo correspondente acima e clique em <strong>Salvar credenciais</strong>.</span></li>
+                  <li><span class="step-n">1</span><span>Acesse <a class="mon-api-instr-link" href="https://cloud.solplanet.net" target="_blank">cloud.solplanet.net</a> e faça login com sua conta de <strong>instalador / distribuidor Pro</strong>.</span></li>
+                  <li><span class="step-n">2</span><span>Vá em <strong>Minha Conta → Gerenciamento de API</strong> (ou equivalente no menu de perfil) e clique em <strong>Solicitar acesso à API</strong>.</span></li>
+                  <li><span class="step-n">3</span><span>Se não encontrar essa opção, envie um e-mail para <strong>service.nl@solplanet.net</strong> informando seu CNPJ e pedindo as credenciais de API para integração.</span></li>
+                  <li><span class="step-n">4</span><span>A Solplanet fornecerá 4 chaves — preencha cada uma no campo correspondente:<br>
+                    <span style="display:inline-block;margin-top:6px;line-height:1.9;font-size:11px">
+                      • <strong>APP Key</strong> — identificador do aplicativo (ex: <em>abc123xyz</em>)<br>
+                      • <strong>APP Secret</strong> — chave secreta para gerar assinatura<br>
+                      • <strong>API Key</strong> — chave da conta / planta<br>
+                      • <strong>Token</strong> — token de acesso Pro User
+                    </span>
+                  </span></li>
+                  <li><span class="step-n">5</span><span>Clique em <strong>Salvar credenciais</strong> e depois em <strong>Buscar e importar usinas</strong> para listar suas plantas automaticamente.</span></li>
                 </ul>
-                <div class="mon-api-instr-note blue">📞 <strong>Suporte Solplanet Brasil:</strong> (51) 99765-3389 | service.nl@solplanet.net</div>
+                <div class="mon-api-instr-note blue" style="margin-top:10px">
+                  📞 <strong>Suporte Solplanet Brasil:</strong> (51) 99765-3389<br>
+                  ✉️ <strong>E-mail API:</strong> service.nl@solplanet.net
+                </div>
               </div>
             </div>
           </div>
@@ -12860,7 +12875,7 @@ function monAtualizarMarcadores(){
 function monRenderKpis(){
   var total=_monPlantas.length;
   var online=_monPlantas.filter(function(p){return p.status==='online';}).length;
-  var offline=_monPlantas.filter(function(p){return p.status==='offline';}).length;
+  var offline=_monPlantas.filter(function(p){return p.status==='offline'||p.status==='desconhecido';}).length;
   var alerta=_monPlantas.filter(function(p){return p.status==='alerta';}).length;
   var hoje=_monPlantas.reduce(function(s,p){ return s+(p.ultima&&p.ultima.geracaoHoje?p.ultima.geracaoHoje:0); },0);
   var pot=_monPlantas.reduce(function(s,p){ return s+(p.ultima&&p.ultima.potenciaAtual?p.ultima.potenciaAtual:0); },0);
@@ -12899,7 +12914,12 @@ function monRenderPlantas(){
   var sort    = (document.getElementById('mon-sort')||{}).value||'';
   var lista = _monPlantas.filter(function(p){
     if(busca && p.nome.toLowerCase().indexOf(busca.toLowerCase())<0) return false;
-    if(fStatus && p.status!==fStatus) return false;
+    if(fStatus){
+      var st = p.status||'desconhecido';
+      // 'offline' no filtro inclui plantas sem dados (desconhecido)
+      var match = fStatus==='offline' ? (st==='offline'||st==='desconhecido') : st===fStatus;
+      if(!match) return false;
+    }
     if(fBrand && p.brand!==fBrand) return false;
     // Filtros por faixa de potência
     var kw = p.potencia||0;
@@ -13635,8 +13655,8 @@ function monToggleInstr(brand){
 function monAtualizarHomeStats(){
   var total=_monPlantas.length;
   var online=_monPlantas.filter(function(p){return p.status==='online';}).length;
-  var offline=_monPlantas.filter(function(p){return p.status==='offline';}).length;
-  var alertas=_monAlertas.filter(function(a){return !a.lido;}).length;
+  var offline=_monPlantas.filter(function(p){return p.status==='offline'||p.status==='desconhecido';}).length;
+  var alertas=_monPlantas.filter(function(p){return p.status==='alerta';}).length;
   function s(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
   s('home-mon-plantas',total||'0');
   s('home-mon-online',online||'0');
