@@ -4859,6 +4859,7 @@ function entrarNoApp(){
   _ctrCarregarArquivosLocais(); // restaura arquivos anexados do localStorage
   document.getElementById('screen-home').classList.add('active');
   renderHome();
+  monIniciarHomeStats();
 }
 function _ctrCarregarArquivosLocais(){
   try{
@@ -12655,6 +12656,29 @@ var _monUnsubPlantas = null;
 var _monPendingFiltro = null;
 var _monUnsubAlertas = null;
 var _monUnsubApis    = null;
+
+// ── Carga antecipada: home stats sem precisar abrir o módulo ──
+function monIniciarHomeStats(){
+  if(!usuarioAtual) return;
+  var uid = usuarioAtual.uid;
+  // 1. Exibe imediatamente o que está em cache
+  var cached = JSON.parse(localStorage.getItem('mon_plantas_'+uid)||'[]');
+  if(cached.length){ _monPlantas = cached; monAtualizarHomeStats(); }
+  // 2. Firestore em tempo real — mantém home atualizada sem entrar no módulo
+  if(!firebaseOK||!fbDb) return;
+  var _db = window._fbDb;
+  var _col = _db.collection(fbDb,'dados',uid,'mon_plantas');
+  if(_monUnsubPlantas){ _monUnsubPlantas(); _monUnsubPlantas=null; }
+  _monUnsubPlantas = _db.onSnapshot(_col, function(snap){
+    _monPlantas = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
+    localStorage.setItem('mon_plantas_'+uid, JSON.stringify(_monPlantas));
+    monAtualizarHomeStats();
+    var sm = document.getElementById('screen-monitoramento');
+    if(sm && sm.classList.contains('active')){
+      monRenderKpis(); monRenderPlantas(); monAtualizarMarcadores();
+    }
+  }, function(){});
+}
 
 // ── Inicialização ────────────────────────────────────────
 function monInit(){
