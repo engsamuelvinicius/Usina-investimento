@@ -57,7 +57,8 @@ module.exports = async (req, res) => {
       }
       return res.status(200).json({ plants });
     } catch (err) {
-      console.error('[monitor-proxy list]', brand, err.message);
+      // Coloca a mensagem de erro PRIMEIRO para aparecer na tabela do Vercel (truncada em ~28 chars)
+      console.error('[list-err]', err.message.slice(0, 200));
       return res.status(500).json({ error: err.message });
     }
   }
@@ -403,9 +404,10 @@ async function fetchSolis(platId, api) {
 // ── Solplanet ────────────────────────────────────────────
 function _solplanetLogin(api) {
   const base = 'https://api.solplanet.net';
+  console.log('[SP-login] calling', base);  // dispara ANTES do HTTP
   return httpPost(`${base}/v2/user/login`, { account: api.user, password: api.pass })
     .then(loginRes => {
-      console.log('[Solplanet login raw]', JSON.stringify(loginRes).slice(0, 300));
+      console.log('[SP-login-ok]', JSON.stringify(loginRes).slice(0, 200));
       // Tenta múltiplos caminhos onde o token pode estar
       const token = loginRes?.data?.token
                  || loginRes?.data?.access_token
