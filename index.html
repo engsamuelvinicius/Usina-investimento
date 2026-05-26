@@ -3415,7 +3415,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nova Planta
         </button>
-        <button class="mon-refresh-btn" id="mon-bulk-sn-btn" onclick="monPreencherSnsBulk()" style="background:rgba(109,222,143,.10);border-color:rgba(109,222,143,.25);color:#c8f5d6;font-size:12px" title="Preencher SNs de inversores em todas as plantas">&#9889; Preencher SNs</button>
+        <button class="mon-refresh-btn" id="mon-bulk-sn-btn" onclick="monPreencherDadosBulk()" style="background:rgba(109,222,143,.10);border-color:rgba(109,222,143,.25);color:#c8f5d6;font-size:12px" title="Preencher cidade e SN de todas as plantas automaticamente">&#9889; Preencher Dados</button>
       </div>
     </div>
 
@@ -13346,40 +13346,82 @@ function monToggleBuscarInfo(){
   row.style.display = suportado ? 'flex' : 'none';
 }
 
-function monPreencherSnsBulk(){
-  var semSn = _monPlantas.filter(function(p){ return !p.sn && p.brand && p.brand!=='manual' && p.platId; });
-  if(!semSn.length){ toast('Todas as plantas com API já têm SN preenchido.'); return; }
+function monPreencherDadosBulk(){
+  var comApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
+  if(!comApi.length){ toast('Nenhuma planta com API configurada.','warn'); return; }
+  var semCidade = comApi.filter(function(p){ return !p.cidade; });
+  var semSn     = comApi.filter(function(p){ return !p.sn; });
+  if(!semCidade.length && !semSn.length){ toast('Todas as plantas já têm cidade e SN preenchidos.'); return; }
+
   var btn = document.getElementById('mon-bulk-sn-btn');
   if(btn){ btn.disabled=true; btn.textContent='⚡ Buscando…'; }
-  var total=semSn.length, feito=0, erros=0;
-  toast('Buscando SNs de '+total+' plantas (pode demorar)…','info',5000);
+  var msgs = [];
+  toast('Preenchendo dados de '+comApi.length+' plantas…','info',6000);
 
-  function processarLote(i){
-    if(i>=semSn.length){
+  // Passo 1: refresh_all por brand → preenche cidade/estado/lat/lng (uma chamada por marca)
+  var brandsComSemCidade = semCidade.length
+    ? [...new Set(semCidade.map(function(p){ return p.brand; }))]
+    : [];
+  var step1 = brandsComSemCidade.length
+    ? Promise.all(brandsComSemCidade.map(function(brand){
+        var api = _monApis[brand]||{};
+        return fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({brand:brand,api:api,action:'refresh_all'})})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var batch = data.plants||{};
+          _monPlantas.forEach(function(p,idx){
+            if(p.brand!==brand) return;
+            var d=batch[p.platId]||batch[String(p.platId)];
+            if(!d) return;
+            if(d._cidade && !_monPlantas[idx].cidade) _monPlantas[idx].cidade=d._cidade;
+            if(d._estado && !_monPlantas[idx].estado) _monPlantas[idx].estado=d._estado;
+            if(d._lat    && !_monPlantas[idx].lat)    _monPlantas[idx].lat=d._lat;
+            if(d._lng    && !_monPlantas[idx].lng)    _monPlantas[idx].lng=d._lng;
+          });
+        })
+        .catch(function(){});
+      }))
+    : Promise.resolve();
+
+  step1.then(function(){
+    // Passo 2: fetch_sn por planta sem SN (lotes de 3 com delay)
+    var semSnAgora = _monPlantas.filter(function(p){ return !p.sn && p.brand && p.brand!=='manual' && p.platId; });
+    var feito=0, erros=0;
+
+    function finalizarBulk(){
       monPersistirPlantas();
       monRenderPlantas();
-      if(btn){ btn.disabled=false; btn.textContent='⚡ Preencher SNs'; }
-      toast('SNs preenchidos: '+feito+' | sem retorno: '+erros);
-      return;
+      if(btn){ btn.disabled=false; btn.textContent='⚡ Preencher Dados'; }
+      if(semCidade.length) msgs.push('cidades verificadas');
+      if(feito) msgs.push(feito+' SNs adicionados');
+      if(erros) msgs.push(erros+' sem retorno de SN');
+      toast(msgs.length ? msgs.join(' | ') : 'Concluído','info');
     }
-    var lote=semSn.slice(i,i+3);
-    Promise.all(lote.map(function(planta){
-      var api=_monApis[planta.brand]||{};
-      return fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({brand:planta.brand,platId:planta.platId,api:api,action:'fetch_sn'})})
-      .then(function(r){return r.json();})
-      .then(function(data){
-        var idx=_monPlantas.findIndex(function(p){return p.id===planta.id;});
-        if(idx<0||data.error) return void erros++;
-        if(data.inversores&&data.inversores.length){
-          _monPlantas[idx].sn=data.inversores.map(function(i){return i.sn;}).filter(Boolean).join(', ');
-          feito++;
-        } else { erros++; }
-      })
-      .catch(function(){erros++;});
-    })).then(function(){ setTimeout(function(){processarLote(i+3);},800); });
-  }
-  processarLote(0);
+
+    if(!semSnAgora.length){ finalizarBulk(); return; }
+
+    function processarLote(i){
+      if(i>=semSnAgora.length){ finalizarBulk(); return; }
+      var lote=semSnAgora.slice(i,i+3);
+      Promise.all(lote.map(function(planta){
+        var api=_monApis[planta.brand]||{};
+        return fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({brand:planta.brand,platId:planta.platId,api:api,action:'fetch_sn'})})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var idx=_monPlantas.findIndex(function(p){ return p.id===planta.id; });
+          if(idx<0||data.error) return void erros++;
+          if(data.inversores&&data.inversores.length){
+            _monPlantas[idx].sn=data.inversores.map(function(i){ return i.sn; }).filter(Boolean).join(', ');
+            feito++;
+          } else { erros++; }
+        })
+        .catch(function(){ erros++; });
+      })).then(function(){ setTimeout(function(){ processarLote(i+3); },800); });
+    }
+    processarLote(0);
+  });
 }
 
 function monBuscarInfoPlanta(){
@@ -13395,23 +13437,29 @@ function monBuscarInfoPlanta(){
   if(msg)  msg.textContent='Buscando...';
   fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({brand:brand,platId:platId,api:api,action:'fetch_info'})})
-  .then(function(r){return r.json();})
+  .then(function(r){ return r.json(); })
   .then(function(data){
     if(data.error){ if(msg) msg.textContent='Erro: '+data.error; return; }
     var preencheu=[];
-    if(data.cidade){ document.getElementById('mon-plant-cidade').value=data.cidade; preencheu.push('cidade'); }
-    if(data.estado){ document.getElementById('mon-plant-estado').value=(data.estado||'').slice(0,2).toUpperCase(); preencheu.push('UF'); }
-    if(data.lat)   { document.getElementById('mon-plant-lat').value=data.lat; }
-    if(data.lng)   { document.getElementById('mon-plant-lng').value=data.lng; }
-    if(data.kwp && !document.getElementById('mon-plant-kwp').value){ document.getElementById('mon-plant-kwp').value=parseFloat(data.kwp).toFixed(2); preencheu.push('kWp'); }
-    if(data.inversores && data.inversores.length){
-      document.getElementById('mon-plant-sn').value=data.inversores.map(function(i){return i.sn;}).filter(Boolean).join(', ');
+    var elC=document.getElementById('mon-plant-cidade');
+    var elE=document.getElementById('mon-plant-estado');
+    var elLt=document.getElementById('mon-plant-lat');
+    var elLg=document.getElementById('mon-plant-lng');
+    var elK=document.getElementById('mon-plant-kwp');
+    var elS=document.getElementById('mon-plant-sn');
+    if(data.cidade && elC){ elC.value=data.cidade; preencheu.push('cidade'); }
+    if(data.estado && elE){ elE.value=(data.estado||'').slice(0,2).toUpperCase(); preencheu.push('UF'); }
+    if(data.lat && elLt){ elLt.value=data.lat; }
+    if(data.lng && elLg){ elLg.value=data.lng; }
+    if(data.kwp && elK && !elK.value){ elK.value=parseFloat(data.kwp).toFixed(2); preencheu.push('kWp'); }
+    if(data.inversores && data.inversores.length && elS){
+      elS.value=data.inversores.map(function(i){return i.sn;}).filter(Boolean).join(', ');
       preencheu.push('SN');
     }
-    if(msg) msg.textContent = preencheu.length ? '✓ '+preencheu.join(', ')+' preenchido(s)' : 'Nenhum dado novo — veja console F12';
+    if(msg) msg.textContent = preencheu.length ? '✓ '+preencheu.join(', ')+' preenchido(s)' : 'Nenhum dado retornado pela API';
     setTimeout(function(){ if(msg) msg.textContent=''; },6000);
   })
-  .catch(function(){ if(msg) msg.textContent='Erro de conexão'; })
+  .catch(function(e){ if(msg) msg.textContent='Erro: '+(e&&e.message?e.message:'conexão'); })
   .finally(function(){ if(btn) btn.disabled=false; if(spin) spin.style.display='none'; });
 }
 

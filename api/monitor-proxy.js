@@ -866,8 +866,9 @@ async function listSungrow(api) {
 async function fetchInfoSolis(platId, api) {
   const base = 'https://www.soliscloud.com:13333';
 
-  function sign(path, bodyStr) {
-    const md5 = crypto.createHash('md5').update(bodyStr).digest('base64');
+  function solisSign(path, bodyObj) {
+    const bodyStr = JSON.stringify(bodyObj);
+    const md5  = crypto.createHash('md5').update(bodyStr).digest('base64');
     const date = new Date().toUTCString();
     const sig  = crypto.createHmac('sha1', api.secret)
                        .update(`POST\n${md5}\napplication/json\n${date}\n${path}`)
@@ -876,58 +877,40 @@ async function fetchInfoSolis(platId, api) {
   }
 
   async function solisPost(path, bodyObj) {
-    const bodyStr = JSON.stringify(bodyObj);
-    const { md5, date, auth } = sign(path, bodyStr);
+    const { md5, date, auth } = solisSign(path, bodyObj);
     return httpPost(`${base}${path}`, bodyObj, { 'Content-MD5': md5, 'Date': date, 'Authorization': auth });
   }
 
-  // 1. Localizar a usina via userStationList (único endpoint que retorna cidade/lat/lng)
-  //    Pagina até encontrar a estação com id == platId (mesmo padrão de listSolis/refreshAllSolis)
-  const LIST_PATH = '/v1/api/userStationList';
+  // Busca sequencial com parada antecipada — evita chamadas paralelas que causam rate-limit
   const PAGE_SIZE = 20;
-
-  async function fetchStationPage(pageNo) {
-    const bodyObj = { pageNo, pageSize: PAGE_SIZE };
-    const bodyStr = JSON.stringify(bodyObj);
-    const contentMd5 = crypto.createHash('md5').update(bodyStr).digest('base64');
-    const date = new Date().toUTCString();
-    const stringToSign = `POST\n${contentMd5}\napplication/json\n${date}\n${LIST_PATH}`;
-    const hmac = crypto.createHmac('sha1', api.secret).update(stringToSign).digest('base64');
-    const r = await httpPost(`${base}${LIST_PATH}`, bodyObj, {
-      'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
-    });
-    if (!r || r.code !== '0') throw new Error(`Solis userStationList erro: ${r?.msg||JSON.stringify(r).slice(0,200)}`);
-    return r.data?.page || r.data || {};
+  let station = null;
+  let page = 1;
+  while (!station) {
+    const r = await solisPost('/v1/api/userStationList', { pageNo: page, pageSize: PAGE_SIZE });
+    if (!r || r.code !== '0') throw new Error(`Solis list p${page}: ${r?.msg || r?.code || JSON.stringify(r).slice(0,80)}`);
+    const pg   = r.data?.page || r.data || {};
+    const recs = pg.records || [];
+    station = recs.find(s => String(s.id || s.stationId || '') === String(platId)) || null;
+    const total = parseInt(pg.total || pg.count || 0);
+    if (station || recs.length < PAGE_SIZE || page * PAGE_SIZE >= total) break;
+    page++;
   }
+  const s = station || {};
 
-  const firstPage = await fetchStationPage(1);
-  const total = parseInt(firstPage.total || firstPage.count || 0);
-  const allRecords = [...(firstPage.records || [])];
-
-  if (total > PAGE_SIZE) {
-    const totalPages = Math.ceil(total / PAGE_SIZE);
-    const extraFetches = [];
-    for (let p = 2; p <= totalPages; p++) extraFetches.push(fetchStationPage(p));
-    (await Promise.all(extraFetches)).forEach(pg => { if (pg.records) allRecords.push(...pg.records); });
-  }
-
-  const station = allRecords.find(s => String(s.id || s.stationId || '') === String(platId)) || {};
-
-  // 2. Lista de inversores da usina
+  // Lista de inversores
   const invR = await solisPost('/v1/api/inverterList', { stationId: platId, pageNo: 1, pageSize: 20 });
-  const recs = invR.data?.page?.records || invR.data?.records || [];
-  const inversores = recs.map(i => ({
-    sn:     i.sn      || i.inverterSn || '',
-    modelo: i.invertType || i.inverterType || i.model || ''
+  const invRecs = invR.data?.page?.records || invR.data?.records || [];
+  const inversores = invRecs.map(i => ({
+    sn: i.sn || i.inverterSn || '', modelo: i.invertType || i.inverterType || i.model || ''
   })).filter(i => i.sn);
 
   return {
-    nome:      station.stationName || station.name || '',
-    cidade:    station.city        || station.cityStr    || station.cityName || '',
-    estado:    station.province    || station.state      || station.provinceStr || station.provinceName || '',
-    lat:       parseFloat(station.latitude  || station.lat || 0) || null,
-    lng:       parseFloat(station.longitude || station.lng || 0) || null,
-    kwp:       parseFloat(station.installedCapacity || station.capacity || station.power || 0) || null,
+    nome:   s.stationName || s.name || '',
+    cidade: s.city || s.cityStr || s.cityName || '',
+    estado: s.province || s.state || s.provinceStr || s.provinceName || '',
+    lat:    parseFloat(s.latitude  || s.lat || 0) || null,
+    lng:    parseFloat(s.longitude || s.lng || 0) || null,
+    kwp:    parseFloat(s.installedCapacity || s.capacity || s.power || 0) || null,
     inversores
   };
 }
