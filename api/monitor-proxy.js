@@ -896,7 +896,6 @@ async function fetchInfoSolis(platId, api) {
     const r = await httpPost(`${base}${LIST_PATH}`, bodyObj, {
       'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
     });
-    console.log('[fetchInfoSolis userStationList raw]', JSON.stringify(r).slice(0, 600));
     if (!r || r.code !== '0') throw new Error(`Solis userStationList erro: ${r?.msg||JSON.stringify(r).slice(0,200)}`);
     return r.data?.page || r.data || {};
   }
@@ -916,16 +915,11 @@ async function fetchInfoSolis(platId, api) {
 
   // 2. Lista de inversores da usina
   const invR = await solisPost('/v1/api/inverterList', { stationId: platId, pageNo: 1, pageSize: 20 });
-  console.log('[fetchInfoSolis inverterList raw]', JSON.stringify(invR).slice(0, 600));
   const recs = invR.data?.page?.records || invR.data?.records || [];
   const inversores = recs.map(i => ({
     sn:     i.sn      || i.inverterSn || '',
     modelo: i.invertType || i.inverterType || i.model || ''
   })).filter(i => i.sn);
-
-  // Captura todos os campos do station e do primeiro inversor para diagnóstico
-  const _rawStation    = Object.fromEntries(Object.entries(station));
-  const _rawInversor   = recs[0] ? Object.fromEntries(Object.entries(recs[0])) : {};
 
   return {
     nome:      station.stationName || station.name || '',
@@ -934,9 +928,7 @@ async function fetchInfoSolis(platId, api) {
     lat:       parseFloat(station.latitude  || station.lat || 0) || null,
     lng:       parseFloat(station.longitude || station.lng || 0) || null,
     kwp:       parseFloat(station.installedCapacity || station.capacity || station.power || 0) || null,
-    inversores,
-    _rawStation,
-    _rawInversor
+    inversores
   };
 }
 
@@ -957,7 +949,6 @@ async function fetchInfoSolarman(platId, api) {
   let station = null;
   outer: while (page <= 20) {
     const r = await httpPost(`${base}/station/v1.0/list?language=pt`, { page, size: 100 }, hdr);
-    console.log('[fetchInfoSolarman station/list raw]', JSON.stringify(r).slice(0, 600));
     const list = r.list || r.stationList || [];
     for (const s of list) {
       if (String(s.id || s.stationId || '') === String(platId)) { station = s; break outer; }
@@ -970,7 +961,6 @@ async function fetchInfoSolarman(platId, api) {
   // 3. Lista de dispositivos (inversores têm deviceSn preenchido; filtra deviceType===1 se disponível)
   const sid = parseInt(platId) || platId;
   const devRes = await httpPost(`${base}/device/v1.0/list?language=pt`, { stationId: sid, page: 1, size: 20 }, hdr);
-  console.log('[fetchInfoSolarman device/list raw]', JSON.stringify(devRes).slice(0, 600));
   const allDevices = devRes.deviceListItems || devRes.list || devRes.data || [];
   const devices = allDevices.filter(x =>
     (x.deviceType === 1 || x.collectionType === 1 || allDevices.every(y => y.deviceType == null)) && (x.deviceSn || x.sn)
@@ -980,9 +970,6 @@ async function fetchInfoSolarman(platId, api) {
     modelo: x.productName || x.model || ''
   })).filter(i => i.sn);
 
-  const _rawStation  = Object.fromEntries(Object.entries(d));
-  const _rawInversor = (allDevices[0] ? Object.fromEntries(Object.entries(allDevices[0])) : {});
-
   return {
     nome:      d.name        || d.stationName                               || '',
     cidade:    d.city        || d.address      || d.location                || '',
@@ -990,9 +977,7 @@ async function fetchInfoSolarman(platId, api) {
     lat:       parseFloat(d.locationLat  || d.latitude  || 0) || null,
     lng:       parseFloat(d.locationLng  || d.longitude || 0) || null,
     kwp:       parseFloat(d.capacity     || d.installedCapacity || 0) || null,
-    inversores,
-    _rawStation,
-    _rawInversor
+    inversores
   };
 }
 
@@ -1014,7 +999,7 @@ async function fetchSnSolis(platId, api) {
   const inversores = (Array.isArray(recs) ? recs : []).map(i => ({
     sn: i.sn || i.inverterSn || '', modelo: i.invertType || i.inverterType || i.model || ''
   })).filter(i => i.sn);
-  return { inversores, _rawFirst: recs[0] || {} };
+  return { inversores };
 }
 
 // ── fetch_sn: Solarman — lista inversores da usina (SN rápido) ─
@@ -1033,7 +1018,7 @@ async function fetchSnSolarman(platId, api) {
     .filter(x => x.deviceSn || x.sn)
     .map(x => ({ sn: x.deviceSn || x.sn || '', modelo: x.productName || x.model || '' }))
     .filter(i => i.sn);
-  return { inversores, _rawFirst: all[0] || {} };
+  return { inversores };
 }
 
 // ── Helpers ──────────────────────────────────────────────

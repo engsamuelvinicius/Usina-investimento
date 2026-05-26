@@ -13398,12 +13398,6 @@ function monBuscarInfoPlanta(){
   .then(function(r){return r.json();})
   .then(function(data){
     if(data.error){ if(msg) msg.textContent='Erro: '+data.error; return; }
-    // Diagnóstico: loga dados brutos no console do browser
-    console.log('[fetch_info] resposta completa:', JSON.stringify(data));
-    console.log('[fetch_info] _rawStation campos:', Object.keys(data._rawStation||{}));
-    console.log('[fetch_info] _rawStation valores:', data._rawStation);
-    console.log('[fetch_info] _rawInversor campos:', Object.keys(data._rawInversor||{}));
-    console.log('[fetch_info] _rawInversor valores:', data._rawInversor);
     var preencheu=[];
     if(data.cidade){ document.getElementById('mon-plant-cidade').value=data.cidade; preencheu.push('cidade'); }
     if(data.estado){ document.getElementById('mon-plant-estado').value=(data.estado||'').slice(0,2).toUpperCase(); preencheu.push('UF'); }
