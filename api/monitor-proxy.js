@@ -890,14 +890,20 @@ async function fetchInfoSolis(platId, api) {
     modelo: i.invertType || i.inverterType || i.model || ''
   })).filter(i => i.sn);
 
+  // Captura todos os campos do station e do primeiro inversor para diagnóstico
+  const _rawStation    = Object.fromEntries(Object.entries(station));
+  const _rawInversor   = recs[0] ? Object.fromEntries(Object.entries(recs[0])) : {};
+
   return {
     nome:      station.stationName || station.name || '',
-    cidade:    station.city        || station.cityStr    || '',
-    estado:    station.province    || station.state      || station.provinceStr || '',
-    lat:       parseFloat(station.latitude  || 0) || null,
-    lng:       parseFloat(station.longitude || 0) || null,
-    kwp:       parseFloat(station.installedCapacity || station.capacity || 0) || null,
-    inversores
+    cidade:    station.city        || station.cityStr    || station.cityName || '',
+    estado:    station.province    || station.state      || station.provinceStr || station.provinceName || '',
+    lat:       parseFloat(station.latitude  || station.lat || 0) || null,
+    lng:       parseFloat(station.longitude || station.lng || 0) || null,
+    kwp:       parseFloat(station.installedCapacity || station.capacity || station.power || 0) || null,
+    inversores,
+    _rawStation,
+    _rawInversor
   };
 }
 
@@ -941,6 +947,9 @@ async function fetchInfoSolarman(platId, api) {
     modelo: x.productName || x.model || ''
   })).filter(i => i.sn);
 
+  const _rawStation  = Object.fromEntries(Object.entries(d));
+  const _rawInversor = (allDevices[0] ? Object.fromEntries(Object.entries(allDevices[0])) : {});
+
   return {
     nome:      d.name        || d.stationName                               || '',
     cidade:    d.city        || d.address      || d.location                || '',
@@ -948,7 +957,9 @@ async function fetchInfoSolarman(platId, api) {
     lat:       parseFloat(d.locationLat  || d.latitude  || 0) || null,
     lng:       parseFloat(d.locationLng  || d.longitude || 0) || null,
     kwp:       parseFloat(d.capacity     || d.installedCapacity || 0) || null,
-    inversores
+    inversores,
+    _rawStation,
+    _rawInversor
   };
 }
 
