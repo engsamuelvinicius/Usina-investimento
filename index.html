@@ -4380,7 +4380,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     </div>
     <div class="two">
       <div class="fr"><label>Fabricante do Inversor</label>
-        <select id="mon-plant-brand">
+        <select id="mon-plant-brand" onchange="monToggleBuscarInfo()"  >
           <option value="manual">Manual (sem API)</option>
           <optgroup label="── Plataformas com API ──">
           <option value="solarman">Solarman</option>
@@ -4420,7 +4420,17 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       </div>
       <div class="fr"><label>ID da Planta na plataforma</label><input type="text" id="mon-plant-platid" placeholder="ID da usina no inversor"></div>
     </div>
-    <div class="fr"><label>SN do Inversor (número de série)</label><input type="text" id="mon-plant-sn" placeholder="Ex: 2212345678901"></div>
+    <!-- Botão buscar dados automáticos da API -->
+    <div id="mon-buscar-info-row" style="display:none;margin-top:-4px;margin-bottom:8px;align-items:center;gap:10px;flex-wrap:wrap">
+      <button type="button" id="mon-buscar-info-btn" onclick="monBuscarInfoPlanta()" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--text);font-family:'Outfit',sans-serif">
+        <span id="mon-buscar-info-spin" style="display:none;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--p1);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></span>
+        🔄 Buscar cidade e SN do inversor
+      </button>
+      <span id="mon-buscar-info-msg" style="font-size:12px;color:var(--text2)"></span>
+    </div>
+    <div class="fr">
+      <label>SN do Inversor (número de série)</label>
+      <input type="text" id="mon-plant-sn" placeholder="Ex: 2212345678901"></div>
     <div class="two">
       <div class="fr"><label>Data de instalação</label><input type="date" id="mon-plant-instalado-em"></div>
       <div class="fr"><label>Garantia do equipamento até</label><input type="date" id="mon-plant-garantia-ate"></div>
@@ -13316,7 +13326,50 @@ function monAbrirModalPlanta(id){
     document.getElementById('mon-plant-brand').value='manual';
   }
   document.getElementById('mon-geocode-status').textContent='';
+  var msgEl=document.getElementById('mon-buscar-info-msg'); if(msgEl) msgEl.textContent='';
+  monToggleBuscarInfo();
   m.classList.add('open');
+}
+
+function monToggleBuscarInfo(){
+  var brand = (document.getElementById('mon-plant-brand')||{}).value||'';
+  var row = document.getElementById('mon-buscar-info-row');
+  if(!row) return;
+  var suportado = ['solis','solarman','sofar','deye','intelbras'].indexOf(brand)>=0;
+  row.style.display = suportado ? 'flex' : 'none';
+}
+
+function monBuscarInfoPlanta(){
+  var brand  = (document.getElementById('mon-plant-brand').value||'').trim();
+  var platId = (document.getElementById('mon-plant-platid').value||'').trim();
+  if(!platId){ toast('Informe o ID da planta antes de buscar.','warn'); return; }
+  var api = _monApis[brand]||{};
+  var btn  = document.getElementById('mon-buscar-info-btn');
+  var spin = document.getElementById('mon-buscar-info-spin');
+  var msg  = document.getElementById('mon-buscar-info-msg');
+  if(btn) btn.disabled=true;
+  if(spin) spin.style.display='inline-block';
+  if(msg)  msg.textContent='Buscando...';
+  fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({brand:brand,platId:platId,api:api,action:'fetch_info'})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.error){ if(msg) msg.textContent='Erro: '+data.error; return; }
+    var preencheu=[];
+    if(data.cidade){ document.getElementById('mon-plant-cidade').value=data.cidade; preencheu.push('cidade'); }
+    if(data.estado){ document.getElementById('mon-plant-estado').value=(data.estado||'').slice(0,2).toUpperCase(); preencheu.push('UF'); }
+    if(data.lat)   { document.getElementById('mon-plant-lat').value=data.lat; }
+    if(data.lng)   { document.getElementById('mon-plant-lng').value=data.lng; }
+    if(data.kwp && !document.getElementById('mon-plant-kwp').value){ document.getElementById('mon-plant-kwp').value=parseFloat(data.kwp).toFixed(2); preencheu.push('kWp'); }
+    if(data.inversores && data.inversores.length){
+      document.getElementById('mon-plant-sn').value=data.inversores.map(function(i){return i.sn;}).filter(Boolean).join(', ');
+      preencheu.push('SN');
+    }
+    if(msg) msg.textContent = preencheu.length ? '✓ '+preencheu.join(', ')+' preenchido(s)' : 'Nenhum dado novo encontrado';
+    setTimeout(function(){ if(msg) msg.textContent=''; },4000);
+  })
+  .catch(function(){ if(msg) msg.textContent='Erro de conexão'; })
+  .finally(function(){ if(btn) btn.disabled=false; if(spin) spin.style.display='none'; });
 }
 
 function monFecharModal(){

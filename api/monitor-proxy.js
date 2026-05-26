@@ -63,6 +63,26 @@ module.exports = async (req, res) => {
     }
   }
 
+  // ── Ação: buscar info da usina (cidade, estado, kWp, SN do inversor) ──
+  if (action === 'fetch_info') {
+    if (!brand || !platId) return res.status(400).json({ error: 'brand e platId são obrigatórios' });
+    try {
+      let info;
+      switch (brand) {
+        case 'solis':                                    info = await fetchInfoSolis(platId, api);    break;
+        case 'solarman':
+        case 'sofar':
+        case 'deye':
+        case 'intelbras':                                info = await fetchInfoSolarman(platId, api); break;
+        default: return res.status(400).json({ error: 'fetch_info não disponível para: ' + brand });
+      }
+      return res.status(200).json(info);
+    } catch (err) {
+      console.error('[fetch_info]', brand, err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (!brand || !platId) return res.status(400).json({ error: 'brand e platId são obrigatórios' });
 
   try {
@@ -807,6 +827,82 @@ async function listSungrow(api) {
     { appkey: api.appkey, token: loginRes.result_data.token, page_size: 100, cur_page: 1 });
   return (r.result_data?.pageList||[]).map(p =>
     _mapPlant(p.ps_id, p.ps_name, p.design_capacity||p.capacity, [p.city,p.country].filter(Boolean).join(', '), p.latitude, p.longitude));
+}
+
+// ── fetch_info: Solis — detalhe da usina + lista inversores ─
+async function fetchInfoSolis(platId, api) {
+  const base = 'https://www.soliscloud.com:13333';
+
+  function sign(path, bodyStr) {
+    const md5 = crypto.createHash('md5').update(bodyStr).digest('base64');
+    const date = new Date().toUTCString();
+    const sig  = crypto.createHmac('sha1', api.secret)
+                       .update(`POST\n${md5}\napplication/json\n${date}\n${path}`)
+                       .digest('base64');
+    return { md5, date, auth: `API ${api.id}:${sig}` };
+  }
+
+  async function solisPost(path, bodyObj) {
+    const bodyStr = JSON.stringify(bodyObj);
+    const { md5, date, auth } = sign(path, bodyStr);
+    return httpPost(`${base}${path}`, bodyObj, { 'Content-MD5': md5, 'Date': date, 'Authorization': auth });
+  }
+
+  // 1. Detalhe da usina
+  const det = await solisPost('/v1/api/stationDetail', { id: platId, stationId: platId });
+  const d   = (det.code === '0' ? det.data : null) || {};
+
+  // 2. Lista de inversores da usina
+  const invR  = await solisPost('/v1/api/inverterList', { stationId: platId, pageNo: 1, pageSize: 20 });
+  const recs  = invR.data?.page?.records || invR.data?.records || [];
+  const inversores = recs.map(i => ({
+    sn:     i.sn      || i.inverterSn || '',
+    modelo: i.invertType || i.inverterType || i.model || ''
+  })).filter(i => i.sn);
+
+  return {
+    nome:      d.stationName || d.name || '',
+    cidade:    d.city   || d.cityStr   || '',
+    estado:    d.province || d.state   || d.provinceStr || '',
+    lat:       parseFloat(d.latitude  || 0) || null,
+    lng:       parseFloat(d.longitude || 0) || null,
+    kwp:       parseFloat(d.installedCapacity || d.capacity || 0) || null,
+    inversores
+  };
+}
+
+// ── fetch_info: Solarman — detalhe da usina + lista inversores ─
+async function fetchInfoSolarman(platId, api) {
+  const base = 'https://globalapi.solarmanpv.com';
+  const tokenRes = await httpPost(`${base}/account/v1.0/token?appId=${api.appid}&language=pt`, {
+    appSecret: api.secret, email: api.email, password: api.senha
+  });
+  if (!tokenRes.access_token) throw new Error('Falha auth Solarman');
+  const token = tokenRes.access_token;
+  const hdr = { Authorization: `Bearer ${token}`, appId: api.appid };
+  const sid = parseInt(platId) || platId;
+
+  // 1. Detalhe da usina
+  const detRes = await httpPost(`${base}/station/v1.0/detail?language=pt`, { stationId: sid }, hdr);
+  const d = detRes.stationInfo || detRes.data || detRes || {};
+
+  // 2. Lista de dispositivos (inversores = type 1)
+  const devRes = await httpPost(`${base}/device/v1.0/list?language=pt`, { stationId: sid, page: 1, size: 20 }, hdr);
+  const devices = (devRes.deviceListItems || []).filter(x => x.deviceType === 1 || x.collectionType === 1);
+  const inversores = devices.map(x => ({
+    sn:     x.deviceSn   || x.sn   || '',
+    modelo: x.productName || x.model || ''
+  })).filter(i => i.sn);
+
+  return {
+    nome:      d.name        || d.stationName   || '',
+    cidade:    d.city        || d.locationCity   || '',
+    estado:    d.state       || d.locationState  || d.provinceOrState || '',
+    lat:       parseFloat(d.locationLat  || d.latitude  || 0) || null,
+    lng:       parseFloat(d.locationLng  || d.longitude || 0) || null,
+    kwp:       parseFloat(d.capacity     || d.installedCapacity || 0) || null,
+    inversores
+  };
 }
 
 // ── Helpers ──────────────────────────────────────────────
