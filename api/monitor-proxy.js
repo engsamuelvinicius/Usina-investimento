@@ -241,12 +241,12 @@ async function refreshAllSolarman(api) {
   allStations.forEach(s => {
     const id = String(s.id || s.stationId || '');
     if (!id) return;
-    // status Solarman: 0=offline, 1=normal, 2=alarm — pode vir como number ou string
+    // status Solarman: 1=normal, 2=alarm, outros (0,3,4…)=offline
     const rawSt = s.status;
     let statusApi;
     if (rawSt != null) {
       const st = parseInt(rawSt);
-      statusApi = st === 0 ? 'offline' : (st === 2 ? 'alerta' : 'online');
+      statusApi = st === 1 ? 'online' : (st === 2 ? 'alerta' : 'offline');
     } else {
       // Status ausente: heurística por potência/energia (igual ao Solis)
       const power = parseFloat(s.generatingPower || s.power || 0);
@@ -287,12 +287,12 @@ async function fetchSolarman(platId, api, brand) {
   if (!dataRes || dataRes.code !== '0') throw new Error('Erro ao buscar dados: ' + JSON.stringify(dataRes));
 
   const d = dataRes.stationDataItems || dataRes;
-  // status Solarman: 0=offline, 1=normal, 2=alarm — pode vir como number ou string
+  // status Solarman: 1=normal, 2=alarm, outros (0,3,4…)=offline
   const rawSmSt = dataRes.status;
   let smStatusApi;
   if (rawSmSt != null) {
     const st = parseInt(rawSmSt);
-    smStatusApi = st === 0 ? 'offline' : (st === 2 ? 'alerta' : 'online');
+    smStatusApi = st === 1 ? 'online' : (st === 2 ? 'alerta' : 'offline');
   } else {
     const power = parseFloat(d.generatingPower || d.power || 0);
     const dayEn = parseFloat(d.generationValue || d.todayEnergy || 0);
