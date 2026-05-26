@@ -13135,7 +13135,13 @@ function monRefresh(manual){
     var idx = _monPlantas.findIndex(function(p){ return p.id===planta.id; });
     if(idx<0) return;
     _monPlantas[idx].ultima = Object.assign({ ts: new Date().toISOString() }, dados);
-    _monPlantas[idx].status = dados.statusApi || 'online';
+    // statusApi ausente: heurística por potência/energia (evita falso 'online')
+    if(dados.statusApi){
+      _monPlantas[idx].status = dados.statusApi;
+    } else {
+      var _pot = dados.potenciaAtual||0, _hj = dados.geracaoHoje||0;
+      _monPlantas[idx].status = (_pot > 0 || _hj > 0) ? 'online' : 'offline';
+    }
     // Remove alertas offline falsos quando planta volta ao ar
     if(_monPlantas[idx].status !== 'offline'){
       _monAlertas = _monAlertas.filter(function(a){ return !(a.plantaId===planta.id && a.tipo==='offline' && !a.lido); });

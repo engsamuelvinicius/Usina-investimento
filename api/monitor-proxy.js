@@ -241,14 +241,24 @@ async function refreshAllSolarman(api) {
   allStations.forEach(s => {
     const id = String(s.id || s.stationId || '');
     if (!id) return;
-    // status Solarman: 0=offline, 1=normal
-    const st = typeof s.status === 'number' ? s.status : 1;
+    // status Solarman: 0=offline, 1=normal, 2=alarm — pode vir como number ou string
+    const rawSt = s.status;
+    let statusApi;
+    if (rawSt != null) {
+      const st = parseInt(rawSt);
+      statusApi = st === 0 ? 'offline' : (st === 2 ? 'alerta' : 'online');
+    } else {
+      // Status ausente: heurística por potência/energia (igual ao Solis)
+      const power = parseFloat(s.generatingPower || s.power || 0);
+      const dayEn = parseFloat(s.generationValue || s.todayEnergy || 0);
+      statusApi = (power > 0 || dayEn > 0) ? 'online' : 'offline';
+    }
     result[id] = {
       geracaoHoje:   parseFloat(s.generationValue || s.todayEnergy || 0),
       geracaoMes:    parseFloat(s.monthEnergy || 0),
       geracaoTotal:  parseFloat(s.totalEnergy || 0),
       potenciaAtual: parseFloat(s.generatingPower || s.power || 0) / 1000,
-      statusApi:     st === 0 ? 'offline' : 'online'
+      statusApi
     };
   });
   return result;
@@ -277,8 +287,17 @@ async function fetchSolarman(platId, api, brand) {
   if (!dataRes || dataRes.code !== '0') throw new Error('Erro ao buscar dados: ' + JSON.stringify(dataRes));
 
   const d = dataRes.stationDataItems || dataRes;
-  // status Solarman: 0=offline, 1=normal; ausente→online por padrão
-  const smStatus = typeof dataRes.status === 'number' ? dataRes.status : 1;
+  // status Solarman: 0=offline, 1=normal, 2=alarm — pode vir como number ou string
+  const rawSmSt = dataRes.status;
+  let smStatusApi;
+  if (rawSmSt != null) {
+    const st = parseInt(rawSmSt);
+    smStatusApi = st === 0 ? 'offline' : (st === 2 ? 'alerta' : 'online');
+  } else {
+    const power = parseFloat(d.generatingPower || d.power || 0);
+    const dayEn = parseFloat(d.generationValue || d.todayEnergy || 0);
+    smStatusApi = (power > 0 || dayEn > 0) ? 'online' : 'offline';
+  }
   return {
     geracaoHoje:   parseFloat(d.generationValue    || d.todayEnergy    || 0),
     geracaoMes:    parseFloat(d.monthEnergy         || 0),
@@ -286,7 +305,7 @@ async function fetchSolarman(platId, api, brand) {
     potenciaAtual: parseFloat(d.generatingPower     || d.power         || 0) / 1000,
     irradiacao:    parseFloat(d.irradiation         || 0),
     co2Reduzido:   parseFloat(d.co2Reduction        || 0),
-    statusApi:     smStatus === 0 ? 'offline' : 'online',
+    statusApi:     smStatusApi,
     fonte: 'solarman'
   };
 }
