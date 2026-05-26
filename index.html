@@ -3742,23 +3742,25 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="mon-api-card">
             <div class="mon-api-header">
               <div class="mon-api-logo" style="background:linear-gradient(135deg,#01579B,#0277BD)">SP</div>
-              <div><div class="mon-api-brand">Solplanet</div><div style="font-size:11px;color:var(--text2)">api.solplanet.net</div></div>
+              <div><div class="mon-api-brand">Solplanet</div><div style="font-size:11px;color:var(--text2)">aisweicloud.com</div></div>
               <span class="mon-api-status" id="mon-api-status-solplanet" style="background:var(--bg2);color:var(--text2)">Não configurado</span>
             </div>
             <div class="mon-api-body">
-              <div class="mon-api-field"><label>Usuário</label><input type="text" id="mon-api-solplanet-user" placeholder="Usuário" oninput="monApiInputChange('solplanet')"></div>
-              <div class="mon-api-field"><label>Senha</label><input type="password" id="mon-api-solplanet-pass" placeholder="••••••••" oninput="monApiInputChange('solplanet')"></div>
+              <div class="mon-api-field"><label>APP Key (X-Ca-Key)</label><input type="text" id="mon-api-solplanet-appkey" placeholder="APP Key recebida da Solplanet" oninput="monApiInputChange('solplanet')"></div>
+              <div class="mon-api-field"><label>APP Secret</label><input type="password" id="mon-api-solplanet-appsecret" placeholder="••••••••" oninput="monApiInputChange('solplanet')"></div>
+              <div class="mon-api-field"><label>API Key (chave da planta)</label><input type="text" id="mon-api-solplanet-apikey" placeholder="API Key" oninput="monApiInputChange('solplanet')"></div>
+              <div class="mon-api-field"><label>Token (Pro User)</label><input type="text" id="mon-api-solplanet-token" placeholder="Token de acesso" oninput="monApiInputChange('solplanet')"></div>
               <button class="mon-api-save" onclick="monSalvarApi('solplanet')">Salvar credenciais</button>
               <button class="mon-api-instr-btn" onclick="monToggleInstr('solplanet')" id="mon-instr-btn-solplanet">📖 Como obter as credenciais</button>
               <div class="mon-api-instr" id="mon-instr-solplanet">
-                <div class="mon-api-instr-title">🔑 Obtendo credenciais no Solplanet</div>
+                <div class="mon-api-instr-title">🔑 Obtendo credenciais AISWEI/Solplanet</div>
                 <ul class="mon-api-steps">
-                  <li><span class="step-n">1</span><span>Acesse <a class="mon-api-instr-link" href="https://www.solplanet.net" target="_blank">solplanet.net</a> e faça login na sua conta de <strong>instalador/distribuidor</strong>.</span></li>
-                  <li><span class="step-n">2</span><span>Vá em <strong>Minha conta → Configurações de API</strong> ou entre em contato com o suporte Solplanet para solicitar o acesso à API.</span></li>
-                  <li><span class="step-n">3</span><span>No campo <strong>"Usuário"</strong> e <strong>"Senha"</strong>, use as mesmas credenciais do seu login no portal Solplanet.</span></li>
-                  <li><span class="step-n">4</span><span>Certifique-se de que as usinas dos clientes estão vinculadas à sua conta de instalador.</span></li>
+                  <li><span class="step-n">1</span><span>Acesse <a class="mon-api-instr-link" href="https://cloud.solplanet.net" target="_blank">cloud.solplanet.net</a> com sua conta de <strong>instalador Pro</strong>.</span></li>
+                  <li><span class="step-n">2</span><span>Vá em <strong>Conta → Gerenciamento de API</strong> e solicite acesso à API para desenvolvedor.</span></li>
+                  <li><span class="step-n">3</span><span>A Solplanet enviará via e-mail: <strong>APP Key</strong>, <strong>APP Secret</strong>, <strong>API Key</strong> e <strong>Token</strong>.</span></li>
+                  <li><span class="step-n">4</span><span>Cole cada valor no campo correspondente acima e clique em <strong>Salvar credenciais</strong>.</span></li>
                 </ul>
-                <div class="mon-api-instr-note blue">📞 <strong>Suporte Solplanet Brasil:</strong> (51) 99765-3389</div>
+                <div class="mon-api-instr-note blue">📞 <strong>Suporte Solplanet Brasil:</strong> (51) 99765-3389 | service.nl@solplanet.net</div>
               </div>
             </div>
           </div>
@@ -13405,7 +13407,7 @@ var _monApiFields={
   solis:['id','secret'],
   sofar:['appid','secret','email','senha'],
   deye:['appid','secret','email','senha'],
-  solplanet:['user','pass'],
+  solplanet:['appkey','appsecret','apikey','token'],
   fronius:['keyid','keyval'],
   auxsol:['user','pass'],
   sungrow:['appkey','secret','user','pass'],

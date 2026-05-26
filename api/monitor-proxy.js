@@ -401,36 +401,38 @@ async function fetchSolis(platId, api) {
   };
 }
 
-// ── Solplanet ────────────────────────────────────────────
-function _solplanetLogin(api) {
-  const base = 'https://api.solplanet.net';
-  console.log('[SP-login] calling', base);  // dispara ANTES do HTTP
-  return httpPost(`${base}/v2/user/login`, { account: api.user, password: api.pass })
-    .then(loginRes => {
-      console.log('[SP-login-ok]', JSON.stringify(loginRes).slice(0, 200));
-      // Tenta múltiplos caminhos onde o token pode estar
-      const token = loginRes?.data?.token
-                 || loginRes?.data?.access_token
-                 || loginRes?.token
-                 || loginRes?.access_token
-                 || loginRes?.data?.Token;
-      if (!token) throw new Error('Falha auth Solplanet — resposta: ' + JSON.stringify(loginRes).slice(0, 200));
-      return token;
-    });
+// ── Solplanet (AISWEI) — eu-api-genergal.aisweicloud.com ─
+// Auth: HMAC-SHA256 assinatura em cada requisição (sem login separado)
+function _spSign(method, pathWithQuery, appKey, appSecret) {
+  const accept = 'application/json';
+  const ct     = 'application/json; charset=UTF-8';
+  const str    = `${method}\n${accept}\n\n${ct}\n\nX-Ca-Key:${appKey}\n${pathWithQuery}`;
+  return crypto.createHmac('sha256', appSecret).update(str).digest('base64');
+}
+
+function _spHeaders(method, pathWithQuery, appKey, appSecret) {
+  return {
+    'User-Agent':              'app 1.0',
+    'Content-Type':            'application/json; charset=UTF-8',
+    'Accept':                  'application/json',
+    'X-Ca-Signature-Headers':  'X-Ca-Key',
+    'X-Ca-Key':                appKey,
+    'X-Ca-Signature':          _spSign(method, pathWithQuery, appKey, appSecret)
+  };
 }
 
 async function fetchSolplanet(platId, api) {
-  const base = 'https://api.solplanet.net';
-  const token = await _solplanetLogin(api);
-
-  const dataRes = await httpGet(`${base}/v2/plant/info?plantId=${platId}`, { Authorization: `Bearer ${token}` });
-  console.log('[Solplanet plant info]', JSON.stringify(dataRes).slice(0, 300));
-  const d = dataRes?.data || dataRes || {};
+  const base = 'https://eu-api-genergal.aisweicloud.com';
+  const path = `/pro/getPlantOverviewPro?apikey=${api.apikey}&token=${api.token}&isnos=${platId}`;
+  console.log('[SP-fetch]', path.slice(0, 70));
+  const r = await httpGet(base + path, _spHeaders('GET', path, api.appkey, api.appsecret));
+  console.log('[SP-fetch-raw]', JSON.stringify(r).slice(0, 300));
+  const d = r?.data || r || {};
   return {
-    geracaoHoje:   parseFloat(d.todayElectricity  || d.dayEnergy       || d.today_energy    || 0),
-    geracaoMes:    parseFloat(d.monthElectricity   || d.monthEnergy     || d.month_energy    || 0),
-    geracaoTotal:  parseFloat(d.totalElectricity   || d.allEnergy       || d.total_energy    || 0),
-    potenciaAtual: parseFloat(d.currentPower       || d.power           || d.nowPower        || 0) / 1000,
+    geracaoHoje:   parseFloat(d.eToday  || d.todayEnergy   || d.dayEnergy  || d.e_today  || 0),
+    geracaoMes:    parseFloat(d.eMonth  || d.monthEnergy   || d.eMonth     || d.e_month  || 0),
+    geracaoTotal:  parseFloat(d.eTotal  || d.totalEnergy   || d.eTotal     || d.e_total  || 0),
+    potenciaAtual: parseFloat(d.pac     || d.power         || d.currentPower || d.p_ac   || 0) / 1000,
     fonte: 'solplanet'
   };
 }
@@ -719,29 +721,26 @@ async function listSolis(api) {
 
 // ── Solplanet list ───────────────────────────────────────
 async function listSolplanet(api) {
-  const base = 'https://api.solplanet.net';
-  const token = await _solplanetLogin(api);
+  const base = 'https://eu-api-genergal.aisweicloud.com';
+  const path = `/pro/getPlanListPro?apikey=${api.apikey}&token=${api.token}`;
+  console.log('[SP-list] GET', path.slice(0, 80));
+  const r = await httpGet(base + path, _spHeaders('GET', path, api.appkey, api.appsecret));
+  console.log('[SP-list-raw]', JSON.stringify(r).slice(0, 400));
 
-  const r = await httpGet(`${base}/v2/plant/list?page=1&limit=100`, { Authorization: `Bearer ${token}` });
-  console.log('[Solplanet list raw]', JSON.stringify(r).slice(0, 400));
-
-  // Suporta múltiplas estruturas de resposta
   const plants = r?.data?.list
               || r?.data?.records
               || r?.data?.plants
               || (Array.isArray(r?.data) ? r.data : null)
-              || r?.list
-              || r?.records
-              || [];
+              || r?.list || r?.records
+              || (Array.isArray(r) ? r : []);
 
-  console.log('[Solplanet list count]', plants.length);
-  return plants.map(p =>
-    _mapPlant(
-      p.plantId  || p.id       || p.plant_id,
-      p.plantName|| p.name     || p.plant_name,
-      p.capacity || p.installedCapacity || p.installed_capacity || p.kwp,
-      p.address  || p.location || [p.city, p.province].filter(Boolean).join(', ')
-    ));
+  console.log('[SP-list-count]', plants.length);
+  return plants.map(p => _mapPlant(
+    p.sn         || p.isnos     || p.plantId   || p.id,
+    p.name       || p.plantName || p.stationName,
+    p.capacity   || p.kwp       || p.installedCapacity,
+    p.address    || p.location  || [p.city, p.province].filter(Boolean).join(', ')
+  ));
 }
 
 // ── FoxESS list ──────────────────────────────────────────
