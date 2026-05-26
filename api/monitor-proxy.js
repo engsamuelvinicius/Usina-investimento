@@ -177,6 +177,28 @@ function httpGet(url, headers = {}) {
   });
 }
 
+// Retorna v se for string não-numérica; caso contrário ''
+function textVal(v) {
+  if (v === null || v === undefined || v === '') return '';
+  const s = String(v).trim();
+  return (s && isNaN(s)) ? s : '';
+}
+
+// Reverse geocoding via Nominatim — fallback quando API retorna apenas IDs numéricos
+async function reverseGeocode(lat, lng) {
+  try {
+    const r = await httpGet(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=pt-BR`,
+      { 'User-Agent': 'GS360-Monitor/1.0' }
+    );
+    const a = r.address || {};
+    const cidade = a.city || a.town || a.municipality || a.village || a.county || '';
+    const rawUF  = a['ISO3166-2-lvl4'] || a.state_code || '';
+    const estado = (rawUF.includes('-') ? rawUF.split('-').pop() : rawUF.slice(0, 2)).toUpperCase();
+    return { cidade, estado };
+  } catch(_) { return { cidade: '', estado: '' }; }
+}
+
 // ══════════════════════════════════════════════════════════
 // FUNÇÕES DE REFRESH EM LOTE (status real de cada planta)
 // ══════════════════════════════════════════════════════════
@@ -248,8 +270,8 @@ async function refreshAllSolis(api) {
       statusApi,
       // Campos geo/info (preenchimento automático)
       _nome:   s.stationName || s.name || '',
-      _cidade: s.city || s.cityStr || s.cityName || '',
-      _estado: s.province || s.state || s.provinceStr || '',
+      _cidade: textVal(s.cityStr) || textVal(s.cityName) || textVal(s.city) || '',
+      _estado: textVal(s.provinceStr) || textVal(s.provinceName) || textVal(s.province) || textVal(s.state) || '',
       _lat:    parseFloat(s.latitude || 0) || null,
       _lng:    parseFloat(s.longitude || 0) || null,
       _kwp:    parseFloat(s.installedCapacity || s.capacity || 0) || null,
@@ -301,8 +323,8 @@ async function refreshAllSolarman(api) {
       statusApi,
       // Campos geo/info (preenchimento automático)
       _nome:   s.name || s.stationName || '',
-      _cidade: s.city || s.address || s.location || '',
-      _estado: s.state || s.province || '',
+      _cidade: textVal(s.city) || textVal(s.address) || textVal(s.location) || '',
+      _estado: textVal(s.state) || textVal(s.province) || '',
       _lat:    parseFloat(s.locationLat || s.latitude || 0) || null,
       _lng:    parseFloat(s.locationLng || s.longitude || 0) || null,
       _kwp:    parseFloat(s.capacity || s.installedCapacity || 0) || null,
@@ -904,13 +926,22 @@ async function fetchInfoSolis(platId, api) {
     sn: i.sn || i.inverterSn || '', modelo: i.invertType || i.inverterType || i.model || ''
   })).filter(i => i.sn);
 
+  const lat = parseFloat(s.latitude  || s.lat || 0) || null;
+  const lng = parseFloat(s.longitude || s.lng || 0) || null;
+  let cidade = textVal(s.cityStr) || textVal(s.cityName) || textVal(s.city) || '';
+  let estado = textVal(s.provinceStr) || textVal(s.provinceName) || textVal(s.province) || textVal(s.state) || '';
+
+  // Solis retorna IDs numéricos p/ cidade — usa reverse geocoding se campos de texto estiverem vazios
+  if (!cidade && lat && lng) {
+    const geo = await reverseGeocode(lat, lng);
+    cidade = geo.cidade;
+    if (!estado) estado = geo.estado;
+  }
+
   return {
-    nome:   s.stationName || s.name || '',
-    cidade: s.city || s.cityStr || s.cityName || '',
-    estado: s.province || s.state || s.provinceStr || s.provinceName || '',
-    lat:    parseFloat(s.latitude  || s.lat || 0) || null,
-    lng:    parseFloat(s.longitude || s.lng || 0) || null,
-    kwp:    parseFloat(s.installedCapacity || s.capacity || s.power || 0) || null,
+    nome: s.stationName || s.name || '',
+    cidade, estado, lat, lng,
+    kwp:  parseFloat(s.installedCapacity || s.capacity || s.power || 0) || null,
     inversores
   };
 }
@@ -953,13 +984,21 @@ async function fetchInfoSolarman(platId, api) {
     modelo: x.productName || x.model || ''
   })).filter(i => i.sn);
 
+  const lat = parseFloat(d.locationLat || d.latitude  || 0) || null;
+  const lng = parseFloat(d.locationLng || d.longitude || 0) || null;
+  let cidade = textVal(d.city) || textVal(d.address) || textVal(d.location) || '';
+  let estado = textVal(d.state) || textVal(d.locationState) || textVal(d.provinceOrState) || '';
+
+  if (!cidade && lat && lng) {
+    const geo = await reverseGeocode(lat, lng);
+    cidade = geo.cidade;
+    if (!estado) estado = geo.estado;
+  }
+
   return {
-    nome:      d.name        || d.stationName                               || '',
-    cidade:    d.city        || d.address      || d.location                || '',
-    estado:    d.state       || d.locationState || d.provinceOrState        || '',
-    lat:       parseFloat(d.locationLat  || d.latitude  || 0) || null,
-    lng:       parseFloat(d.locationLng  || d.longitude || 0) || null,
-    kwp:       parseFloat(d.capacity     || d.installedCapacity || 0) || null,
+    nome: d.name || d.stationName || '',
+    cidade, estado, lat, lng,
+    kwp:  parseFloat(d.capacity || d.installedCapacity || 0) || null,
     inversores
   };
 }
