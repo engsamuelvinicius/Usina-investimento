@@ -401,20 +401,34 @@ async function fetchSolis(platId, api) {
 }
 
 // ── Solplanet ────────────────────────────────────────────
+function _solplanetLogin(api) {
+  const base = 'https://api.solplanet.net';
+  return httpPost(`${base}/v2/user/login`, { account: api.user, password: api.pass })
+    .then(loginRes => {
+      console.log('[Solplanet login raw]', JSON.stringify(loginRes).slice(0, 300));
+      // Tenta múltiplos caminhos onde o token pode estar
+      const token = loginRes?.data?.token
+                 || loginRes?.data?.access_token
+                 || loginRes?.token
+                 || loginRes?.access_token
+                 || loginRes?.data?.Token;
+      if (!token) throw new Error('Falha auth Solplanet — resposta: ' + JSON.stringify(loginRes).slice(0, 200));
+      return token;
+    });
+}
+
 async function fetchSolplanet(platId, api) {
   const base = 'https://api.solplanet.net';
-
-  const loginRes = await httpPost(`${base}/v2/user/login`, { account: api.user, password: api.pass });
-  if (!loginRes.data?.token) throw new Error('Falha no login Solplanet');
-  const token = loginRes.data.token;
+  const token = await _solplanetLogin(api);
 
   const dataRes = await httpGet(`${base}/v2/plant/info?plantId=${platId}`, { Authorization: `Bearer ${token}` });
-  const d = dataRes?.data || {};
+  console.log('[Solplanet plant info]', JSON.stringify(dataRes).slice(0, 300));
+  const d = dataRes?.data || dataRes || {};
   return {
-    geracaoHoje:   parseFloat(d.todayElectricity || 0),
-    geracaoMes:    parseFloat(d.monthElectricity || 0),
-    geracaoTotal:  parseFloat(d.totalElectricity || 0),
-    potenciaAtual: parseFloat(d.currentPower     || 0) / 1000,
+    geracaoHoje:   parseFloat(d.todayElectricity  || d.dayEnergy       || d.today_energy    || 0),
+    geracaoMes:    parseFloat(d.monthElectricity   || d.monthEnergy     || d.month_energy    || 0),
+    geracaoTotal:  parseFloat(d.totalElectricity   || d.allEnergy       || d.total_energy    || 0),
+    potenciaAtual: parseFloat(d.currentPower       || d.power           || d.nowPower        || 0) / 1000,
     fonte: 'solplanet'
   };
 }
@@ -704,11 +718,28 @@ async function listSolis(api) {
 // ── Solplanet list ───────────────────────────────────────
 async function listSolplanet(api) {
   const base = 'https://api.solplanet.net';
-  const loginRes = await httpPost(`${base}/v2/user/login`, { account: api.user, password: api.pass });
-  if (!loginRes.data?.token) throw new Error('Falha auth Solplanet');
-  const r = await httpGet(`${base}/v2/plant/list?page=1&limit=100`, { Authorization: `Bearer ${loginRes.data.token}` });
-  return ((r.data?.list||r.data)||[]).map(p =>
-    _mapPlant(p.plantId||p.id, p.plantName||p.name, p.capacity||p.installedCapacity, p.address));
+  const token = await _solplanetLogin(api);
+
+  const r = await httpGet(`${base}/v2/plant/list?page=1&limit=100`, { Authorization: `Bearer ${token}` });
+  console.log('[Solplanet list raw]', JSON.stringify(r).slice(0, 400));
+
+  // Suporta múltiplas estruturas de resposta
+  const plants = r?.data?.list
+              || r?.data?.records
+              || r?.data?.plants
+              || (Array.isArray(r?.data) ? r.data : null)
+              || r?.list
+              || r?.records
+              || [];
+
+  console.log('[Solplanet list count]', plants.length);
+  return plants.map(p =>
+    _mapPlant(
+      p.plantId  || p.id       || p.plant_id,
+      p.plantName|| p.name     || p.plant_name,
+      p.capacity || p.installedCapacity || p.installed_capacity || p.kwp,
+      p.address  || p.location || [p.city, p.province].filter(Boolean).join(', ')
+    ));
 }
 
 // ── FoxESS list ──────────────────────────────────────────

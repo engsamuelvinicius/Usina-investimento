@@ -1406,7 +1406,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           </div>
           <div class="mod-name" style="color:#e8f5ec">Monitoramento</div>
           <div class="mod-desc" style="color:rgba(255,255,255,.45)">Central de monitoramento em tempo real com mapa interativo, alertas de performance e integração com todos os principais inversores.</div>
-          <div class="mod-stats-row">
+          <div class="mod-stats-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div class="mod-stat-box" style="background:rgba(255,255,255,.06);cursor:pointer;transition:background .15s" onmouseenter="this.style.background='rgba(109,222,143,.15)'" onmouseleave="this.style.background='rgba(255,255,255,.06)'" onclick="irParaMonitor('todas')" title="Ver todas as plantas"><div class="mod-stat-v" id="home-mon-plantas" style="color:#6dde8f">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Total</div></div>
             <div class="mod-stat-box" style="background:rgba(255,255,255,.06);cursor:pointer;transition:background .15s" onmouseenter="this.style.background='rgba(109,222,143,.15)'" onmouseleave="this.style.background='rgba(255,255,255,.06)'" onclick="irParaMonitor('online')" title="Ver plantas online"><div class="mod-stat-v" id="home-mon-online" style="color:#6dde8f">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Online</div></div>
             <div class="mod-stat-box" style="background:rgba(255,255,255,.06);cursor:pointer;transition:background .15s" onmouseenter="this.style.background='rgba(150,150,150,.15)'" onmouseleave="this.style.background='rgba(255,255,255,.06)'" onclick="irParaMonitor('offline')" title="Ver plantas offline"><div class="mod-stat-v" id="home-mon-offline" style="color:#9e9e9e">–</div><div class="mod-stat-l" style="color:rgba(255,255,255,.35)">Offline</div></div>
@@ -4343,7 +4343,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       <div class="fr"><label>Potência Instalada (kWp)</label><input type="number" id="mon-plant-kwp" placeholder="Ex: 6.6" step="0.1" min="0"></div>
     </div>
     <div class="two">
-      <div class="fr"><label>Cidade</label><input type="text" id="mon-plant-cidade" placeholder="Ex: Ribeirão Preto"></div>
+      <div class="fr" style="position:relative">
+        <label>Cidade</label>
+        <input type="text" id="mon-plant-cidade" placeholder="Ex: Ribeirão Preto" autocomplete="off" oninput="monCidadeAutoComplete(this.value)" onblur="setTimeout(function(){var d=document.getElementById('mon-cidade-drop');if(d)d.style.display='none';},200)">
+        <div id="mon-cidade-drop" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:999;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 14px rgba(0,0,0,.12);max-height:200px;overflow-y:auto;margin-top:2px"></div>
+      </div>
       <div class="fr"><label>Estado (UF)</label><input type="text" id="mon-plant-estado" placeholder="Ex: SP" maxlength="2" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
     </div>
     <div class="fr"><label>Endereço completo (rua e número)</label>
@@ -13526,6 +13530,56 @@ function monGeocodeCidadeEstado(){
     .catch(function(){
       if(status) status.textContent='⚠️ Erro ao localizar.';
     });
+}
+
+var _monCidadeACTimer = null;
+function monCidadeAutoComplete(q){
+  var drop = document.getElementById('mon-cidade-drop');
+  if(!drop) return;
+  clearTimeout(_monCidadeACTimer);
+  if(!q || q.length < 3){ drop.style.display='none'; return; }
+  _monCidadeACTimer = setTimeout(function(){
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&q='
+      +encodeURIComponent(q+', Brasil')
+      +'&limit=6&countrycodes=br&addressdetails=1&featuretype=city';
+    fetch(url, {headers:{'Accept':'application/json','User-Agent':'GS360-SolarMonitor/1.0'}})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(!data||!data.length){drop.style.display='none';return;}
+        // Filtra só resultados com cidade/town/village, sem duplicatas
+        var vistos = {};
+        var itens = data.filter(function(d){
+          var cidade = d.address&&(d.address.city||d.address.town||d.address.village||d.address.municipality);
+          if(!cidade) return false;
+          var uf = d.address&&(d.address.state_code||d.address.state||'');
+          var chave = cidade.toLowerCase()+'|'+uf;
+          if(vistos[chave]) return false;
+          vistos[chave]=true; return true;
+        });
+        if(!itens.length){drop.style.display='none';return;}
+        drop.innerHTML = itens.map(function(d){
+          var cidade = d.address.city||d.address.town||d.address.village||d.address.municipality||'';
+          var uf = d.address.state_code||d.address.state||'';
+          return '<div style="padding:8px 12px;font-size:13px;cursor:pointer;color:var(--text);border-bottom:1px solid var(--border)" '
+            +'onmouseenter="this.style.background=\'var(--bg2)\'" onmouseleave="this.style.background=\'\'" '
+            +'onclick="monSelecionarCidade(\''+cidade.replace(/'/g,"\\'")+ "','"+(uf.length>2?uf.slice(0,2).toUpperCase():uf.toUpperCase()).replace(/'/g,"\\'")+'\')">'
+            +'<strong>'+cidade+'</strong>'+(uf?' <span style="color:var(--text2);font-size:11px">'+uf+'</span>':'')
+            +'</div>';
+        }).join('');
+        drop.style.display='block';
+      })
+      .catch(function(){drop.style.display='none';});
+  }, 400);
+}
+function monSelecionarCidade(cidade, uf){
+  var ci=document.getElementById('mon-plant-cidade');
+  var es=document.getElementById('mon-plant-estado');
+  var drop=document.getElementById('mon-cidade-drop');
+  if(ci) ci.value=cidade;
+  if(es) es.value=uf;
+  if(drop) drop.style.display='none';
+  // Já dispara geocoding com a cidade selecionada
+  monGeocodeCidadeEstado();
 }
 
 function monCalcEspMes(){
