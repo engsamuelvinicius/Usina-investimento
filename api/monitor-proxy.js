@@ -188,23 +188,17 @@ async function refreshAllSolis(api) {
 
     let statusApi;
     if (rawStatus !== null) {
+      // Solis: 1=normal, 2=alarm, outros (0,3,4…)=offline — usar whitelist
       const st = parseInt(rawStatus);
-      if      (st === 0) statusApi = 'offline';
+      if      (st === 1) statusApi = 'online';
       else if (st === 2) statusApi = 'alerta';
-      else               statusApi = 'online';
+      else               statusApi = 'offline';
     } else {
-      // 2. Heurística quando a API não retorna campo de status (caso desta conta Solis):
-      //    power > 0           → gerando agora → online
-      //    power = 0, day > 0  → gerou hoje mas parou → online (noturno ou nuvem)
-      //    power = 0, day = 0  → sem geração nenhuma hoje → offline
-      const power     = parseFloat(s.power     || 0);
-      const dayEnergy = parseFloat(s.dayEnergy || 0);
-
-      if (power > 0 || dayEnergy > 0) {
-        statusApi = 'online';
-      } else {
-        statusApi = 'offline';
-      }
+      // Heurística quando a API não retorna campo de status:
+      //   power > 0 → gerando agora → online
+      //   power = 0 → offline (dayEnergy>0 não garante online: planta pode ter falhado após gerar)
+      const power = parseFloat(s.power || 0);
+      statusApi = power > 0 ? 'online' : 'offline';
     }
 
     result[id] = {
@@ -404,11 +398,10 @@ async function fetchSolis(platId, api) {
   let statusApi;
   if (rawStatus !== null) {
     const st = parseInt(rawStatus);
-    statusApi = st === 0 ? 'offline' : (st === 2 ? 'alerta' : 'online');
+    statusApi = st === 1 ? 'online' : (st === 2 ? 'alerta' : 'offline');
   } else {
-    const power     = parseFloat(d.power     || 0);
-    const dayEnergy = parseFloat(d.dayEnergy || 0);
-    statusApi = power > 0 ? 'online' : (dayEnergy > 0 ? 'online' : 'offline');
+    const power = parseFloat(d.power || 0);
+    statusApi = power > 0 ? 'online' : 'offline';
   }
   return {
     geracaoHoje:   parseFloat(d.dayEnergy     || 0),
