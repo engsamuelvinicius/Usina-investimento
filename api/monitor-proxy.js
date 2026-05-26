@@ -848,25 +848,55 @@ async function fetchInfoSolis(platId, api) {
     return httpPost(`${base}${path}`, bodyObj, { 'Content-MD5': md5, 'Date': date, 'Authorization': auth });
   }
 
-  // 1. Detalhe da usina
-  const det = await solisPost('/v1/api/stationDetail', { id: platId, stationId: platId });
-  const d   = (det.code === '0' ? det.data : null) || {};
+  // 1. Localizar a usina via userStationList (único endpoint que retorna cidade/lat/lng)
+  //    Pagina até encontrar a estação com id == platId (mesmo padrão de listSolis/refreshAllSolis)
+  const LIST_PATH = '/v1/api/userStationList';
+  const PAGE_SIZE = 20;
+
+  async function fetchStationPage(pageNo) {
+    const bodyObj = { pageNo, pageSize: PAGE_SIZE };
+    const bodyStr = JSON.stringify(bodyObj);
+    const contentMd5 = crypto.createHash('md5').update(bodyStr).digest('base64');
+    const date = new Date().toUTCString();
+    const stringToSign = `POST\n${contentMd5}\napplication/json\n${date}\n${LIST_PATH}`;
+    const hmac = crypto.createHmac('sha1', api.secret).update(stringToSign).digest('base64');
+    const r = await httpPost(`${base}${LIST_PATH}`, bodyObj, {
+      'Content-MD5': contentMd5, 'Date': date, 'Authorization': `API ${api.id}:${hmac}`
+    });
+    console.log('[fetchInfoSolis userStationList raw]', JSON.stringify(r).slice(0, 600));
+    if (!r || r.code !== '0') throw new Error(`Solis userStationList erro: ${r?.msg||JSON.stringify(r).slice(0,200)}`);
+    return r.data?.page || r.data || {};
+  }
+
+  const firstPage = await fetchStationPage(1);
+  const total = parseInt(firstPage.total || firstPage.count || 0);
+  const allRecords = [...(firstPage.records || [])];
+
+  if (total > PAGE_SIZE) {
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const extraFetches = [];
+    for (let p = 2; p <= totalPages; p++) extraFetches.push(fetchStationPage(p));
+    (await Promise.all(extraFetches)).forEach(pg => { if (pg.records) allRecords.push(...pg.records); });
+  }
+
+  const station = allRecords.find(s => String(s.id || s.stationId || '') === String(platId)) || {};
 
   // 2. Lista de inversores da usina
-  const invR  = await solisPost('/v1/api/inverterList', { stationId: platId, pageNo: 1, pageSize: 20 });
-  const recs  = invR.data?.page?.records || invR.data?.records || [];
+  const invR = await solisPost('/v1/api/inverterList', { stationId: platId, pageNo: 1, pageSize: 20 });
+  console.log('[fetchInfoSolis inverterList raw]', JSON.stringify(invR).slice(0, 600));
+  const recs = invR.data?.page?.records || invR.data?.records || [];
   const inversores = recs.map(i => ({
     sn:     i.sn      || i.inverterSn || '',
     modelo: i.invertType || i.inverterType || i.model || ''
   })).filter(i => i.sn);
 
   return {
-    nome:      d.stationName || d.name || '',
-    cidade:    d.city   || d.cityStr   || '',
-    estado:    d.province || d.state   || d.provinceStr || '',
-    lat:       parseFloat(d.latitude  || 0) || null,
-    lng:       parseFloat(d.longitude || 0) || null,
-    kwp:       parseFloat(d.installedCapacity || d.capacity || 0) || null,
+    nome:      station.stationName || station.name || '',
+    cidade:    station.city        || station.cityStr    || '',
+    estado:    station.province    || station.state      || station.provinceStr || '',
+    lat:       parseFloat(station.latitude  || 0) || null,
+    lng:       parseFloat(station.longitude || 0) || null,
+    kwp:       parseFloat(station.installedCapacity || station.capacity || 0) || null,
     inversores
   };
 }
@@ -874,30 +904,47 @@ async function fetchInfoSolis(platId, api) {
 // ── fetch_info: Solarman — detalhe da usina + lista inversores ─
 async function fetchInfoSolarman(platId, api) {
   const base = 'https://globalapi.solarmanpv.com';
+
+  // 1. Autenticar (mesmo padrão de refreshAllSolarman)
   const tokenRes = await httpPost(`${base}/account/v1.0/token?appId=${api.appid}&language=pt`, {
     appSecret: api.secret, email: api.email, password: api.senha
   });
   if (!tokenRes.access_token) throw new Error('Falha auth Solarman');
   const token = tokenRes.access_token;
   const hdr = { Authorization: `Bearer ${token}`, appId: api.appid };
+
+  // 2. Localizar a usina via station/v1.0/list (retorna cidade/lat/lng; mesmo padrão de refreshAllSolarman)
+  let page = 1;
+  let station = null;
+  outer: while (page <= 20) {
+    const r = await httpPost(`${base}/station/v1.0/list?language=pt`, { page, size: 100 }, hdr);
+    console.log('[fetchInfoSolarman station/list raw]', JSON.stringify(r).slice(0, 600));
+    const list = r.list || r.stationList || [];
+    for (const s of list) {
+      if (String(s.id || s.stationId || '') === String(platId)) { station = s; break outer; }
+    }
+    if (list.length < 100) break;
+    page++;
+  }
+  const d = station || {};
+
+  // 3. Lista de dispositivos (inversores têm deviceSn preenchido; filtra deviceType===1 se disponível)
   const sid = parseInt(platId) || platId;
-
-  // 1. Detalhe da usina
-  const detRes = await httpPost(`${base}/station/v1.0/detail?language=pt`, { stationId: sid }, hdr);
-  const d = detRes.stationInfo || detRes.data || detRes || {};
-
-  // 2. Lista de dispositivos (inversores = type 1)
   const devRes = await httpPost(`${base}/device/v1.0/list?language=pt`, { stationId: sid, page: 1, size: 20 }, hdr);
-  const devices = (devRes.deviceListItems || []).filter(x => x.deviceType === 1 || x.collectionType === 1);
+  console.log('[fetchInfoSolarman device/list raw]', JSON.stringify(devRes).slice(0, 600));
+  const allDevices = devRes.deviceListItems || devRes.list || devRes.data || [];
+  const devices = allDevices.filter(x =>
+    (x.deviceType === 1 || x.collectionType === 1 || allDevices.every(y => y.deviceType == null)) && (x.deviceSn || x.sn)
+  );
   const inversores = devices.map(x => ({
-    sn:     x.deviceSn   || x.sn   || '',
+    sn:     x.deviceSn    || x.sn    || '',
     modelo: x.productName || x.model || ''
   })).filter(i => i.sn);
 
   return {
-    nome:      d.name        || d.stationName   || '',
-    cidade:    d.city        || d.locationCity   || '',
-    estado:    d.state       || d.locationState  || d.provinceOrState || '',
+    nome:      d.name        || d.stationName                               || '',
+    cidade:    d.city        || d.address      || d.location                || '',
+    estado:    d.state       || d.locationState || d.provinceOrState        || '',
     lat:       parseFloat(d.locationLat  || d.latitude  || 0) || null,
     lng:       parseFloat(d.locationLng  || d.longitude || 0) || null,
     kwp:       parseFloat(d.capacity     || d.installedCapacity || 0) || null,
