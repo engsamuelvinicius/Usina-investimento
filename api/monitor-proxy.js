@@ -83,6 +83,25 @@ module.exports = async (req, res) => {
     }
   }
 
+  // ── Ação: buscar SN do inversor (rápido, sem listar station list) ──
+  if (action === 'fetch_sn') {
+    if (!brand || !platId) return res.status(400).json({ error: 'brand e platId obrigatórios' });
+    try {
+      let snData;
+      if (brand === 'solis') {
+        snData = await fetchSnSolis(platId, api);
+      } else if (['solarman','sofar','deye','intelbras'].includes(brand)) {
+        snData = await fetchSnSolarman(platId, api);
+      } else {
+        return res.status(400).json({ error: 'fetch_sn não disponível para: ' + brand });
+      }
+      return res.status(200).json(snData);
+    } catch (err) {
+      console.error('[fetch_sn]', brand, err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (!brand || !platId) return res.status(400).json({ error: 'brand e platId são obrigatórios' });
 
   try {
@@ -226,7 +245,14 @@ async function refreshAllSolis(api) {
       geracaoMes:    parseFloat(s.monthEnergy  || 0),
       geracaoTotal:  parseFloat(s.allEnergy    || 0),
       potenciaAtual: parseFloat(s.power        || 0),
-      statusApi
+      statusApi,
+      // Campos geo/info (preenchimento automático)
+      _nome:   s.stationName || s.name || '',
+      _cidade: s.city || s.cityStr || s.cityName || '',
+      _estado: s.province || s.state || s.provinceStr || '',
+      _lat:    parseFloat(s.latitude || 0) || null,
+      _lng:    parseFloat(s.longitude || 0) || null,
+      _kwp:    parseFloat(s.installedCapacity || s.capacity || 0) || null,
     };
   });
   return result;
@@ -272,7 +298,14 @@ async function refreshAllSolarman(api) {
       geracaoMes:    parseFloat(s.monthEnergy || 0),
       geracaoTotal:  parseFloat(s.totalEnergy || 0),
       potenciaAtual: parseFloat(s.generatingPower || s.power || 0) / 1000,
-      statusApi
+      statusApi,
+      // Campos geo/info (preenchimento automático)
+      _nome:   s.name || s.stationName || '',
+      _cidade: s.city || s.address || s.location || '',
+      _estado: s.state || s.province || '',
+      _lat:    parseFloat(s.locationLat || s.latitude || 0) || null,
+      _lng:    parseFloat(s.locationLng || s.longitude || 0) || null,
+      _kwp:    parseFloat(s.capacity || s.installedCapacity || 0) || null,
     };
   });
   return result;
@@ -961,6 +994,46 @@ async function fetchInfoSolarman(platId, api) {
     _rawStation,
     _rawInversor
   };
+}
+
+// ── fetch_sn: Solis — lista inversores da usina (SN rápido) ─
+async function fetchSnSolis(platId, api) {
+  const base = 'https://www.soliscloud.com:13333';
+  const path = '/v1/api/inverterList';
+  const bodyObj = { stationId: platId, pageNo: 1, pageSize: 20 };
+  const bodyStr = JSON.stringify(bodyObj);
+  const md5  = crypto.createHash('md5').update(bodyStr).digest('base64');
+  const date = new Date().toUTCString();
+  const sig  = crypto.createHmac('sha1', api.secret)
+                     .update(`POST\n${md5}\napplication/json\n${date}\n${path}`)
+                     .digest('base64');
+  const r = await httpPost(`${base}${path}`, bodyObj, {
+    'Content-MD5': md5, 'Date': date, 'Authorization': `API ${api.id}:${sig}`
+  });
+  const recs = r.data?.page?.records || r.data?.records || r.data || [];
+  const inversores = (Array.isArray(recs) ? recs : []).map(i => ({
+    sn: i.sn || i.inverterSn || '', modelo: i.invertType || i.inverterType || i.model || ''
+  })).filter(i => i.sn);
+  return { inversores, _rawFirst: recs[0] || {} };
+}
+
+// ── fetch_sn: Solarman — lista inversores da usina (SN rápido) ─
+async function fetchSnSolarman(platId, api) {
+  const base = 'https://globalapi.solarmanpv.com';
+  const tokenRes = await httpPost(`${base}/account/v1.0/token?appId=${api.appid}&language=pt`, {
+    appSecret: api.secret, email: api.email, password: api.senha
+  });
+  if (!tokenRes.access_token) throw new Error('Falha auth Solarman');
+  const token = tokenRes.access_token;
+  const hdr = { Authorization: `Bearer ${token}`, appId: api.appid };
+  const sid = parseInt(platId) || platId;
+  const devRes = await httpPost(`${base}/device/v1.0/list?language=pt`, { stationId: sid, page: 1, size: 20 }, hdr);
+  const all = devRes.deviceListItems || devRes.list || devRes.data || [];
+  const inversores = (Array.isArray(all) ? all : [])
+    .filter(x => x.deviceSn || x.sn)
+    .map(x => ({ sn: x.deviceSn || x.sn || '', modelo: x.productName || x.model || '' }))
+    .filter(i => i.sn);
+  return { inversores, _rawFirst: all[0] || {} };
 }
 
 // ── Helpers ──────────────────────────────────────────────

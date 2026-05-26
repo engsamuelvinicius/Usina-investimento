@@ -3415,6 +3415,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nova Planta
         </button>
+        <button class="mon-refresh-btn" id="mon-bulk-sn-btn" onclick="monPreencherSnsBulk()" style="background:rgba(109,222,143,.10);border-color:rgba(109,222,143,.25);color:#c8f5d6;font-size:12px" title="Preencher SNs de inversores em todas as plantas">&#9889; Preencher SNs</button>
       </div>
     </div>
 
@@ -13184,6 +13185,12 @@ function monRefresh(manual){
       var _pot = dados.potenciaAtual||0, _hj = dados.geracaoHoje||0;
       _monPlantas[idx].status = (_pot > 0 || _hj > 0) ? 'online' : 'offline';
     }
+    // Preenche geo automaticamente se estava vazio (vem do refresh_all)
+    if(dados._cidade && !_monPlantas[idx].cidade) _monPlantas[idx].cidade = dados._cidade;
+    if(dados._estado && !_monPlantas[idx].estado) _monPlantas[idx].estado = dados._estado;
+    if(dados._lat    && !_monPlantas[idx].lat)    _monPlantas[idx].lat    = dados._lat;
+    if(dados._lng    && !_monPlantas[idx].lng)    _monPlantas[idx].lng    = dados._lng;
+    if(dados._kwp    && !_monPlantas[idx].potencia && !_monPlantas[idx].kwp) _monPlantas[idx].potencia = dados._kwp;
     // Remove alertas offline falsos quando planta volta ao ar
     if(_monPlantas[idx].status !== 'offline'){
       _monAlertas = _monAlertas.filter(function(a){ return !(a.plantaId===planta.id && a.tipo==='offline' && !a.lido); });
@@ -13337,6 +13344,42 @@ function monToggleBuscarInfo(){
   if(!row) return;
   var suportado = ['solis','solarman','sofar','deye','intelbras'].indexOf(brand)>=0;
   row.style.display = suportado ? 'flex' : 'none';
+}
+
+function monPreencherSnsBulk(){
+  var semSn = _monPlantas.filter(function(p){ return !p.sn && p.brand && p.brand!=='manual' && p.platId; });
+  if(!semSn.length){ toast('Todas as plantas com API já têm SN preenchido.'); return; }
+  var btn = document.getElementById('mon-bulk-sn-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⚡ Buscando…'; }
+  var total=semSn.length, feito=0, erros=0;
+  toast('Buscando SNs de '+total+' plantas (pode demorar)…','info',5000);
+
+  function processarLote(i){
+    if(i>=semSn.length){
+      monPersistirPlantas();
+      monRenderPlantas();
+      if(btn){ btn.disabled=false; btn.textContent='⚡ Preencher SNs'; }
+      toast('SNs preenchidos: '+feito+' | sem retorno: '+erros);
+      return;
+    }
+    var lote=semSn.slice(i,i+3);
+    Promise.all(lote.map(function(planta){
+      var api=_monApis[planta.brand]||{};
+      return fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({brand:planta.brand,platId:planta.platId,api:api,action:'fetch_sn'})})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var idx=_monPlantas.findIndex(function(p){return p.id===planta.id;});
+        if(idx<0||data.error) return void erros++;
+        if(data.inversores&&data.inversores.length){
+          _monPlantas[idx].sn=data.inversores.map(function(i){return i.sn;}).filter(Boolean).join(', ');
+          feito++;
+        } else { erros++; }
+      })
+      .catch(function(){erros++;});
+    })).then(function(){ setTimeout(function(){processarLote(i+3);},800); });
+  }
+  processarLote(0);
 }
 
 function monBuscarInfoPlanta(){
