@@ -204,19 +204,23 @@ function _bdcMunicipio(r) {
 
 // Reverse geocoding: BigDataCloud → Nominatim como fallback
 async function reverseGeocode(lat, lng) {
+  const _log = { lat, lng, bdc: null, nom: null };
+
   // 1. BigDataCloud
   try {
     const r = await httpGetTimed(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=pt`,
       {}, 6000
     );
+    _log.bdc = r ? { city: r.city, locality: r.locality, subdivision: r.principalSubdivisionCode,
+      adm: ((r.localityInfo||{}).administrative||[]).map(a=>({lvl:a.adminLevel,name:a.name})) } : 'null';
     if (r) {
       const cidade = _bdcMunicipio(r);
       const raw    = (r.principalSubdivisionCode || '').toUpperCase();
       const estado = raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2);
-      if (cidade || estado) return { cidade, estado };
+      if (cidade || estado) return { cidade, estado, _log };
     }
-  } catch(_) {}
+  } catch(e) { _log.bdc = 'ERR:' + e.message; }
 
   // 2. Nominatim como fallback
   try {
@@ -225,13 +229,14 @@ async function reverseGeocode(lat, lng) {
       { 'User-Agent': 'GS360-Solar-Monitor/1.0' }, 8000
     );
     const a      = r.address || {};
+    _log.nom = { city: a.city, town: a.town, municipality: a.municipality, state: a.state, ISO: a['ISO3166-2-lvl4'] };
     const cidade = a.city || a.town || a.municipality || a.village || a.county || '';
     const raw    = a['ISO3166-2-lvl4'] || a.state_code || '';
     const estado = (raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2)).toUpperCase();
-    if (cidade || estado) return { cidade, estado };
-  } catch(_) {}
+    if (cidade || estado) return { cidade, estado, _log };
+  } catch(e) { _log.nom = 'ERR:' + e.message; }
 
-  return { cidade: '', estado: '' };
+  return { cidade: '', estado: '', _log };
 }
 
 // ══════════════════════════════════════════════════════════
@@ -967,17 +972,21 @@ async function fetchInfoSolis(platId, api) {
   let estado = textVal(s.provinceStr) || textVal(s.provinceName) || textVal(s.province) || textVal(s.state) || '';
 
   // Solis retorna IDs numéricos p/ cidade — usa reverse geocoding se campos de texto estiverem vazios
+  let _geoDebug = null;
   if (!cidade && lat && lng) {
     const geo = await reverseGeocode(lat, lng);
     cidade = geo.cidade;
     if (!estado) estado = geo.estado;
+    _geoDebug = geo._log;
+    console.log('[fetch_info geo]', JSON.stringify(geo._log));
   }
 
   return {
     nome: s.stationName || s.name || '',
     cidade, estado, lat, lng,
     kwp:  parseFloat(s.installedCapacity || s.capacity || s.power || 0) || null,
-    inversores
+    inversores,
+    _geoDebug
   };
 }
 
