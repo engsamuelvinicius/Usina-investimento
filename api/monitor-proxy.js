@@ -202,57 +202,91 @@ function httpGetTimed(url, headers = {}, ms = 6000) {
   return Promise.race([httpGet(url, headers), timer]);
 }
 
+// Mapa de estados brasileiros → código UF (para converter "Rio Grande do Norte" → "RN")
+const _BR_ESTADOS = {
+  'acre':'AC','alagoas':'AL','amapá':'AP','amapa':'AP','amazonas':'AM','bahia':'BA',
+  'ceará':'CE','ceara':'CE','distrito federal':'DF','espírito santo':'ES','espirito santo':'ES',
+  'goiás':'GO','goias':'GO','maranhão':'MA','maranhao':'MA','mato grosso do sul':'MS',
+  'mato grosso':'MT','minas gerais':'MG','pará':'PA','para':'PA','paraíba':'PB','paraiba':'PB',
+  'paraná':'PR','parana':'PR','pernambuco':'PE','piauí':'PI','piaui':'PI',
+  'rio de janeiro':'RJ','rio grande do norte':'RN','rio grande do sul':'RS',
+  'rondônia':'RO','rondonia':'RO','roraima':'RR','santa catarina':'SC',
+  'são paulo':'SP','sao paulo':'SP','sergipe':'SE','tocantins':'TO'
+};
+function _stateToCode(name) {
+  if (!name) return '';
+  return _BR_ESTADOS[name.trim().toLowerCase()] || '';
+}
+
 // Extrai nome do município do array administrative do BigDataCloud (adminLevel 8 = município BR)
 function _bdcMunicipio(r) {
   const stateName = (r.principalSubdivision || '').trim().toLowerCase();
   const adm = (r.localityInfo && r.localityInfo.administrative) || [];
-  // adminLevel 8 = município no Brasil — mais confiável que r.city
+  // adminLevel 8 = município no Brasil; rejeita se for igual ao estado
   const lvl8 = adm.find(a => a.adminLevel === 8);
   if (lvl8 && lvl8.name) {
     const n = lvl8.name.trim();
     if (!stateName || n.toLowerCase() !== stateName) return n;
   }
-  // r.city como fallback — rejeita se for igual ao nome do estado (BigDataCloud preenche estado quando não sabe o município)
+  // r.city como fallback — rejeita se for o nome do estado
   const city = (r.city || '').trim();
   if (city && (!stateName || city.toLowerCase() !== stateName)) return city;
   return '';
 }
 
-// Reverse geocoding: BigDataCloud → Nominatim como fallback
-async function reverseGeocode(lat, lng) {
-  const _log = { lat, lng, bdc: null, nom: null };
+// Extrai estado (UF) de uma resposta do BigDataCloud
+function _bdcEstado(r) {
+  const raw = (r.principalSubdivisionCode || '').toUpperCase();
+  if (raw.includes('-')) return raw.split('-').pop();
+  const uf = raw.slice(0, 2);
+  return uf || _stateToCode(r.principalSubdivision || '');
+}
 
-  // 1. BigDataCloud
+// Reverse geocoding: BigDataCloud → Photon (Komoot/OSM) → Nominatim
+// IMPORTANTE: só retorna cedo se tiver CIDADE — estado sozinho não basta
+async function reverseGeocode(lat, lng) {
+  // 1. BigDataCloud — rápido, sem chave, bom para cidades maiores
   try {
     const r = await httpGetTimed(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=pt`,
-      {}, 6000
+      {}, 5000
     );
-    _log.bdc = r ? { city: r.city, locality: r.locality, subdivision: r.principalSubdivisionCode,
-      adm: ((r.localityInfo||{}).administrative||[]).map(a=>({lvl:a.adminLevel,name:a.name})) } : 'null';
     if (r) {
       const cidade = _bdcMunicipio(r);
-      const raw    = (r.principalSubdivisionCode || '').toUpperCase();
-      const estado = raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2);
-      if (cidade || estado) return { cidade, estado, _log };
+      const estado = _bdcEstado(r);
+      if (cidade) return { cidade, estado };  // só retorna se tiver município real
     }
-  } catch(e) { _log.bdc = 'ERR:' + e.message; }
+  } catch(e) { /* continua para próximo serviço */ }
 
-  // 2. Nominatim como fallback
+  // 2. Photon (Komoot) — baseado em OSM, sem chave, boa cobertura de municípios BR rurais
+  try {
+    const r = await httpGetTimed(
+      `https://photon.komoot.io/reverse?lon=${lng}&lat=${lat}&lang=pt`,
+      { 'User-Agent': 'GS360-Solar-Monitor/1.0' }, 7000
+    );
+    const props = (r && r.features && r.features[0] && r.features[0].properties) || null;
+    if (props) {
+      const cidade = (props.city || props.name || '').trim();
+      const estado = _stateToCode(props.state || '') || (props.state || '').slice(0, 2).toUpperCase();
+      if (cidade) return { cidade, estado };
+    }
+  } catch(e) { /* continua */ }
+
+  // 3. Nominatim — último recurso
   try {
     const r = await httpGetTimed(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=pt-BR`,
       { 'User-Agent': 'GS360-Solar-Monitor/1.0' }, 8000
     );
-    const a      = r.address || {};
-    _log.nom = { city: a.city, town: a.town, municipality: a.municipality, state: a.state, ISO: a['ISO3166-2-lvl4'] };
+    const a = r.address || {};
     const cidade = a.city || a.town || a.municipality || a.village || a.county || '';
     const raw    = a['ISO3166-2-lvl4'] || a.state_code || '';
-    const estado = (raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2)).toUpperCase();
-    if (cidade || estado) return { cidade, estado, _log };
-  } catch(e) { _log.nom = 'ERR:' + e.message; }
+    const estado = (raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2)).toUpperCase()
+                 || _stateToCode(a.state || '');
+    if (cidade) return { cidade, estado };
+  } catch(e) { /* falhou */ }
 
-  return { cidade: '', estado: '', _log };
+  return { cidade: '', estado: '' };
 }
 
 // ══════════════════════════════════════════════════════════
