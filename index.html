@@ -13374,8 +13374,9 @@ function monPreencherDadosBulk(){
             if(p.brand!==brand) return;
             var d=batch[p.platId]||batch[String(p.platId)];
             if(!d) return;
-            if(d._cidade && !_monPlantas[idx].cidade) _monPlantas[idx].cidade=d._cidade;
-            if(d._estado && !_monPlantas[idx].estado) _monPlantas[idx].estado=d._estado;
+            var curC=_monPlantas[idx].cidade||'', curE=_monPlantas[idx].estado||'';
+            if(d._cidade && (!curC || !isNaN(curC.trim()))) _monPlantas[idx].cidade=d._cidade;
+            if(d._estado && (!curE || !isNaN(curE.trim()))) _monPlantas[idx].estado=d._estado;
             if(d._lat    && !_monPlantas[idx].lat)    _monPlantas[idx].lat=d._lat;
             if(d._lng    && !_monPlantas[idx].lng)    _monPlantas[idx].lng=d._lng;
           });
@@ -13447,8 +13448,9 @@ function monBuscarInfoPlanta(){
     var elLg=document.getElementById('mon-plant-lng');
     var elK=document.getElementById('mon-plant-kwp');
     var elS=document.getElementById('mon-plant-sn');
-    if(data.cidade && elC){ elC.value=data.cidade; preencheu.push('cidade'); }
-    if(data.estado && elE){ elE.value=(data.estado||'').slice(0,2).toUpperCase(); preencheu.push('UF'); }
+    // Sempre sobrescreve — o botão foi clicado intencionalmente para buscar novos dados
+    if(elC){ elC.value=data.cidade||''; if(data.cidade) preencheu.push('cidade'); }
+    if(elE){ elE.value=data.estado?(data.estado||'').slice(0,2).toUpperCase():''; if(data.estado) preencheu.push('UF'); }
     if(data.lat && elLt){ elLt.value=data.lat; }
     if(data.lng && elLg){ elLg.value=data.lng; }
     if(data.kwp && elK && !elK.value){ elK.value=parseFloat(data.kwp).toFixed(2); preencheu.push('kWp'); }
