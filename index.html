@@ -13389,13 +13389,9 @@ function monPreencherDadosBulk(){
         if(p.brand!==brand) return;
         var d=batch[p.platId]||batch[String(p.platId)];
         if(!d) return;
-        var curC=String(_monPlantas[idx].cidade||'').trim();
         var curE=String(_monPlantas[idx].estado||'').trim();
-        // Sobrescreve cidade só se o valor atual não for um nome de cidade válido
-        // (vazio, numérico, sigla UF, nome de estado → substitui; "Cruzeta" → mantém)
-        if(!_cidadeOk(curC)) {
-          _monPlantas[idx].cidade = d._cidade || '';
-        }
+        // Sempre limpa cidade (step 2 geocoda e preenche o valor correto)
+        _monPlantas[idx].cidade = d._cidade || '';
         if(!curE || !isNaN(curE)) _monPlantas[idx].estado = d._estado || '';
         if(d._lat && !_monPlantas[idx].lat) _monPlantas[idx].lat = d._lat;
         if(d._lng && !_monPlantas[idx].lng) _monPlantas[idx].lng = d._lng;
@@ -13405,12 +13401,12 @@ function monPreencherDadosBulk(){
     .catch(function(){});
   }))
   .then(function(){
-    // Passo 2: geocoding — qualquer planta com cidade inválida e coords dentro do Brasil
+    // Passo 2: geocoda TODAS as plantas com API e coordenadas válidas no Brasil
     var paraGeocodar = _monPlantas.filter(function(p){
       if(comApiIds.indexOf(p.id)<0 || !p.lat || !p.lng) return false;
       var lat=parseFloat(p.lat), lng=parseFloat(p.lng);
       if(lat < -35 || lat > 6 || lng < -75 || lng > -28) return false;
-      return !_cidadeOk(p.cidade);
+      return true;
     });
     var geocodados = 0;
     function geocodarLote(i){
