@@ -218,19 +218,29 @@ function _stateToCode(name) {
   return _BR_ESTADOS[name.trim().toLowerCase()] || '';
 }
 
-// Extrai nome do município do array administrative do BigDataCloud (adminLevel 8 = município BR)
+// Retorna true se o nome for um estado brasileiro conhecido
+function _isStateName(name) {
+  return !!(name && _BR_ESTADOS[name.trim().toLowerCase()]);
+}
+
+// Extrai nome do município de uma resposta do BigDataCloud
+// Rejeita apenas nomes que sabidamente são estados (via _BR_ESTADOS), não por comparação com
+// principalSubdivision (que pode ser o próprio município em áreas urbanas)
 function _bdcMunicipio(r) {
-  const stateName = (r.principalSubdivision || '').trim().toLowerCase();
   const adm = (r.localityInfo && r.localityInfo.administrative) || [];
-  // adminLevel 8 = município no Brasil; rejeita se for igual ao estado
+
+  // adminLevel 8 = município no Brasil — mais confiável
   const lvl8 = adm.find(a => a.adminLevel === 8);
-  if (lvl8 && lvl8.name) {
-    const n = lvl8.name.trim();
-    if (!stateName || n.toLowerCase() !== stateName) return n;
-  }
-  // r.city como fallback — rejeita se for o nome do estado
+  if (lvl8 && lvl8.name && !_isStateName(lvl8.name)) return lvl8.name.trim();
+
+  // r.city — aceita qualquer nome que não seja estado conhecido
   const city = (r.city || '').trim();
-  if (city && (!stateName || city.toLowerCase() !== stateName)) return city;
+  if (city && !_isStateName(city)) return city;
+
+  // r.locality como última opção dentro do BDC
+  const loc = (r.locality || '').trim();
+  if (loc && !_isStateName(loc)) return loc;
+
   return '';
 }
 
@@ -266,9 +276,11 @@ async function reverseGeocode(lat, lng) {
     );
     const props = (r && r.features && r.features[0] && r.features[0].properties) || null;
     if (props) {
-      const cidade = (props.city || props.name || '').trim();
+      // city = município; county = município em áreas rurais BR; name = nome do objeto mais próximo
+      const rawCidade = props.city || props.county || props.name || '';
+      const cidade = rawCidade.trim();
       const estado = _stateToCode(props.state || '') || (props.state || '').slice(0, 2).toUpperCase();
-      if (cidade) return { cidade, estado };
+      if (cidade && !_isStateName(cidade)) return { cidade, estado };
     }
   } catch(e) { /* continua */ }
 
