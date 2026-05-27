@@ -190,18 +190,31 @@ function httpGetTimed(url, headers = {}, ms = 6000) {
   return Promise.race([httpGet(url, headers), timer]);
 }
 
-// Reverse geocoding: BigDataCloud (sem key, funciona server-side) → Nominatim como fallback
+// Extrai nome do município do array administrative do BigDataCloud (adminLevel 8 = município BR)
+function _bdcMunicipio(r) {
+  if (r.city) return r.city;
+  const adm = (r.localityInfo && r.localityInfo.administrative) || [];
+  // adminLevel 8 = município no Brasil; tenta do mais específico ao mais geral
+  for (const lvl of [8, 7, 6]) {
+    const e = adm.find(a => a.adminLevel === lvl);
+    if (e && e.name) return e.name;
+  }
+  return '';
+}
+
+// Reverse geocoding: BigDataCloud → Nominatim como fallback
 async function reverseGeocode(lat, lng) {
-  // 1. BigDataCloud — mais confiável de servidor para servidor
+  // 1. BigDataCloud
   try {
     const r = await httpGetTimed(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=pt`,
       {}, 6000
     );
-    if (r && (r.city || r.locality)) {
-      const raw = (r.principalSubdivisionCode || '').toUpperCase();
-      const uf  = raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2);
-      return { cidade: r.city || r.locality || '', estado: uf };
+    if (r) {
+      const cidade = _bdcMunicipio(r);
+      const raw    = (r.principalSubdivisionCode || '').toUpperCase();
+      const estado = raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2);
+      if (cidade || estado) return { cidade, estado };
     }
   } catch(_) {}
 
@@ -211,11 +224,11 @@ async function reverseGeocode(lat, lng) {
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=pt-BR`,
       { 'User-Agent': 'GS360-Solar-Monitor/1.0' }, 8000
     );
-    const a   = r.address || {};
+    const a      = r.address || {};
     const cidade = a.city || a.town || a.municipality || a.village || a.county || '';
     const raw    = a['ISO3166-2-lvl4'] || a.state_code || '';
-    const uf     = (raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2)).toUpperCase();
-    return { cidade, estado: uf };
+    const estado = (raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2)).toUpperCase();
+    if (cidade || estado) return { cidade, estado };
   } catch(_) {}
 
   return { cidade: '', estado: '' };
