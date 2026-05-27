@@ -13349,63 +13349,76 @@ function monToggleBuscarInfo(){
 function monPreencherDadosBulk(){
   var comApi = _monPlantas.filter(function(p){ return p.brand && p.brand!=='manual' && p.platId; });
   if(!comApi.length){ toast('Nenhuma planta com API configurada.','warn'); return; }
-  var semCidade = comApi.filter(function(p){ return !p.cidade; });
-  var semSn     = comApi.filter(function(p){ return !p.sn; });
-  if(!semCidade.length && !semSn.length){ toast('Todas as plantas já têm cidade e SN preenchidos.'); return; }
 
   var btn = document.getElementById('mon-bulk-sn-btn');
   if(btn){ btn.disabled=true; btn.textContent='⚡ Buscando…'; }
-  var msgs = [];
   toast('Preenchendo dados de '+comApi.length+' plantas…','info',6000);
+  var msgs = [];
+  var comApiIds = comApi.map(function(p){ return p.id; });
 
-  // Passo 1: refresh_all por brand → preenche cidade/estado/lat/lng (uma chamada por marca)
-  var brandsComSemCidade = semCidade.length
-    ? [...new Set(semCidade.map(function(p){ return p.brand; }))]
-    : [];
-  var step1 = brandsComSemCidade.length
-    ? Promise.all(brandsComSemCidade.map(function(brand){
-        var api = _monApis[brand]||{};
+  // Passo 1: refresh_all por brand → lat/lng/kwp + limpa valores numéricos de cidade/estado
+  var brands = [...new Set(comApi.map(function(p){ return p.brand; }))];
+  Promise.all(brands.map(function(brand){
+    var api = _monApis[brand]||{};
+    return fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({brand:brand,api:api,action:'refresh_all'})})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var batch = data.plants||{};
+      _monPlantas.forEach(function(p,idx){
+        if(p.brand!==brand) return;
+        var d=batch[p.platId]||batch[String(p.platId)];
+        if(!d) return;
+        var curC=String(_monPlantas[idx].cidade||'').trim();
+        var curE=String(_monPlantas[idx].estado||'').trim();
+        // Sobrescreve se vazio OU numérico — limpa IDs como 317675 ou 2
+        if(!curC || !isNaN(curC)) _monPlantas[idx].cidade = d._cidade || '';
+        if(!curE || !isNaN(curE)) _monPlantas[idx].estado = d._estado || '';
+        if(d._lat && !_monPlantas[idx].lat) _monPlantas[idx].lat = d._lat;
+        if(d._lng && !_monPlantas[idx].lng) _monPlantas[idx].lng = d._lng;
+        if(d._kwp && !_monPlantas[idx].kwp) _monPlantas[idx].kwp = d._kwp;
+      });
+    })
+    .catch(function(){});
+  }))
+  .then(function(){
+    // Passo 2: geocoding para plantas sem cidade mas com coordenadas
+    var semCidade = _monPlantas.filter(function(p){
+      return comApiIds.indexOf(p.id)>=0 && !p.cidade && p.lat && p.lng;
+    });
+    var geocodados = 0;
+    function geocodarLote(i){
+      if(i>=semCidade.length) return Promise.resolve();
+      var lote = semCidade.slice(i,i+3);
+      return Promise.all(lote.map(function(planta){
         return fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({brand:brand,api:api,action:'refresh_all'})})
+          body:JSON.stringify({action:'geocode',lat:planta.lat,lng:planta.lng,api:{}})})
         .then(function(r){ return r.json(); })
-        .then(function(data){
-          var batch = data.plants||{};
-          _monPlantas.forEach(function(p,idx){
-            if(p.brand!==brand) return;
-            var d=batch[p.platId]||batch[String(p.platId)];
-            if(!d) return;
-            var curC=_monPlantas[idx].cidade||'', curE=_monPlantas[idx].estado||'';
-            if(d._cidade && (!curC || !isNaN(curC.trim()))) _monPlantas[idx].cidade=d._cidade;
-            if(d._estado && (!curE || !isNaN(curE.trim()))) _monPlantas[idx].estado=d._estado;
-            if(d._lat    && !_monPlantas[idx].lat)    _monPlantas[idx].lat=d._lat;
-            if(d._lng    && !_monPlantas[idx].lng)    _monPlantas[idx].lng=d._lng;
-          });
+        .then(function(geo){
+          var idx=_monPlantas.findIndex(function(p){ return p.id===planta.id; });
+          if(idx<0||geo.error) return;
+          if(geo.cidade){ _monPlantas[idx].cidade=geo.cidade; geocodados++; }
+          if(geo.estado && !_monPlantas[idx].estado) _monPlantas[idx].estado=geo.estado;
         })
         .catch(function(){});
       }))
-    : Promise.resolve();
-
-  step1.then(function(){
-    // Passo 2: fetch_sn por planta sem SN (lotes de 3 com delay)
-    var semSnAgora = _monPlantas.filter(function(p){ return !p.sn && p.brand && p.brand!=='manual' && p.platId; });
-    var feito=0, erros=0;
-
-    function finalizarBulk(){
-      monPersistirPlantas();
-      monRenderPlantas();
-      if(btn){ btn.disabled=false; btn.textContent='⚡ Preencher Dados'; }
-      if(semCidade.length) msgs.push('cidades verificadas');
-      if(feito) msgs.push(feito+' SNs adicionados');
-      if(erros) msgs.push(erros+' sem retorno de SN');
-      toast(msgs.length ? msgs.join(' | ') : 'Concluído','info');
+      .then(function(){ return new Promise(function(res){ setTimeout(res,600); }); })
+      .then(function(){ return geocodarLote(i+3); });
     }
-
-    if(!semSnAgora.length){ finalizarBulk(); return; }
-
-    function processarLote(i){
-      if(i>=semSnAgora.length){ finalizarBulk(); return; }
-      var lote=semSnAgora.slice(i,i+3);
-      Promise.all(lote.map(function(planta){
+    return geocodarLote(0).then(function(){
+      if(geocodados) msgs.push(geocodados+' cidades preenchidas');
+    });
+  })
+  .then(function(){
+    // Passo 3: fetch_sn para plantas sem SN
+    var semSn = _monPlantas.filter(function(p){
+      return comApiIds.indexOf(p.id)>=0 && !p.sn;
+    });
+    var feito=0, erros=0;
+    function snLote(i){
+      if(i>=semSn.length) return Promise.resolve();
+      var lote=semSn.slice(i,i+3);
+      return Promise.all(lote.map(function(planta){
         var api=_monApis[planta.brand]||{};
         return fetch('/api/monitor-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({brand:planta.brand,platId:planta.platId,api:api,action:'fetch_sn'})})
@@ -13419,9 +13432,24 @@ function monPreencherDadosBulk(){
           } else { erros++; }
         })
         .catch(function(){ erros++; });
-      })).then(function(){ setTimeout(function(){ processarLote(i+3); },800); });
+      }))
+      .then(function(){ return new Promise(function(res){ setTimeout(res,800); }); })
+      .then(function(){ return snLote(i+3); });
     }
-    processarLote(0);
+    return snLote(0).then(function(){
+      if(feito) msgs.push(feito+' SNs adicionados');
+      if(erros) msgs.push(erros+' sem retorno de SN');
+    });
+  })
+  .then(function(){
+    monPersistirPlantas();
+    monRenderPlantas();
+    if(btn){ btn.disabled=false; btn.textContent='⚡ Preencher Dados'; }
+    toast(msgs.length ? msgs.join(' | ') : 'Concluído','info');
+  })
+  .catch(function(){
+    if(btn){ btn.disabled=false; btn.textContent='⚡ Preencher Dados'; }
+    toast('Erro ao preencher dados','warn');
   });
 }
 

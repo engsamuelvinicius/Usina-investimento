@@ -102,6 +102,18 @@ module.exports = async (req, res) => {
     }
   }
 
+  // ── Ação: reverse geocoding de coordenadas (usado pelo bulk button) ──
+  if (action === 'geocode') {
+    const { lat, lng } = req.body || {};
+    if (!lat || !lng) return res.status(400).json({ error: 'lat e lng obrigatórios' });
+    try {
+      const geo = await reverseGeocode(parseFloat(lat), parseFloat(lng));
+      return res.status(200).json({ cidade: geo.cidade, estado: geo.estado });
+    } catch(err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (!brand || !platId) return res.status(400).json({ error: 'brand e platId são obrigatórios' });
 
   try {
@@ -192,13 +204,17 @@ function httpGetTimed(url, headers = {}, ms = 6000) {
 
 // Extrai nome do município do array administrative do BigDataCloud (adminLevel 8 = município BR)
 function _bdcMunicipio(r) {
-  if (r.city) return r.city;
+  const stateName = (r.principalSubdivision || '').trim().toLowerCase();
   const adm = (r.localityInfo && r.localityInfo.administrative) || [];
-  // adminLevel 8 = município no Brasil; tenta do mais específico ao mais geral
-  for (const lvl of [8, 7, 6]) {
-    const e = adm.find(a => a.adminLevel === lvl);
-    if (e && e.name) return e.name;
+  // adminLevel 8 = município no Brasil — mais confiável que r.city
+  const lvl8 = adm.find(a => a.adminLevel === 8);
+  if (lvl8 && lvl8.name) {
+    const n = lvl8.name.trim();
+    if (!stateName || n.toLowerCase() !== stateName) return n;
   }
+  // r.city como fallback — rejeita se for igual ao nome do estado (BigDataCloud preenche estado quando não sabe o município)
+  const city = (r.city || '').trim();
+  if (city && (!stateName || city.toLowerCase() !== stateName)) return city;
   return '';
 }
 
@@ -972,21 +988,17 @@ async function fetchInfoSolis(platId, api) {
   let estado = textVal(s.provinceStr) || textVal(s.provinceName) || textVal(s.province) || textVal(s.state) || '';
 
   // Solis retorna IDs numéricos p/ cidade — usa reverse geocoding se campos de texto estiverem vazios
-  let _geoDebug = null;
   if (!cidade && lat && lng) {
     const geo = await reverseGeocode(lat, lng);
     cidade = geo.cidade;
     if (!estado) estado = geo.estado;
-    _geoDebug = geo._log;
-    console.log('[fetch_info geo]', JSON.stringify(geo._log));
   }
 
   return {
     nome: s.stationName || s.name || '',
     cidade, estado, lat, lng,
     kwp:  parseFloat(s.installedCapacity || s.capacity || s.power || 0) || null,
-    inversores,
-    _geoDebug
+    inversores
   };
 }
 
