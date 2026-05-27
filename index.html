@@ -13338,6 +13338,26 @@ function monAbrirModalPlanta(id){
   m.classList.add('open');
 }
 
+function _cidadeOk(v) {
+  if(!v || !v.trim()) return false;
+  var s = v.trim();
+  if(!isNaN(s)) return false;
+  if(s.length <= 2) return false;
+  var n = s.toLowerCase()
+    .replace(/[áàãâ]/g,'a').replace(/[éê]/g,'e')
+    .replace(/[íì]/g,'i').replace(/[óòôõ]/g,'o')
+    .replace(/[úùü]/g,'u').replace(/ç/g,'c');
+  if(n.indexOf('oceano') >= 0 || n.indexOf('ocean') >= 0) return false;
+  var estados = [
+    'rio grande do norte','paraiba','sao paulo','minas gerais','bahia','ceara',
+    'pernambuco','goias','rio de janeiro','piaui','maranhao','tocantins','sergipe',
+    'alagoas','amazonas','para','mato grosso do sul','mato grosso','espirito santo',
+    'rio grande do sul','santa catarina','parana','roraima','amapa','acre',
+    'rondonia','distrito federal'
+  ];
+  return estados.indexOf(n) < 0;
+}
+
 function monToggleBuscarInfo(){
   var brand = (document.getElementById('mon-plant-brand')||{}).value||'';
   var row = document.getElementById('mon-buscar-info-row');
@@ -13371,11 +13391,9 @@ function monPreencherDadosBulk(){
         if(!d) return;
         var curC=String(_monPlantas[idx].cidade||'').trim();
         var curE=String(_monPlantas[idx].estado||'').trim();
-        // Solis: API sempre retorna IDs numéricos — limpa cidade para geocoding no passo 2
-        // Outros: sobrescreve só se vazio ou numérico
-        if(brand==='solis') {
-          _monPlantas[idx].cidade = '';
-        } else if(!curC || !isNaN(curC)) {
+        // Sobrescreve cidade só se o valor atual não for um nome de cidade válido
+        // (vazio, numérico, sigla UF, nome de estado → substitui; "Cruzeta" → mantém)
+        if(!_cidadeOk(curC)) {
           _monPlantas[idx].cidade = d._cidade || '';
         }
         if(!curE || !isNaN(curE)) _monPlantas[idx].estado = d._estado || '';
@@ -13387,10 +13405,12 @@ function monPreencherDadosBulk(){
     .catch(function(){});
   }))
   .then(function(){
-    // Passo 2: geocoding — Solis sempre (API retorna ID numérico), outros só se sem cidade
+    // Passo 2: geocoding — qualquer planta com cidade inválida e coords dentro do Brasil
     var paraGeocodar = _monPlantas.filter(function(p){
       if(comApiIds.indexOf(p.id)<0 || !p.lat || !p.lng) return false;
-      return p.brand==='solis' || !p.cidade;
+      var lat=parseFloat(p.lat), lng=parseFloat(p.lng);
+      if(lat < -35 || lat > 6 || lng < -75 || lng > -28) return false;
+      return !_cidadeOk(p.cidade);
     });
     var geocodados = 0;
     function geocodarLote(i){

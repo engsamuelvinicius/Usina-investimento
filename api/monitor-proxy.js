@@ -105,9 +105,14 @@ module.exports = async (req, res) => {
   // ── Ação: reverse geocoding de coordenadas (usado pelo bulk button) ──
   if (action === 'geocode') {
     const { lat, lng } = req.body || {};
-    if (!lat || !lng) return res.status(400).json({ error: 'lat e lng obrigatórios' });
+    const latN = parseFloat(lat), lngN = parseFloat(lng);
+    if (!latN || !lngN) return res.status(200).json({ cidade: '', estado: '' });
+    // Valida que as coordenadas estão dentro do Brasil (evita geocodificar 0,0 ou coords inválidas)
+    if (latN < -35 || latN > 6 || lngN < -75 || lngN > -28) {
+      return res.status(200).json({ cidade: '', estado: '' });
+    }
     try {
-      const geo = await reverseGeocode(parseFloat(lat), parseFloat(lng));
+      const geo = await reverseGeocode(latN, lngN);
       return res.status(200).json({ cidade: geo.cidade, estado: geo.estado });
     } catch(err) {
       return res.status(500).json({ error: err.message });
