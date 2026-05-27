@@ -184,19 +184,41 @@ function textVal(v) {
   return (s && isNaN(s)) ? s : '';
 }
 
-// Reverse geocoding via Nominatim — fallback quando API retorna apenas IDs numéricos
+// httpGet com timeout (ms) — evita travar a função Vercel
+function httpGetTimed(url, headers = {}, ms = 6000) {
+  const timer = new Promise((_, rej) => setTimeout(() => rej(new Error('geocode timeout')), ms));
+  return Promise.race([httpGet(url, headers), timer]);
+}
+
+// Reverse geocoding: BigDataCloud (sem key, funciona server-side) → Nominatim como fallback
 async function reverseGeocode(lat, lng) {
+  // 1. BigDataCloud — mais confiável de servidor para servidor
   try {
-    const r = await httpGet(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=pt-BR`,
-      { 'User-Agent': 'GS360-Monitor/1.0' }
+    const r = await httpGetTimed(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=pt`,
+      {}, 6000
     );
-    const a = r.address || {};
+    if (r && (r.city || r.locality)) {
+      const raw = (r.principalSubdivisionCode || '').toUpperCase();
+      const uf  = raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2);
+      return { cidade: r.city || r.locality || '', estado: uf };
+    }
+  } catch(_) {}
+
+  // 2. Nominatim como fallback
+  try {
+    const r = await httpGetTimed(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=pt-BR`,
+      { 'User-Agent': 'GS360-Solar-Monitor/1.0' }, 8000
+    );
+    const a   = r.address || {};
     const cidade = a.city || a.town || a.municipality || a.village || a.county || '';
-    const rawUF  = a['ISO3166-2-lvl4'] || a.state_code || '';
-    const estado = (rawUF.includes('-') ? rawUF.split('-').pop() : rawUF.slice(0, 2)).toUpperCase();
-    return { cidade, estado };
-  } catch(_) { return { cidade: '', estado: '' }; }
+    const raw    = a['ISO3166-2-lvl4'] || a.state_code || '';
+    const uf     = (raw.includes('-') ? raw.split('-').pop() : raw.slice(0, 2)).toUpperCase();
+    return { cidade, estado: uf };
+  } catch(_) {}
+
+  return { cidade: '', estado: '' };
 }
 
 // ══════════════════════════════════════════════════════════
