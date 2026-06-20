@@ -2080,7 +2080,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     </table></div>
     <div class="st">Resumo por mês</div>
     <div style="overflow-x:auto"><table>
-      <thead><tr><th>Mês</th><th style="text-align:center">Geração</th><th style="text-align:center">Total alocado</th><th style="text-align:center">Total consumido</th><th style="text-align:center">Sobra real mês</th><th style="text-align:right">Rec. bruta</th><th style="text-align:right">Líquido</th></tr></thead>
+      <thead><tr><th>Mês</th><th style="text-align:center">Geração (kWh)</th><th style="text-align:center">Total alocado</th><th style="text-align:center">Total consumido</th><th style="text-align:center">Sobra real mês</th><th style="text-align:right">Rec. bruta</th><th style="text-align:right">Líquido</th><th></th></tr></thead>
       <tbody id="tbl-resumo-mes"></tbody>
     </table></div>
   </div>
@@ -9215,7 +9215,7 @@ function renderCreditos(){
     // Só adiciona linha do resumo se houve ao menos um cliente com lançamento
     if(totA === 0 && totC === 0) return;
     const sob=parseFloat((totA-totC).toFixed(1));
-    rR.push(`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:6px"><span id="ger-val-${mi}" style="font-weight:600">${m.geracao}</span><input type="number" id="ger-inp-${mi}" value="${m.geracao}" min="0" step="1" style="display:none;width:72px;font-size:13px;text-align:center;border:1px solid var(--green);border-radius:var(--r);padding:3px 6px;background:var(--bg);color:var(--text)"><button id="ger-btn-alt-${mi}" class="btn-e" onclick="alterarGeracao(${mi})" style="font-size:11px;padding:3px 8px">Alterar</button><button id="ger-btn-sav-${mi}" class="btn-p" onclick="salvarGeracaoMes(${mi})" style="display:none;font-size:11px;padding:3px 8px">Salvar</button></div></td><td style="text-align:center">${totA.toFixed(1)}</td><td style="text-align:center">${totC.toFixed(1)}</td><td style="text-align:center;font-weight:500;color:${sob>=0?'#1B5E20':'#B71C1C'}">${sob>=0?'+':''}${sob}</td><td style="text-align:right">R$ ${fmt(totC*u.tarifa)}</td><td style="text-align:right;color:#1B5E20;font-weight:500">R$ ${fmt(totC*u.liquido)}</td></tr>`);
+    rR.push(`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:center"><span id="ger-val-${mi}" style="font-weight:600">${m.geracao}</span><input type="number" id="ger-inp-${mi}" value="${m.geracao}" min="0" step="1" style="display:none;width:80px;font-size:13px;text-align:center;border:1px solid var(--green);border-radius:var(--r);padding:3px 6px;background:var(--bg);color:var(--text)"></td><td style="text-align:center">${totA.toFixed(1)}</td><td style="text-align:center">${totC.toFixed(1)}</td><td style="text-align:center;font-weight:500;color:${sob>=0?'#1B5E20':'#B71C1C'}">${sob>=0?'+':''}${sob}</td><td style="text-align:right">R$ ${fmt(totC*u.tarifa)}</td><td style="text-align:right;color:#1B5E20;font-weight:500">R$ ${fmt(totC*u.liquido)}</td><td style="white-space:nowrap"><button id="ger-btn-alt-${mi}" class="btn-e" onclick="alterarGeracao(${mi})" style="font-size:11px;padding:3px 8px">Alterar</button><button id="ger-btn-sav-${mi}" class="btn-p" onclick="salvarGeracaoMes(${mi})" style="display:none;font-size:11px;padding:3px 8px">Salvar</button></td></tr>`);
   });
   document.getElementById('tbl-creditos').innerHTML=rD.join('');
   document.getElementById('tbl-resumo-mes').innerHTML=rR.join('');
