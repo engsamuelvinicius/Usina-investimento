@@ -9215,19 +9215,29 @@ function renderCreditos(){
     // Só adiciona linha do resumo se houve ao menos um cliente com lançamento
     if(totA === 0 && totC === 0) return;
     const sob=parseFloat((totA-totC).toFixed(1));
-    rR.push(`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:center"><input type="number" value="${m.geracao}" min="0" step="1" title="Clique para editar a geração deste mês" onchange="salvarGeracaoMes(${mi},this.value)" style="width:72px;font-size:13px;font-weight:600;text-align:center;border:1px solid var(--border);border-radius:var(--r);padding:3px 6px;background:var(--bg2);color:var(--text);cursor:pointer" onfocus="this.style.borderColor='#1E6B2E'" onblur="this.style.borderColor='var(--border)'"></td><td style="text-align:center">${totA.toFixed(1)}</td><td style="text-align:center">${totC.toFixed(1)}</td><td style="text-align:center;font-weight:500;color:${sob>=0?'#1B5E20':'#B71C1C'}">${sob>=0?'+':''}${sob}</td><td style="text-align:right">R$ ${fmt(totC*u.tarifa)}</td><td style="text-align:right;color:#1B5E20;font-weight:500">R$ ${fmt(totC*u.liquido)}</td></tr>`);
+    rR.push(`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:6px"><span id="ger-val-${mi}" style="font-weight:600">${m.geracao}</span><input type="number" id="ger-inp-${mi}" value="${m.geracao}" min="0" step="1" style="display:none;width:72px;font-size:13px;text-align:center;border:1px solid var(--green);border-radius:var(--r);padding:3px 6px;background:var(--bg);color:var(--text)"><button id="ger-btn-alt-${mi}" class="btn-e" onclick="alterarGeracao(${mi})" style="font-size:11px;padding:3px 8px">Alterar</button><button id="ger-btn-sav-${mi}" class="btn-p" onclick="salvarGeracaoMes(${mi})" style="display:none;font-size:11px;padding:3px 8px">Salvar</button></div></td><td style="text-align:center">${totA.toFixed(1)}</td><td style="text-align:center">${totC.toFixed(1)}</td><td style="text-align:center;font-weight:500;color:${sob>=0?'#1B5E20':'#B71C1C'}">${sob>=0?'+':''}${sob}</td><td style="text-align:right">R$ ${fmt(totC*u.tarifa)}</td><td style="text-align:right;color:#1B5E20;font-weight:500">R$ ${fmt(totC*u.liquido)}</td></tr>`);
   });
   document.getElementById('tbl-creditos').innerHTML=rD.join('');
   document.getElementById('tbl-resumo-mes').innerHTML=rR.join('');
 }
-function salvarGeracaoMes(mi, novoValor){
+function alterarGeracao(mi){
+  document.getElementById('ger-val-'+mi).style.display='none';
+  document.getElementById('ger-btn-alt-'+mi).style.display='none';
+  const inp=document.getElementById('ger-inp-'+mi);
+  inp.style.display='inline-block';
+  document.getElementById('ger-btn-sav-'+mi).style.display='inline-block';
+  inp.focus();inp.select();
+}
+function salvarGeracaoMes(mi){
   const u=usinaAtual;if(!u||mi<0||mi>=u.meses.length)return;
-  const val=parseFloat(novoValor);
+  const inp=document.getElementById('ger-inp-'+mi);if(!inp)return;
+  const val=parseFloat(inp.value);
   if(isNaN(val)||val<0){toast('Valor de geração inválido.','warn');return;}
+  const nomeMes=u.meses[mi].mes;
   u.meses[mi].geracao=val;
   persistirUsinas();
   renderUsina();
-  toast('Geração de '+u.meses[mi].mes+' atualizada para '+val+' kWh.');
+  toast('Geração de '+nomeMes+' atualizada para '+val+' kWh.');
 }
 function renderInvestimento(){
   const u=usinaAtual,ac=acumUsina(u),p=Math.min(ac/u.invest*100,100),rest=Math.max(u.invest-ac,0),liq=liqMesAtual(u),pb=liq>0?Math.ceil(rest/liq):'—';
