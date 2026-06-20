@@ -2033,7 +2033,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     <button class="tab-btn" id="tab-pagamentos" onclick="switchTab('pagamentos',this)">Pagamentos</button>
     <button class="tab-btn" id="tab-creditos" onclick="switchTab('creditos',this)">Créditos</button>
     <button class="tab-btn" id="tab-fatura" onclick="switchTab('fatura',this)">Fatura PDF</button>
-    <button class="tab-btn" id="tab-cobranças" onclick="switchTab('cobranças',this)">Cobranças</button>
     <button class="tab-btn" id="tab-invest" onclick="switchTab('invest',this)">Investimento</button>
     <button class="tab-btn" id="tab-config" onclick="switchTab('config',this)" style="display:flex;align-items:center;gap:5px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -8864,6 +8863,21 @@ function abrirLancamento(idx=null){
   document.getElementById('modalLancamento').classList.add('open');
 }
 function abrirEditMes(i){abrirLancamento(i);}
+function excluirMes(idx){
+  const u=usinaAtual;if(!u||idx<0||idx>=u.meses.length)return;
+  const nomeMes=u.meses[idx].mes;
+  mostrarConfirm(
+    'Excluir mês '+nomeMes,
+    'Todos os lançamentos e pagamentos de '+nomeMes+' serão removidos. Esta ação não pode ser desfeita.',
+    function(){
+      u.meses.splice(idx,1);
+      persistirUsinas();
+      renderInvestimento();
+      renderUsina();
+      toast('Mês '+nomeMes+' excluído.');
+    }
+  );
+}
 function salvarLancamento(){
   const u=usinaAtual,mes=document.getElementById('f-mes-ref').value.trim();
   const ger=parseFloat(document.getElementById('f-geracao').value)||u.geracaoEst;
@@ -9209,7 +9223,7 @@ function renderCreditos(){
 function renderInvestimento(){
   const u=usinaAtual,ac=acumUsina(u),p=Math.min(ac/u.invest*100,100),rest=Math.max(u.invest-ac,0),liq=liqMesAtual(u),pb=liq>0?Math.ceil(rest/liq):'—';
   let acum=0;
-  const linhas=u.meses.map((m,i)=>{const l=totalLiqM(m,u.liquido,u.clientes),r=totalPagos(m);acum+=r;return`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:right">R$ ${fmt(r,0)}</td><td style="text-align:right;color:#1B5E20">R$ ${fmt(l,0)}</td><td style="text-align:right">${((l/u.invest)*100).toFixed(2)}%</td><td style="text-align:right">R$ ${fmt(acum,0)}</td><td style="text-align:right">${((acum/u.invest)*100).toFixed(2)}%</td><td><button class="btn-e" onclick="abrirEditMes(${i})">Editar</button></td></tr>`;}).join('');
+  const linhas=u.meses.map((m,i)=>{const l=totalLiqM(m,u.liquido,u.clientes),r=totalPagos(m);acum+=r;return`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:right">R$ ${fmt(r,0)}</td><td style="text-align:right;color:#1B5E20">R$ ${fmt(l,0)}</td><td style="text-align:right">${((l/u.invest)*100).toFixed(2)}%</td><td style="text-align:right">R$ ${fmt(acum,0)}</td><td style="text-align:right">${((acum/u.invest)*100).toFixed(2)}%</td><td style="white-space:nowrap"><button class="btn-e" onclick="abrirEditMes(${i})" style="margin-right:4px">Editar</button><button class="btn-w" onclick="excluirMes(${i})">Excluir</button></td></tr>`;}).join('');
   document.getElementById('playback-content').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px"><div><div style="font-weight:600;font-size:15px">Progresso do payback</div><div style="font-size:12px;color:var(--text2)">R$ ${fmt(ac,0)} de R$ ${fmt(u.invest,0)} recuperados</div></div><div><div style="font-size:22px;font-weight:600;color:#1B5E20">${p.toFixed(1)}%</div></div></div><div class="pb-bg"><div class="pb-fill" style="width:${p}%;background:${u.cor}"></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px"><div><div style="font-size:11px;color:var(--text2)">Restante</div><div style="font-weight:500;font-size:15px;color:#B71C1C">R$ ${fmt(rest,0)}</div></div><div><div style="font-size:11px;color:var(--text2)">Meses operando</div><div style="font-weight:500;font-size:15px">${u.meses.length}</div></div><div><div style="font-size:11px;color:var(--text2)">Payback restante</div><div style="font-weight:500;font-size:15px">${typeof pb==='number'?pb+' meses':pb}</div></div></div></div><div class="st">Histórico por mês</div><div style="overflow-x:auto"><table><thead><tr><th>Mês</th><th style="text-align:right">Receita bruta</th><th style="text-align:right">Lucro líquido</th><th style="text-align:right">ROI mensal</th><th style="text-align:right">Acumulado</th><th style="text-align:right">% recup.</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>`;
 }
 
@@ -10075,7 +10089,7 @@ function renderClientes(){
   const rows=u.clientes.map(c=>{
     const aloc=kwhAloc(c,ger),cons=ult&&!c.previsto?(ult.consumos[c.id]||0):0;
     const sm=parseFloat((aloc-cons).toFixed(1)),sa=mi>=0?saldoAcum(u,c.id,mi):0;
-    const rec=aloc*u.tarifa,liq=aloc*u.liquido;
+    const rec=cons*u.tarifa,liq=cons*u.liquido;
     if(!c.previsto){tPct+=c.cotaPct;tAloc+=aloc;tCons+=cons;tRec+=rec;tLiq+=liq;}
     const sb=c.previsto
       ?`<span class="badge bprev">Previsto ${c.inclusao}</span>`
