@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -8161,6 +8161,7 @@ function getTarifasUser(){
     pctIP:         (t.pctIP != null) ? parseFloat(t.pctIP) : 8,
     cobrarFioB:    t.cobrarFioB !== undefined ? t.cobrarFioB : false,
     valorFioB:     parseFloat(t.valorFioB) || 0,
+    tarifaDist:    parseFloat(t.tarifaDist) || 1.00,
   };
 }
 function salvarTarifasUser(dados){
@@ -8218,15 +8219,16 @@ function _previewCalcExec(){
     '<br>Lucro líquido do integrador: <strong>R$ '+lucroMes.toFixed(2)+'</strong>';
 }
 function salvarTarifasConfig(silencioso){
-  var tarifa  = parseFloat((document.getElementById('cfg-tarifa')||{value:'0.75'}).value)  || 0.75;
-  var liquido = parseFloat((document.getElementById('cfg-liquido')||{value:'0.44'}).value) || 0.44;
+  var tarifa     = parseFloat((document.getElementById('cfg-tarifa')||{value:'0.75'}).value)     || 0.75;
+  var tarifaDist = parseFloat((document.getElementById('cfg-tarifa-dist')||{value:'1.00'}).value) || 1.00;
+  var liquido    = parseFloat((document.getElementById('cfg-liquido')||{value:'0.44'}).value)    || 0.44;
   var cobrarIP   = _toggleState.ip   !== null ? _toggleState.ip   : (document.getElementById('btn-ip-sim')   ? document.getElementById('btn-ip-sim').classList.contains('toggle-sel-sim')   : true);
   var cobrarFioB = _toggleState.fiob !== null ? _toggleState.fiob : (document.getElementById('btn-fiob-sim') ? document.getElementById('btn-fiob-sim').classList.contains('toggle-sel-sim') : false);
   var pctIP   = parseFloat((document.getElementById('cfg-pct-ip')||{value:'8'}).value) || 8;
   var valorFioB = cobrarFioB ? (parseFloat((document.getElementById('cfg-valor-fiob')||{value:'0'}).value)||0) : 0;
-  salvarTarifasUser({tarifa:tarifa, tarifaCobrada:tarifa, lucroLiquido:liquido, cobrarIP:cobrarIP, pctIP:pctIP, cobrarFioB:cobrarFioB, valorFioB:valorFioB});
+  salvarTarifasUser({tarifa:tarifa, tarifaCobrada:tarifa, lucroLiquido:liquido, cobrarIP:cobrarIP, pctIP:pctIP, cobrarFioB:cobrarFioB, valorFioB:valorFioB, tarifaDist:tarifaDist});
   if(!silencioso) toast('✅ Tarifas salvas! Os cálculos serão atualizados.');
-  usinas.forEach(function(u){ u.tarifa=tarifa; u.liquido=liquido; });
+  usinas.forEach(function(u){ u.tarifa=tarifa; u.tarifaDist=tarifaDist; u.liquido=liquido; });
   persistirUsinas();
   if(usinaAtual){ renderUsina(); }
 }
@@ -8526,8 +8528,13 @@ function renderConfiguracoes(){
     + '<div style="font-size:12px;color:var(--text2);margin-bottom:14px">Define os valores usados em todos os cálculos e faturas</div>'
     + '<div class="fr"><label>Tarifa cobrada ao cliente (R$/kWh)</label>'
     + '<div style="display:flex;align-items:center;gap:8px">'
-    + '<input type="number" id="cfg-tarifa" value="' + (t.tarifaCobrada||0.75).toFixed(3) + '" min="0" step="0.001" style="width:100px;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)">'
-    + '<span style="font-size:12px;color:var(--text2)">R$ por kWh</span></div></div>'
+    + '<input type="number" id="cfg-tarifa" value="' + (t.tarifaCobrada||0.75).toFixed(3) + '" min="0" step="0.001" style="width:100px;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)" oninput="previewCalc()">'
+    + '<span style="font-size:12px;color:var(--text2)">R$ por kWh (cobrado ao cliente)</span></div></div>'
+    + '<div class="fr"><label>Tarifa da distribuidora — comparativo "sem solar" (R$/kWh)</label>'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+    + '<input type="number" id="cfg-tarifa-dist" value="' + (t.tarifaDist||1.00).toFixed(3) + '" min="0" step="0.001" style="width:100px;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)" oninput="previewCalc()">'
+    + '<span style="font-size:12px;color:var(--text2)">R$/kWh — atualizar a cada reajuste anual</span></div>'
+    + '<div style="font-size:11px;color:var(--text2);margin-top:4px">Usada no cálculo do "valor sem solar" na fatura PDF</div></div>'
     + '<div class="fr"><label>Lucro líquido / repasse ao investidor (R$/kWh)</label>'
     + '<div style="display:flex;align-items:center;gap:8px">'
     + '<input type="number" id="cfg-liquido" value="' + (t.lucroLiquido||0.44).toFixed(3) + '" min="0" step="0.001" style="width:100px;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)">'
@@ -9226,8 +9233,8 @@ function calcFatura(cid,mi){
             + kwhCons * fioB;
 
   // SEM SOLAR: tarifa distribuidora + bandeira + IP (sempre)
-  // Fio B NÃO entra aqui — já está embutido no R$1,00/kWh da distribuidora
-  const vSS = kwhCons * (1.00 + band.acr)
+  const tdist = u.tarifaDist || tr.tarifaDist || 1.00;
+  const vSS = kwhCons * (tdist + band.acr)
             + kwhCons * (ipSemSolar/100);
 
   const eco=vSS-vCS, ecoPct=vSS>0?(eco/vSS*100):0;
@@ -9239,12 +9246,12 @@ function calcFatura(cid,mi){
     if(_kxc==null) return; // pula meses sem lançamento na economia acumulada
     const kx=Number(_kxc);
     const vcsX = kx*u.tarifa + kx*(ipComSolar/100) + kx*fioB;
-    const vssX = kx*(1.00+band.acr) + kx*(ipSemSolar/100);
+    const vssX = kx*(tdist+band.acr) + kx*(ipSemSolar/100);
     ecoAcum += vssX - vcsX;
   });
 
   return{kwh:kwhCons, kwhAloc:kwhAloc_, temLancamento, vSS, vCS, eco, ecoPct, ecoAcum,
-         ipComSolar, ipSemSolar, ipPct, fioB, band, c, m};
+         ipComSolar, ipSemSolar, ipPct, fioB, band, c, m, tarifaDist:tdist};
 }
 function popularMesFaturaComMes(idxMes){
   const u=usinaAtual; if(!u) return;
@@ -9394,13 +9401,14 @@ function atualizarFatura(){
     var rows = '';
 
     // 1. Tarifa de energia
+    var _tdist = f.tarifaDist || (usinaAtual.tarifaDist || 1.00);
     var tarifaCS = kwh * usinaAtual.tarifa;
-    var tarifaSS = kwh * 1.00;
+    var tarifaSS = kwh * _tdist;
     rows += linha(
       '<span style="font-weight:500">⚡ Tarifa de energia</span>'
         +'<br><span style="font-size:11px;color:var(--text2)">'
-        +'Com solar: R$ '+usinaAtual.tarifa.toFixed(2)+'/kWh'
-        +' &nbsp;·&nbsp; Distribuidora: R$ 1,000/kWh'
+        +'Com solar: R\$ '+usinaAtual.tarifa.toFixed(3)+'/kWh'
+        +' &nbsp;·&nbsp; Distribuidora: R\$ '+_tdist.toFixed(3)+'/kWh'
         +' &nbsp;·&nbsp; '+kwh.toFixed(1)+' kWh consumidos</span>',
       'R$ '+fmt(tarifaCS),
       'R$ '+fmt(tarifaSS),
@@ -9676,7 +9684,7 @@ function _continuePDF(doc,W,M,emp,u,f,cr,cg,cb,y,done){
   doc.setFillColor(46,125,50);doc.rect(M,y,5,4,'F');
   doc.setTextColor(40,40,40);doc.text('Com energia solar — R$ '+fmt(f.vCS),M+7,y+3.5);
   doc.setFillColor(183,28,28);doc.rect(M+88,y,5,4,'F');
-  doc.text('Sem energia solar — R$ '+fmt(f.vSS),M+95,y+3.5);
+  doc.text('Sem energia solar (R$'+f.tarifaDist.toFixed(3)+'/kWh) — R$ '+fmt(f.vSS),M+95,y+3.5);
   doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(27,94,32);
   doc.text('Economia: R$ '+fmt(f.eco)+' ('+f.ecoPct.toFixed(1)+'%)',W-M,y+3.5,{align:'right'});
   y+=10;
