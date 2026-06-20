@@ -9733,15 +9733,16 @@ function _continuePDF(doc,W,M,emp,u,f,cr,cg,cb,y,done){
   y=22;
 
   // ── GRÁFICO DE BARRAS ─────────────────────────────────────────────
-  // Legenda
+  // Legenda — linha 1: com solar e sem solar
   doc.setFontSize(7.5);doc.setFont('helvetica','normal');
   doc.setFillColor(46,125,50);doc.rect(M,y,5,4,'F');
   doc.setTextColor(40,40,40);doc.text('Com energia solar — R$ '+fmt(f.vCS),M+7,y+3.5);
-  doc.setFillColor(183,28,28);doc.rect(M+88,y,5,4,'F');
-  doc.text('Sem energia solar (R$'+f.tarifaDist.toFixed(3)+'/kWh) — R$ '+fmt(f.vSS),M+95,y+3.5);
-  doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(27,94,32);
-  doc.text('Economia: R$ '+fmt(f.eco)+' ('+f.ecoPct.toFixed(1)+'%)',W-M,y+3.5,{align:'right'});
-  y+=10;
+  doc.setFillColor(183,28,28);doc.rect(M+95,y,5,4,'F');
+  doc.text('Sem energia solar — R$ '+fmt(f.vSS),M+102,y+3.5);
+  // Legenda — linha 2: economia em destaque verde
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(27,94,32);
+  doc.text('Economia: R$ '+fmt(f.eco)+' ('+f.ecoPct.toFixed(1)+'%)',W-M,y+9,{align:'right'});
+  y+=14;
 
   // Dimensões do gráfico
   const yAxisW=22,chartH=50;
@@ -9820,10 +9821,11 @@ function _continuePDF(doc,W,M,emp,u,f,cr,cg,cb,y,done){
   var tRows=[];
 
   // Linha 1 — Tarifa de energia
-  var tarCS=f.kwh*u.tarifa,tarSS=f.kwh*1.00,tarDif=tarCS-tarSS;
+  var _tdistPdf=f.tarifaDist||u.tarifaDist||1.00;
+  var tarCS=f.kwh*u.tarifa,tarSS=f.kwh*_tdistPdf,tarDif=tarCS-tarSS;
   tRows.push({
     title:'Tarifa de energia',
-    desc:'Com solar: R$ '+u.tarifa.toFixed(3)+'/kWh  ·  Distribuidora: R$ 1,000/kWh  ·  '+f.kwh.toFixed(1)+' kWh consumidos',
+    desc:'Com solar: R$ '+u.tarifa.toFixed(3)+'/kWh  ·  Distribuidora: R$ '+_tdistPdf.toFixed(3)+'/kWh  ·  '+f.kwh.toFixed(1)+' kWh consumidos',
     cs:tarCS,ss:tarSS,dif:tarDif,isTotal:false
   });
 
@@ -9903,7 +9905,10 @@ function _continuePDF(doc,W,M,emp,u,f,cr,cg,cb,y,done){
     var difStr,difR,difG,difB;
     if(r.dif===0){difStr='R$ 0,00';difR=110;difG=110;difB=110;}
     else if(r.dif<0){difStr='- R$ '+fmt(Math.abs(r.dif));difR=27;difG=94;difB=32;}
+    else if(r.isTotal){difStr='+ R$ '+fmt(r.dif);difR=27;difG=94;difB=32;} // economia = verde
     else{difStr='+ R$ '+fmt(r.dif);difR=183;difG=28;difB=28;}
+    doc.setFont('helvetica',r.isTotal&&r.dif>0?'bold':'normal');
+    doc.setFontSize(r.isTotal?8.5:8);
     doc.setTextColor(difR,difG,difB);doc.text(difStr,xC4,valY,{align:'right'});
 
     // Separador
