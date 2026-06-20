@@ -9407,9 +9407,9 @@ function atualizarFatura(){
     rows += linha(
       '<span style="font-weight:500">⚡ Tarifa de energia</span>'
         +'<br><span style="font-size:11px;color:var(--text2)">'
-        +'Com solar: R\$ '+usinaAtual.tarifa.toFixed(3)+'/kWh'
-        +' &nbsp;·&nbsp; Distribuidora: R\$ '+_tdist.toFixed(3)+'/kWh'
-        +' &nbsp;·&nbsp; '+kwh.toFixed(1)+' kWh consumidos</span>',
+        +'Com solar: R$ '+usinaAtual.tarifa.toFixed(3)+'/kWh'
+        +' &nbsp;·&nbsp; Distribuidora: R$ '+_tdist.toFixed(3)+'/kWh × '+kwh.toFixed(1)+' kWh = R$ '+fmt(tarifaSS)
+        +'</span>',
       'R$ '+fmt(tarifaCS),
       'R$ '+fmt(tarifaSS),
       tarifaSS - tarifaCS,
