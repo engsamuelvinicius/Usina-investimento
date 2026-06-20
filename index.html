@@ -9400,6 +9400,7 @@ function atualizarFatura(){
   // Gera QR Code PIX no preview (sem API externa)
   renderQRCode('fat-qr-preview', _pixPayloadPrev, 80);
   document.getElementById('tbl-comp-body').innerHTML = (function(){
+    try {
     var tr = getTarifasUser();
     var kwh = f.kwh;
 
@@ -9498,6 +9499,10 @@ function atualizarFatura(){
     );
 
     return rows;
+    } catch(e) {
+      console.error('[GS360] tbl-comp-body erro:', e);
+      return '<tr><td colspan="4" style="padding:12px;color:#B71C1C;font-size:12px">Erro ao renderizar: '+e.message+'</td></tr>';
+    }
   })();
 }
 function renderGraficoComp(f){
