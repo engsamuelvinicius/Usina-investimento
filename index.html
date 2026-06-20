@@ -9454,6 +9454,7 @@ function atualizarFatura(){
     //    SEM SOLAR: sempre cobra (distribuidora não dispensa)
     var ipValSem = kwh * (f.ipSemSolar / 100);
     var ipValCom = kwh * (f.ipComSolar / 100);
+    var ipDiff   = ipValSem - ipValCom;
      var ipDescLabel = f.ipComSolar > 0
        ? (f.ipDesconto>0
            ? 'Com solar: '+f.ipMunicipal.toFixed(1)+'% − '+f.ipDesconto.toFixed(0)+'% desc. = '+f.ipEfetivo.toFixed(2)+'% cobrado'
@@ -9464,8 +9465,8 @@ function atualizarFatura(){
          +'<br><span style="font-size:11px;color:var(--text2)">' 
          +'Municipal '+f.ipMunicipal.toFixed(1)+'% (sem solar: R$ '+fmt(ipValSem)+')'  
          +' &nbsp;·&nbsp; '+ipDescLabel+'</span>',
-       ipValCom > 0 ? 'R\$ '+fmt(ipValCom) : '<span style="color:#1B5E20;font-size:12px">R\$ 0,00</span>',
-       'R\$ '+fmt(ipValSem),
+       ipValCom > 0 ? 'R$ '+fmt(ipValCom) : '<span style="color:#1B5E20;font-size:12px">R$ 0,00</span>',
+       'R$ '+fmt(ipValSem),
        ipDiff,
        false
      );
