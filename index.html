@@ -2357,6 +2357,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     <div style="font-size:16px;font-weight:600;margin-bottom:4px" id="modal-cli-titulo">Beneficiario</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Dados do cliente beneficiario da usina</div>
     <input type="hidden" id="cli-id">
+    <div class="fr"><label>Código do cliente</label><input type="text" id="cli-codigo" placeholder="Ex: 001, CLI-42, UC-9999" maxlength="30"></div>
     <div class="fr"><label>Nome do cliente / empresa *</label><input type="text" id="cli-nome" placeholder="Ex: Padaria Central"></div>
     <div class="fr"><label>Cota (%)</label>
       <input type="number" id="cli-cota" min="0" max="100" step="0.1" placeholder="Ex: 25.5">
@@ -10050,7 +10051,7 @@ function renderClientes(){
     const pb2=c.cotaPct>0
       ?`<div style="background:var(--bg2);border-radius:4px;height:5px;overflow:hidden;margin-top:3px"><div style="height:5px;border-radius:4px;background:${c.previsto?'#F9A825':'#1E6B2E'};width:${Math.min(c.cotaPct,100)}%"></div></div>`:'';
     return`<tr class="${c.previsto?'row-prev':''}">
-      <td><div style="font-weight:500">${c.nome}</div></td>
+      <td><div style="font-weight:500">${c.nome}</div>${c.codigo?`<div style="font-size:11px;color:var(--text2);margin-top:1px">#${c.codigo}</div>`:''}</td>
       <td style="text-align:center;font-size:12px;color:var(--text2)">${c.inclusao}</td>
       <td style="text-align:center">${sb}</td>
       <td style="text-align:center"><div style="font-weight:500">${c.cotaPct>0?c.cotaPct.toFixed(1)+'%':'—'}</div>${pb2}</td>
@@ -10088,6 +10089,7 @@ function abrirAdicionarCliente(){
   var u=usinaAtual; if(!u) return;
   document.getElementById('modal-cli-titulo').textContent = 'Adicionar beneficiario';
   document.getElementById('cli-id').value = '';
+  document.getElementById('cli-codigo').value = '';
   document.getElementById('cli-nome').value = '';
   document.getElementById('cli-cota').value = '';
   document.getElementById('cli-inclusao').value = '';
@@ -10104,6 +10106,7 @@ function abrirEditarCliente(cid){
   var c=u.clientes.find(function(x){return x.id===cid;}); if(!c) return;
   document.getElementById('modal-cli-titulo').textContent = 'Editar beneficiario';
   document.getElementById('cli-id').value = c.id;
+  document.getElementById('cli-codigo').value = c.codigo||'';
   document.getElementById('cli-nome').value = c.nome;
   document.getElementById('cli-cota').value = c.cotaPct;
   document.getElementById('cli-inclusao').value = c.inclusao||'';
@@ -10117,11 +10120,12 @@ function abrirEditarCliente(cid){
 
 function salvarCliente(){
   var u=usinaAtual; if(!u) return;
-  var cidStr = document.getElementById('cli-id').value;
-  var nome   = document.getElementById('cli-nome').value.trim();
-  var cota   = parseFloat(document.getElementById('cli-cota').value)||0;
-  var incl   = document.getElementById('cli-inclusao').value.trim();
-  var prev   = document.getElementById('cli-previsto').value === 'true';
+  var cidStr  = document.getElementById('cli-id').value;
+  var codigo  = document.getElementById('cli-codigo').value.trim();
+  var nome    = document.getElementById('cli-nome').value.trim();
+  var cota    = parseFloat(document.getElementById('cli-cota').value)||0;
+  var incl    = document.getElementById('cli-inclusao').value.trim();
+  var prev    = document.getElementById('cli-previsto').value === 'true';
 
   if(!nome){ toast('Informe o nome do beneficiário.','warn'); return; }
   if(cota < 0 || cota > 100){ toast('A cota deve ser entre 0 e 100%.','warn'); return; }
@@ -10130,10 +10134,10 @@ function salvarCliente(){
   var idEditando = cidStr ? parseInt(cidStr) : null;
   if(cidStr){
     var cl = u.clientes.find(function(x){ return x.id===idEditando; });
-    if(cl){ cl.nome=nome; cl.cotaPct=cota; cl.inclusao=incl; cl.previsto=prev; }
+    if(cl){ cl.codigo=codigo; cl.nome=nome; cl.cotaPct=cota; cl.inclusao=incl; cl.previsto=prev; }
   } else {
     var maxId = u.clientes.reduce(function(m,x){ return Math.max(m,x.id); }, 0);
-    u.clientes.push({id:maxId+1, nome:nome, cotaPct:cota, inclusao:incl, previsto:prev});
+    u.clientes.push({id:maxId+1, codigo:codigo, nome:nome, cotaPct:cota, inclusao:incl, previsto:prev});
   }
 
   fecharModal('modalCliente');
