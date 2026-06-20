@@ -2107,11 +2107,9 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div id="band-desc" style="font-size:11px;color:var(--text2);margin-top:8px">Sem acréscimo na tarifa</div>
         </div>
         <div class="card">
-          <div style="font-size:13px;font-weight:500;margin-bottom:8px">Iluminação pública (%)</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input type="number" id="fat-ip" value="8" min="0" max="30" step="0.1" oninput="atualizarFatura()" style="width:70px;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)">
-            <span style="font-size:12px;color:var(--text2)">% sobre consumo</span>
-          </div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:6px">Iluminação pública (IP/CIP)</div>
+          <div id="fat-ip-info" style="font-size:12px;color:var(--text2);line-height:1.7">—</div>
+          <input type="hidden" id="fat-ip" value="8">
         </div>
       </div>
       <div>
@@ -2370,6 +2368,13 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <option value="true">Previsto (ainda nao ativo)</option>
       </select>
     </div>
+    <div style="border-top:1px solid var(--border);margin:12px 0 10px"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Iluminação Pública (IP/CIP) — por cliente</div>
+    <div class="two">
+      <div class="fr" style="margin-bottom:0"><label>Taxa IP da cidade (%)</label><input type="number" id="cli-ip-pct" placeholder="Ex: 8 (vazio = padrão global)" min="0" max="30" step="0.1"></div>
+      <div class="fr" style="margin-bottom:0"><label>Desconto no IP (%)</label><input type="number" id="cli-ip-desconto" placeholder="Ex: 25" min="0" max="100" step="1"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-top:5px">Ex: cidade cobra 8% → você concede 25% de desconto → cliente paga 6%</div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button class="btn-s" onclick="fecharModal('modalCliente')">Cancelar</button>
       <button class="btn-p" onclick="salvarCliente()">Salvar</button>
@@ -8201,22 +8206,27 @@ function previewCalc(){
 }
 function _previewCalcExec(){
   var el = document.getElementById('cfg-preview-calc'); if(!el) return;
-  var tarifa  = parseFloat((document.getElementById('cfg-tarifa')||{value:'0.75'}).value)  || 0.75;
-  var liquido = parseFloat((document.getElementById('cfg-liquido')||{value:'0.44'}).value) || 0.44;
+  var tarifa     = parseFloat((document.getElementById('cfg-tarifa')||{value:'0.75'}).value)     || 0.75;
+  var tarifaDist = parseFloat((document.getElementById('cfg-tarifa-dist')||{value:'1.00'}).value) || 1.00;
+  var liquido    = parseFloat((document.getElementById('cfg-liquido')||{value:'0.44'}).value)    || 0.44;
   var cobIP  = (_toggleState.ip   !== null) ? _toggleState.ip   : (document.getElementById('btn-ip-sim')   ? document.getElementById('btn-ip-sim').classList.contains('toggle-sel-sim')   : false);
   var cobFiB = (_toggleState.fiob !== null) ? _toggleState.fiob : (document.getElementById('btn-fiob-sim') ? document.getElementById('btn-fiob-sim').classList.contains('toggle-sel-sim') : false);
   var pctIP  = cobIP  ? (parseFloat((document.getElementById('cfg-pct-ip')||{value:'8'}).value)||8)     : 0;
   var vFioB  = cobFiB ? (parseFloat((document.getElementById('cfg-valor-fiob')||{value:'0'}).value)||0) : 0;
-  var ex = 1000; // 1000 kWh de exemplo
+  var ex = 1000;
   var valorCliente = ex * tarifa + ex * (pctIP/100) + ex * vFioB;
-  var lucroMes     = ex * liquido;
+  var valorSemSolar = ex * tarifaDist + ex * (pctIP/100);
+  var economia = valorSemSolar - valorCliente;
+  var lucroMes = ex * liquido;
   el.innerHTML =
     '<strong>Preview (para 1.000 kWh):</strong><br>' +
-    'Energia: R$ '+(ex*tarifa).toFixed(2)+
-    (pctIP>0 ? ' &nbsp;+&nbsp; IP ('+pctIP+'%): R$ '+(ex*pctIP/100).toFixed(2) : '')+
-    (vFioB>0 ? ' &nbsp;+&nbsp; Fio B: R$ '+(ex*vFioB).toFixed(2) : '')+
-    ' &nbsp;= &nbsp;<strong>Cliente paga: R$ '+valorCliente.toFixed(2)+'</strong>'+
-    '<br>Lucro líquido do integrador: <strong>R$ '+lucroMes.toFixed(2)+'</strong>';
+    '✅ <strong>Com solar:</strong> R$ '+(ex*tarifa).toFixed(2)+
+    (pctIP>0 ? ' + IP ('+pctIP+'%): R$ '+(ex*pctIP/100).toFixed(2) : '')+
+    (vFioB>0 ? ' + Fio B: R$ '+(ex*vFioB).toFixed(2) : '')+
+    ' = <strong>R$ '+valorCliente.toFixed(2)+'</strong><br>' +
+    '🔴 <strong>Sem solar</strong> (R$ '+tarifaDist.toFixed(3)+'/kWh distribuidora): <strong>R$ '+valorSemSolar.toFixed(2)+'</strong><br>' +
+    '💚 Economia estimada: <strong>R$ '+economia.toFixed(2)+'</strong><br>' +
+    'Lucro líquido do integrador: <strong>R$ '+lucroMes.toFixed(2)+'</strong>';
 }
 function salvarTarifasConfig(silencioso){
   var tarifa     = parseFloat((document.getElementById('cfg-tarifa')||{value:'0.75'}).value)     || 0.75;
@@ -8573,7 +8583,7 @@ function renderConfiguracoes(){
   el.appendChild(secTarifas);
 
   // Adiciona listeners para preview ao vivo
-  ['cfg-tarifa','cfg-liquido','cfg-pct-ip','cfg-valor-fiob'].forEach(function(id){
+  ['cfg-tarifa','cfg-tarifa-dist','cfg-liquido','cfg-pct-ip','cfg-valor-fiob'].forEach(function(id){
     var inp = document.getElementById(id);
     if(inp) inp.addEventListener('input', previewCalc);
   });
@@ -9209,12 +9219,13 @@ function calcFatura(cid,mi){
   const tr=getTarifasUser();
   const band=BAND[bandSel];
 
-  // IP: usa fat-ip (campo da tela de fatura) se disponível; fallback para config global
-  // fat-ip é populado com cobrarIP=false→0 / cobrarIP=true→pctIP em popularMesFatura()
-  const _fatIpEl = document.getElementById('fat-ip');
-  const ipComSolar = _fatIpEl ? (parseFloat(_fatIpEl.value) || 0) : (tr.cobrarIP ? (tr.pctIP||8) : 0);
-  const ipPct      = tr.pctIP > 0 ? tr.pctIP : 8;
-  const ipSemSolar = ipPct;
+  // IP por cliente: usa ipPct e ipDesconto do cliente, fallback para config global
+  const ipMunicipal = (c.ipPct != null) ? parseFloat(c.ipPct) : (tr.pctIP || 8);
+  const ipDesconto  = parseFloat(c.ipDesconto) || 0;
+  const ipEfetivo   = parseFloat((ipMunicipal * (1 - ipDesconto/100)).toFixed(4));
+  const ipComSolar  = tr.cobrarIP ? ipEfetivo : 0;   // com desconto (integrador repassa ao cliente)
+  const ipSemSolar  = ipMunicipal;                    // sem solar: taxa cheia da distribuidora
+  const ipPct       = ipMunicipal;
 
   // Fio B: só cobrado COM SOLAR se marcado Sim
   // SEM SOLAR: Fio B já está embutido na tarifa da distribuidora — NÃO duplicar
@@ -9251,7 +9262,8 @@ function calcFatura(cid,mi){
   });
 
   return{kwh:kwhCons, kwhAloc:kwhAloc_, temLancamento, vSS, vCS, eco, ecoPct, ecoAcum,
-         ipComSolar, ipSemSolar, ipPct, fioB, band, c, m, tarifaDist:tdist};
+         ipComSolar, ipSemSolar, ipPct, ipMunicipal, ipDesconto, ipEfetivo,
+         fioB, band, c, m, tarifaDist:tdist};
 }
 function popularMesFaturaComMes(idxMes){
   const u=usinaAtual; if(!u) return;
@@ -9279,10 +9291,6 @@ function popularMesFatura(){
     }
   }
   selMes.innerHTML = u.meses.map((m,i)=>`<option value="${i}"${i===melhorIdx?' selected':''}>${m.mes}</option>`).join('');
-  // Sincroniza campo fat-ip com config global
-  const _tr = getTarifasUser();
-  const fatIpEl = document.getElementById('fat-ip');
-  if(fatIpEl) fatIpEl.value = _tr.cobrarIP ? (_tr.pctIP||8) : 0;
   atualizarFatura();
 }
 function atualizarFatura(){
@@ -9292,13 +9300,25 @@ function atualizarFatura(){
   const f=calcFatura(cid,mi),venc=document.getElementById('fat-venc').value||'—';
   const emp=usuarioAtual||{};
   const cfg=getCfg();
+  // Atualiza card de IP por cliente
+  const fatIpInfo=document.getElementById('fat-ip-info');
+  if(fatIpInfo){
+    if(f.ipMunicipal>0){
+      var ipLines='Taxa municipal: <strong>'+f.ipMunicipal.toFixed(1)+'%</strong>';
+      if(f.ipDesconto>0) ipLines+='<br>Desconto concedido: <strong>'+f.ipDesconto.toFixed(0)+'%</strong> → cobrado: <strong style="color:var(--green)">'+(f.ipEfetivo).toFixed(2)+'%</strong>';
+      else ipLines+='<br>Sem desconto → cobrado: <strong>'+f.ipMunicipal.toFixed(1)+'%</strong>';
+      fatIpInfo.innerHTML=ipLines;
+    } else {
+      fatIpInfo.textContent='IP não cobrado neste cliente';
+    }
+  }
   // Atualiza info de encargos
   const trInfo=getTarifasUser();
   const infoEl=document.getElementById('fat-encargos-info');
   if(infoEl){
     var parts=[];
     parts.push('Tarifa cobrada: <strong>R$ '+trInfo.tarifaCobrada.toFixed(3)+'/kWh</strong>');
-    if(trInfo.cobrarIP)   parts.push('IP / CIP: <strong>'+trInfo.pctIP.toFixed(1)+'%</strong>');
+    if(trInfo.cobrarIP)   parts.push('IP / CIP: <strong>'+f.ipEfetivo.toFixed(2)+'%</strong> ('+f.ipMunicipal.toFixed(1)+'% municipal'+(f.ipDesconto>0?' − '+f.ipDesconto+'% desc.':'')+')');
     if(trInfo.cobrarFioB) parts.push('Fio B: <strong>R$ '+trInfo.valorFioB.toFixed(4)+'/kWh</strong>');
     if(!trInfo.cobrarIP && !trInfo.cobrarFioB) parts.push('Sem encargos adicionais');
     infoEl.innerHTML=parts.join('<br>');
@@ -9434,21 +9454,21 @@ function atualizarFatura(){
     //    SEM SOLAR: sempre cobra (distribuidora não dispensa)
     var ipValSem = kwh * (f.ipSemSolar / 100);
     var ipValCom = kwh * (f.ipComSolar / 100);
-    var ipDiff   = ipValSem - ipValCom;
-    var ipDescCom = f.ipComSolar > 0
-      ? f.ipPct.toFixed(1)+'% cobrado pelo integrador'
-      : 'Não cobrado pelo integrador (economia para o cliente)';
-    rows += linha(
-      '<span style="font-weight:500">💡 Iluminação Pública (IP/CIP)</span>'
-        +'<br><span style="font-size:11px;color:var(--text2)">'
-        +'Encargo municipal '+f.ipPct.toFixed(1)+'%'
-        +' &nbsp;·&nbsp; '+ipDescCom+'</span>',
-      ipValCom > 0 ? 'R$ '+fmt(ipValCom) : '<span style="color:#1B5E20;font-size:12px">R$ 0,00</span>',
-      'R$ '+fmt(ipValSem),
-      ipDiff,
-      false
-    );
-
+     var ipDescLabel = f.ipComSolar > 0
+       ? (f.ipDesconto>0
+           ? 'Com solar: '+f.ipMunicipal.toFixed(1)+'% − '+f.ipDesconto.toFixed(0)+'% desc. = '+f.ipEfetivo.toFixed(2)+'% cobrado'
+           : 'Com solar: '+f.ipMunicipal.toFixed(1)+'% cobrado pelo integrador')
+       : 'Não cobrado pelo integrador (economia para o cliente)';
+     rows += linha(
+       '<span style="font-weight:500">💡 Iluminação Pública (IP/CIP)</span>'
+         +'<br><span style="font-size:11px;color:var(--text2)">' 
+         +'Municipal '+f.ipMunicipal.toFixed(1)+'% (sem solar: R$ '+fmt(ipValSem)+')'  
+         +' &nbsp;·&nbsp; '+ipDescLabel+'</span>',
+       ipValCom > 0 ? 'R\$ '+fmt(ipValCom) : '<span style="color:#1B5E20;font-size:12px">R\$ 0,00</span>',
+       'R\$ '+fmt(ipValSem),
+       ipDiff,
+       false
+     );
     // 4. Fio B — SÓ aparece se cobrarFioB=Sim
     //    COM SOLAR: cobra o valor configurado
     //    SEM SOLAR: não mostra (já está embutido no R$1,00/kWh da distribuidora)
@@ -9784,9 +9804,14 @@ function _continuePDF(doc,W,M,emp,u,f,cr,cg,cb,y,done){
   // Linha 3 — IP/CIP (sempre visível quando há alíquota, mesmo se integrador não cobra)
   if(f.ipSemSolar>0){
     var ipCS=f.kwh*(f.ipComSolar/100),ipSS=f.kwh*(f.ipSemSolar/100),ipDif=ipCS-ipSS;
-    var ipDesc='Encargo municipal '+f.ipSemSolar.toFixed(1)+'%';
-    if(f.ipComSolar===0) ipDesc+='  ·  Nao cobrado pelo integrador (economia para o cliente)';
-    else ipDesc+='  ·  Cobrado na tarifa do integrador';
+    var ipDesc='Municipal '+f.ipMunicipal.toFixed(1)+'%';
+    if(f.ipComSolar===0){
+      ipDesc+='  ·  Nao cobrado pelo integrador';
+    } else if(f.ipDesconto>0){
+      ipDesc+='  ·  Com solar: '+f.ipMunicipal.toFixed(1)+'% - '+f.ipDesconto.toFixed(0)+'% desc. = '+f.ipEfetivo.toFixed(2)+'% cobrado';
+    } else {
+      ipDesc+='  ·  Cobrado integralmente pelo integrador';
+    }
     tRows.push({
       title:'Iluminacao Publica (IP/CIP)',
       desc:ipDesc,cs:ipCS,ss:ipSS,dif:ipDif,isTotal:false
@@ -10102,6 +10127,8 @@ function abrirAdicionarCliente(){
   document.getElementById('cli-cota').value = '';
   document.getElementById('cli-inclusao').value = '';
   document.getElementById('cli-previsto').value = 'false';
+  document.getElementById('cli-ip-pct').value = '';
+  document.getElementById('cli-ip-desconto').value = '';
   var somaAtual = u.clientes.filter(function(x){return !x.previsto;}).reduce(function(s,x){return s+x.cotaPct;},0);
   var disp = parseFloat((100-somaAtual).toFixed(2));
   var el = document.getElementById('cli-cota-info');
@@ -10119,6 +10146,8 @@ function abrirEditarCliente(cid){
   document.getElementById('cli-cota').value = c.cotaPct;
   document.getElementById('cli-inclusao').value = c.inclusao||'';
   document.getElementById('cli-previsto').value = c.previsto ? 'true' : 'false';
+  document.getElementById('cli-ip-pct').value = c.ipPct != null ? c.ipPct : '';
+  document.getElementById('cli-ip-desconto').value = c.ipDesconto != null ? c.ipDesconto : '';
   var somaOutros = u.clientes.filter(function(x){return !x.previsto&&x.id!==cid;}).reduce(function(s,x){return s+x.cotaPct;},0);
   var disp = parseFloat((100-somaOutros).toFixed(2));
   var el = document.getElementById('cli-cota-info');
@@ -10128,12 +10157,16 @@ function abrirEditarCliente(cid){
 
 function salvarCliente(){
   var u=usinaAtual; if(!u) return;
-  var cidStr  = document.getElementById('cli-id').value;
-  var codigo  = document.getElementById('cli-codigo').value.trim();
-  var nome    = document.getElementById('cli-nome').value.trim();
-  var cota    = parseFloat(document.getElementById('cli-cota').value)||0;
-  var incl    = document.getElementById('cli-inclusao').value.trim();
-  var prev    = document.getElementById('cli-previsto').value === 'true';
+  var cidStr     = document.getElementById('cli-id').value;
+  var codigo     = document.getElementById('cli-codigo').value.trim();
+  var nome       = document.getElementById('cli-nome').value.trim();
+  var cota       = parseFloat(document.getElementById('cli-cota').value)||0;
+  var incl       = document.getElementById('cli-inclusao').value.trim();
+  var prev       = document.getElementById('cli-previsto').value === 'true';
+  var ipPctRaw   = document.getElementById('cli-ip-pct').value.trim();
+  var ipDescRaw  = document.getElementById('cli-ip-desconto').value.trim();
+  var ipPct      = ipPctRaw !== '' ? parseFloat(ipPctRaw) : null;
+  var ipDesconto = ipDescRaw !== '' ? parseFloat(ipDescRaw) : 0;
 
   if(!nome){ toast('Informe o nome do beneficiário.','warn'); return; }
   if(cota < 0 || cota > 100){ toast('A cota deve ser entre 0 e 100%.','warn'); return; }
@@ -10142,10 +10175,10 @@ function salvarCliente(){
   var idEditando = cidStr ? parseInt(cidStr) : null;
   if(cidStr){
     var cl = u.clientes.find(function(x){ return x.id===idEditando; });
-    if(cl){ cl.codigo=codigo; cl.nome=nome; cl.cotaPct=cota; cl.inclusao=incl; cl.previsto=prev; }
+    if(cl){ cl.codigo=codigo; cl.nome=nome; cl.cotaPct=cota; cl.inclusao=incl; cl.previsto=prev; cl.ipPct=ipPct; cl.ipDesconto=ipDesconto; }
   } else {
     var maxId = u.clientes.reduce(function(m,x){ return Math.max(m,x.id); }, 0);
-    u.clientes.push({id:maxId+1, codigo:codigo, nome:nome, cotaPct:cota, inclusao:incl, previsto:prev});
+    u.clientes.push({id:maxId+1, codigo:codigo, nome:nome, cotaPct:cota, inclusao:incl, previsto:prev, ipPct:ipPct, ipDesconto:ipDesconto});
   }
 
   fecharModal('modalCliente');
