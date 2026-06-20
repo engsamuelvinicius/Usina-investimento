@@ -4639,7 +4639,11 @@ function fbListenUsinas(uid){
     var db=window._fbDb, first=true;
     _unsubUsinas=db.onSnapshot(db.doc(fbDb,'dados',uid),function(s){
       if(s.exists()){
-        if(s.data().usinas) usinas=s.data().usinas;
+        if(s.data().usinas){
+          usinas=s.data().usinas;
+          // Re-sincroniza usinaAtual com o novo array para evitar referência stale
+          if(usinaAtual) usinaAtual=usinas.find(function(u){return u.id===usinaAtual.id;})||usinaAtual;
+        }
         if(Array.isArray(s.data().fluxo)) _fxDados=s.data().fluxo;
         if(Array.isArray(s.data().fluxo_cats)) _fxCats=s.data().fluxo_cats;
       }
@@ -4647,6 +4651,8 @@ function fbListenUsinas(uid){
       renderHome();
       var sg=document.getElementById('screen-geral');
       if(sg&&sg.classList.contains('active')) renderGeral();
+      var su=document.getElementById('screen-usina');
+      if(su&&su.classList.contains('active')&&usinaAtual) renderUsina();
       var sf=document.getElementById('screen-fluxo');
       if(sf&&sf.classList.contains('active')) fxRefresh();
     },function(){ resolve(); });
@@ -4671,8 +4677,12 @@ function fbListenPropostas(uid){
   });
 }
 function fbSvUsinas(){
+  lsSvUsinas(); // backup local sempre, independente do Firebase
   if(!firebaseOK||!usuarioAtual) return;
-  window._fbDb.setDoc(window._fbDb.doc(fbDb,'dados',usuarioAtual.uid),{usinas:usinas},{merge:true}).catch(function(){});
+  window._fbDb.setDoc(window._fbDb.doc(fbDb,'dados',usuarioAtual.uid),{usinas:usinas},{merge:true}).catch(function(e){
+    console.error('[GS360] Erro ao salvar no Firestore:', e);
+    toast('Erro ao salvar na nuvem. Dados preservados localmente.','warn');
+  });
 }
 function fbLoadPropostas(uid){
   var db=window._fbDb;
