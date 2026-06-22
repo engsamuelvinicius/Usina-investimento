@@ -9648,9 +9648,11 @@ function switchTab(tab,btn){
   document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById('sec-'+tab).classList.add('active');
   btn.classList.add('active');
+  if(tab==='clientes')renderClientes();
+  if(tab==='pagamentos')renderPagamentos();
+  if(tab==='creditos'){renderCreditos();renderListaAjustes();}
   if(tab==='invest')renderInvestimento();
   if(tab==='fatura')popularMesFatura();
-  if(tab==='creditos')renderListaAjustes();
   if(tab==='cobranças')renderCobranças();
   if(tab==='config'){renderConfiguracoes();var _t=getTarifasUser();_toggleState={ip:_t.cobrarIP,fiob:_t.cobrarFioB};setTimeout(previewCalc,100);}
 }
