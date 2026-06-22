@@ -2041,6 +2041,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
   </div>
 
   <div id="sec-clientes" class="sec active">
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <select id="filtro-ano-cli" onchange="popularFiltrosCli();renderClientes()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)"><option value="">Todos os anos</option></select>
+      <select id="filtro-mes-cli" onchange="renderClientes()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)"><option value="">Último mês</option></select>
+    </div>
     <div id="aviso-cotas" style="display:none;margin-bottom:10px;padding:11px 16px;border-radius:8px;font-size:13px;font-weight:500;border:1.5px solid"></div>
     <div id="leg-prev" class="leg-prev" style="display:none">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -2070,7 +2074,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       <span>Saldo <strong>acumulativo</strong>: créditos acumulam mês a mês. Desconto só quando consumo supera o alocado naquele mês.</span>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+      <select id="filtro-ano-cred" onchange="popularFiltrosCred();renderCreditos()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)"><option value="">Todos os anos</option></select>
+      <select id="filtro-mes-cred" onchange="renderCreditos()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)"><option value="">Todos os meses</option></select>
+      <div style="flex:1"></div>
       <button class="btn-p" onclick="abrirAjusteManual()" style="font-size:12px;padding:6px 14px">+ Ajuste manual de crédito</button>
     </div>
     <div id="lista-ajustes" style="margin-bottom:12px"></div>
@@ -2133,7 +2140,12 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
   </div>
 
   <div id="sec-cobranças" class="sec"><div id="cobranças-content"></div></div>
-  <div id="sec-invest" class="sec"><div id="playback-content"></div></div>
+  <div id="sec-invest" class="sec">
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <select id="filtro-ano-invest" onchange="renderInvestimento()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text)"><option value="">Todos os anos</option></select>
+    </div>
+    <div id="playback-content"></div>
+  </div>
   <div id="sec-config" class="sec"><div id="config-content"></div></div>
 </div>
 
@@ -9154,6 +9166,28 @@ function popularFiltros(){
   const mF=sA.value?u.meses.filter(m=>anoMes(m.mes)===sA.value):u.meses;
   sM.innerHTML='<option value="">Todos os meses</option>'+mF.map(m=>`<option ${m.mes===cM?'selected':''}>${m.mes}</option>`).join('');
 }
+function popularFiltrosCli(){
+  const u=usinaAtual;if(!u)return;
+  const sA=document.getElementById('filtro-ano-cli');if(!sA)return;
+  const anos=[...new Set(u.meses.map(m=>anoMes(m.mes)).filter(Boolean))].sort();
+  const cA=sA.value;
+  sA.innerHTML='<option value="">Todos os anos</option>'+anos.map(a=>`<option ${a===cA?'selected':''}>${a}</option>`).join('');
+  const sM=document.getElementById('filtro-mes-cli');if(!sM)return;
+  const cM=sM.value;
+  const mF=sA.value?u.meses.filter(m=>anoMes(m.mes)===sA.value):u.meses;
+  sM.innerHTML='<option value="">Último mês</option>'+mF.map(m=>`<option ${m.mes===cM?'selected':''}>${m.mes}</option>`).join('');
+}
+function popularFiltrosCred(){
+  const u=usinaAtual;if(!u)return;
+  const sA=document.getElementById('filtro-ano-cred');if(!sA)return;
+  const anos=[...new Set(u.meses.map(m=>anoMes(m.mes)).filter(Boolean))].sort();
+  const cA=sA.value;
+  sA.innerHTML='<option value="">Todos os anos</option>'+anos.map(a=>`<option ${a===cA?'selected':''}>${a}</option>`).join('');
+  const sM=document.getElementById('filtro-mes-cred');if(!sM)return;
+  const cM=sM.value;
+  const mF=sA.value?u.meses.filter(m=>anoMes(m.mes)===sA.value):u.meses;
+  sM.innerHTML='<option value="">Todos os meses</option>'+mF.map(m=>`<option ${m.mes===cM?'selected':''}>${m.mes}</option>`).join('');
+}
 function renderPagamentos(){
   const u=usinaAtual;popularFiltros();
   const fA=document.getElementById('filtro-ano-pag').value,fM=document.getElementById('filtro-mes-pag').value,fS=document.getElementById('filtro-status-pag').value;
@@ -9197,21 +9231,28 @@ function renderPagamentos(){
   document.getElementById('tbl-pag-foot').innerHTML=`<tr style="background:var(--bg2)"><td colspan="3" style="font-weight:500">Total</td><td style="text-align:right;font-weight:500">${tA.toFixed(1)}</td><td style="text-align:right;font-weight:500">${tC.toFixed(1)}</td><td style="text-align:right;font-weight:500;color:#1B5E20">+${(tA-tC).toFixed(1)}</td><td></td><td style="text-align:right;font-weight:500">R$ ${fmt(tB)}</td><td style="text-align:right;font-weight:500;color:#1B5E20">R$ ${fmt(tL)}</td><td colspan="3" style="font-size:12px;color:var(--text2)">Recebido: R$ ${fmt(tP)}</td></tr>`;
 }
 function renderCreditos(){
-  const u=usinaAtual;let rD=[],rR=[];
+  const u=usinaAtual;
+  popularFiltrosCred();
+  const fAval=(document.getElementById('filtro-ano-cred')||{}).value||'';
+  const fMval=(document.getElementById('filtro-mes-cred')||{}).value||'';
+  let rD=[],rR=[];
   const sacMap={};u.clientes.filter(c=>!c.previsto).forEach(c=>{sacMap[c.id]=0;});
   u.meses.forEach((m,mi)=>{
+    const exibir=(!fAval||anoMes(m.mes)===fAval)&&(!fMval||m.mes===fMval);
     let totA=0,totC=0;
     u.clientes.filter(c=>!c.previsto).forEach(c=>{
-      // Só processa se tiver lançamento para este cliente
+      // Sempre acumula sacMap; só exibe se passar no filtro
       const _cc=m.consumos?(m.consumos[c.id]!=null?m.consumos[c.id]:m.consumos[String(c.id)]):null;
       if(_cc==null) return;
       const aloc=kwhAloc(c,m.geracao),cons=Number(_cc),sm=parseFloat((aloc-cons).toFixed(1));
       let aj=0;if(u.ajustes)u.ajustes.filter(a=>a.clienteId===c.id&&a.mes===m.mes).forEach(a=>{aj+=a.kwh;});
       sacMap[c.id]=parseFloat((sacMap[c.id]+sm+aj).toFixed(1));
+      if(!exibir)return;
       const sa=sacMap[c.id];totA+=aloc;totC+=cons;
       const cl=sa>0?'bv':sa===0?'bb':'br';
       rD.push(`<tr><td>${m.mes}</td><td><div style="font-weight:500">${c.nome}</div>${(c.codigo!=null&&c.codigo!=='')?'<div style="font-size:11px;color:var(--text2)">#'+c.codigo+'</div>':''}</td><td style="text-align:center">${c.cotaPct.toFixed(1)}%</td><td style="text-align:center">${aloc.toFixed(1)}</td><td style="text-align:center">${cons}</td><td style="text-align:center;font-weight:500;color:${sm>0?'#1B5E20':sm<0?'#B71C1C':'var(--text2)'}">${sm>=0?'+':''}${sm}</td><td style="text-align:center;font-weight:700;color:${sa>0?'#1B5E20':sa<0?'#B71C1C':'var(--text2)'}">${sa>=0?'+':''}${sa}</td><td><span class="badge ${cl}">${sa>0?'Crédito acumulado':sa===0?'Zerado':'Déficit'}</span></td></tr>`);
     });
+    if(!exibir)return;
     // Só adiciona linha do resumo se houve ao menos um cliente com lançamento
     if(totA === 0 && totC === 0) return;
     const sob=parseFloat((totA-totC).toFixed(1));
@@ -9241,8 +9282,12 @@ function salvarGeracaoMes(mi){
 }
 function renderInvestimento(){
   const u=usinaAtual,ac=acumUsina(u),p=Math.min(ac/u.invest*100,100),rest=Math.max(u.invest-ac,0),liq=liqMesAtual(u),pb=liq>0?Math.ceil(rest/liq):'—';
+  // Popula filtro de ano
+  const sAI=document.getElementById('filtro-ano-invest');
+  if(sAI){const anos=[...new Set(u.meses.map(m=>anoMes(m.mes)).filter(Boolean))].sort();const cA=sAI.value;sAI.innerHTML='<option value="">Todos os anos</option>'+anos.map(a=>`<option ${a===cA?'selected':''}>${a}</option>`).join('');}
+  const fA=(sAI||{}).value||'';
   let acum=0;
-  const linhas=u.meses.map((m,i)=>{const l=totalLiqM(m,u.liquido,u.clientes),r=totalPagos(m);acum+=r;return`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:right">R$ ${fmt(r,0)}</td><td style="text-align:right;color:#1B5E20">R$ ${fmt(l,0)}</td><td style="text-align:right">${((l/u.invest)*100).toFixed(2)}%</td><td style="text-align:right">R$ ${fmt(acum,0)}</td><td style="text-align:right">${((acum/u.invest)*100).toFixed(2)}%</td><td style="white-space:nowrap"><button class="btn-e" onclick="abrirEditMes(${i})" style="margin-right:4px">Editar</button><button class="btn-w" onclick="excluirMes(${i})">Excluir</button></td></tr>`;}).join('');
+  const linhas=u.meses.map((m,i)=>{const l=totalLiqM(m,u.liquido,u.clientes),r=totalPagos(m);acum+=r;if(fA&&anoMes(m.mes)!==fA)return'';return`<tr><td style="font-weight:500">${m.mes}</td><td style="text-align:right">R$ ${fmt(r,0)}</td><td style="text-align:right;color:#1B5E20">R$ ${fmt(l,0)}</td><td style="text-align:right">${((l/u.invest)*100).toFixed(2)}%</td><td style="text-align:right">R$ ${fmt(acum,0)}</td><td style="text-align:right">${((acum/u.invest)*100).toFixed(2)}%</td><td style="white-space:nowrap"><button class="btn-e" onclick="abrirEditMes(${i})" style="margin-right:4px">Editar</button><button class="btn-w" onclick="excluirMes(${i})">Excluir</button></td></tr>`;}).join('');
   document.getElementById('playback-content').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px"><div><div style="font-weight:600;font-size:15px">Progresso do payback</div><div style="font-size:12px;color:var(--text2)">R$ ${fmt(ac,0)} de R$ ${fmt(u.invest,0)} recuperados</div></div><div><div style="font-size:22px;font-weight:600;color:#1B5E20">${p.toFixed(1)}%</div></div></div><div class="pb-bg"><div class="pb-fill" style="width:${p}%;background:${u.cor}"></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px"><div><div style="font-size:11px;color:var(--text2)">Restante</div><div style="font-weight:500;font-size:15px;color:#B71C1C">R$ ${fmt(rest,0)}</div></div><div><div style="font-size:11px;color:var(--text2)">Meses operando</div><div style="font-weight:500;font-size:15px">${u.meses.length}</div></div><div><div style="font-size:11px;color:var(--text2)">Payback restante</div><div style="font-weight:500;font-size:15px">${typeof pb==='number'?pb+' meses':pb}</div></div></div></div><div class="st">Histórico por mês</div><div style="overflow-x:auto"><table><thead><tr><th>Mês</th><th style="text-align:right">Receita bruta</th><th style="text-align:right">Lucro líquido</th><th style="text-align:right">ROI mensal</th><th style="text-align:right">Acumulado</th><th style="text-align:right">% recup.</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>`;
 }
 
@@ -10107,7 +10152,14 @@ function atualizarAvisoCotas(){
 }
 
 function renderClientes(){
-  const u=usinaAtual,ult=u.meses.length?u.meses[u.meses.length-1]:null,ger=ult?ult.geracao:u.geracaoEst,mi=u.meses.length-1;
+  const u=usinaAtual;
+  popularFiltrosCli();
+  const fAval=(document.getElementById('filtro-ano-cli')||{}).value||'';
+  const fMval=(document.getElementById('filtro-mes-cli')||{}).value||'';
+  let mi=u.meses.length-1;
+  if(fMval){const idx=u.meses.findIndex(m=>m.mes===fMval);if(idx>=0)mi=idx;}
+  else if(fAval){const idxs=u.meses.map((m,i)=>anoMes(m.mes)===fAval?i:-1).filter(i=>i>=0);if(idxs.length>0)mi=idxs[idxs.length-1];}
+  const ult=mi>=0&&mi<u.meses.length?u.meses[mi]:null,ger=ult?ult.geracao:u.geracaoEst;
   document.getElementById('leg-prev').style.display=u.clientes.some(c=>c.previsto)?'flex':'none';
   let tPct=0,tAloc=0,tCons=0,tRec=0,tLiq=0;
   const rows=u.clientes.map(c=>{
