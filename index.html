@@ -9167,7 +9167,7 @@ function renderPagamentos(){
       const cl=p.status==='Pago'?'bv':p.status==='Atrasado'?'br':'by';
       rows.push(
       '<tr>'
-      +'<td>'+c.nome+(c.codigo?'<div style="font-size:11px;color:var(--text2)">#'+c.codigo+'</div>':'')+'</td>'
+      +'<td><div style="font-weight:500">'+c.nome+'</div>'+(c.codigo!=null&&c.codigo!==''?'<div style="font-size:11px;color:var(--text2)">#'+c.codigo+'</div>':'')+'</td>'
       +'<td>'+m.mes+'</td>'
       +'<td style="text-align:center">'+c.cotaPct.toFixed(1)+'%</td>'
       +'<td style="text-align:right">'+aloc.toFixed(1)+'</td>'
@@ -9210,7 +9210,7 @@ function renderCreditos(){
       sacMap[c.id]=parseFloat((sacMap[c.id]+sm+aj).toFixed(1));
       const sa=sacMap[c.id];totA+=aloc;totC+=cons;
       const cl=sa>0?'bv':sa===0?'bb':'br';
-      rD.push(`<tr><td>${m.mes}</td><td>${c.nome}${c.codigo?'<div style="font-size:11px;color:var(--text2)">#'+c.codigo+'</div>':''}</td><td style="text-align:center">${c.cotaPct.toFixed(1)}%</td><td style="text-align:center">${aloc.toFixed(1)}</td><td style="text-align:center">${cons}</td><td style="text-align:center;font-weight:500;color:${sm>0?'#1B5E20':sm<0?'#B71C1C':'var(--text2)'}">${sm>=0?'+':''}${sm}</td><td style="text-align:center;font-weight:700;color:${sa>0?'#1B5E20':sa<0?'#B71C1C':'var(--text2)'}">${sa>=0?'+':''}${sa}</td><td><span class="badge ${cl}">${sa>0?'Crédito acumulado':sa===0?'Zerado':'Déficit'}</span></td></tr>`);
+      rD.push(`<tr><td>${m.mes}</td><td><div style="font-weight:500">${c.nome}</div>${(c.codigo!=null&&c.codigo!=='')?'<div style="font-size:11px;color:var(--text2)">#'+c.codigo+'</div>':''}</td><td style="text-align:center">${c.cotaPct.toFixed(1)}%</td><td style="text-align:center">${aloc.toFixed(1)}</td><td style="text-align:center">${cons}</td><td style="text-align:center;font-weight:500;color:${sm>0?'#1B5E20':sm<0?'#B71C1C':'var(--text2)'}">${sm>=0?'+':''}${sm}</td><td style="text-align:center;font-weight:700;color:${sa>0?'#1B5E20':sa<0?'#B71C1C':'var(--text2)'}">${sa>=0?'+':''}${sa}</td><td><span class="badge ${cl}">${sa>0?'Crédito acumulado':sa===0?'Zerado':'Déficit'}</span></td></tr>`);
     });
     // Só adiciona linha do resumo se houve ao menos um cliente com lançamento
     if(totA === 0 && totC === 0) return;
