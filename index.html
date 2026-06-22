@@ -9214,6 +9214,7 @@ function renderPagamentos(){
       +'<td><span class="badge '+cl+'">'+p.status+'</span></td>'
       +'<td style="white-space:nowrap">'
         +(p.status!=='Pago'?'<button class="btn-s" style="margin-right:4px" onclick="marcarPago('+mi+','+c.id+')">Pago</button>':'')
+        +(p.status==='Pago'?'<button class="btn-p" style="margin-right:4px;font-size:11px;padding:4px 9px" onclick="verFaturaPago('+mi+','+c.id+')">Ver PDF</button>':'')
         +'<button class="btn-e" style="margin-right:4px" onclick="abrirEditPag('+mi+','+c.id+')">Editar</button>'
         +'<button class="btn-w excluir-pag" data-mi="'+mi+'" data-cid="'+c.id+'">Excluir</button>'
       +'</td>'
@@ -9616,6 +9617,22 @@ function salvarEditPag(){
   renderUsina();
 }
 function marcarPago(mi,cid){usinaAtual.meses[mi].pagamentos[cid].status='Pago';renderUsina();persistirUsinas();}
+function verFaturaPago(mi,cid){
+  const u=usinaAtual;if(!u)return;
+  const elCli=document.getElementById('fat-cliente');
+  const elMes=document.getElementById('fat-mes');
+  const elVenc=document.getElementById('fat-venc');
+  const prevCli=elCli.innerHTML,prevMes=elMes.innerHTML,prevVenc=elVenc?elVenc.value:'';
+  elCli.innerHTML=u.clientes.filter(c=>!c.previsto).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  elMes.innerHTML=u.meses.map((m,i)=>`<option value="${i}">${m.mes}</option>`).join('');
+  elCli.value=cid;elMes.value=mi;
+  const p=u.meses[mi]&&u.meses[mi].pagamentos[cid];
+  if(elVenc)elVenc.value=(p&&p.venc&&p.venc!=='—')?p.venc:'';
+  _faturaDocAsync(function(doc,fname){
+    window.open(doc.output('bloburl'),'_blank');
+    elCli.innerHTML=prevCli;elMes.innerHTML=prevMes;if(elVenc)elVenc.value=prevVenc;
+  });
+}
 
 // === NOVA USINA ===
 function abrirNovaUsina(){
