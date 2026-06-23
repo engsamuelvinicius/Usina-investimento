@@ -4894,6 +4894,7 @@ function entrarNoApp(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   var cfg=getCfg();
   aplicarTema(cfg.corPrimaria||'#1E6B2E',cfg.corSecundaria||'#2E8B57');
+  aplicarBandeirasConfig();
   atualizarPill();
   _ctrCarregarArquivosLocais(); // restaura arquivos anexados do localStorage
   // Pré-carrega plantas do cache para a home mostrar dados imediatamente
@@ -8179,6 +8180,9 @@ function getTarifasUser(){
     cobrarFioB:    t.cobrarFioB !== undefined ? t.cobrarFioB : false,
     valorFioB:     parseFloat(t.valorFioB) || 0,
     tarifaDist:    parseFloat(t.tarifaDist) || 1.00,
+    bandAmarela:   parseFloat(t.bandAmarela) || 0.01885,
+    bandVerm1:     parseFloat(t.bandVerm1)   || 0.04463,
+    bandVerm2:     parseFloat(t.bandVerm2)   || 0.07877,
   };
 }
 function salvarTarifasUser(dados){
@@ -8248,11 +8252,28 @@ function salvarTarifasConfig(silencioso){
   var cobrarFioB = _toggleState.fiob !== null ? _toggleState.fiob : (document.getElementById('btn-fiob-sim') ? document.getElementById('btn-fiob-sim').classList.contains('toggle-sel-sim') : false);
   var pctIP   = parseFloat((document.getElementById('cfg-pct-ip')||{value:'8'}).value) || 8;
   var valorFioB = cobrarFioB ? (parseFloat((document.getElementById('cfg-valor-fiob')||{value:'0'}).value)||0) : 0;
-  salvarTarifasUser({tarifa:tarifa, tarifaCobrada:tarifa, lucroLiquido:liquido, cobrarIP:cobrarIP, pctIP:pctIP, cobrarFioB:cobrarFioB, valorFioB:valorFioB, tarifaDist:tarifaDist});
+  var _tb=getTarifasUser();
+  salvarTarifasUser({tarifa:tarifa, tarifaCobrada:tarifa, lucroLiquido:liquido, cobrarIP:cobrarIP, pctIP:pctIP, cobrarFioB:cobrarFioB, valorFioB:valorFioB, tarifaDist:tarifaDist, bandAmarela:_tb.bandAmarela, bandVerm1:_tb.bandVerm1, bandVerm2:_tb.bandVerm2});
   if(!silencioso) toast('✅ Tarifas salvas! Os cálculos serão atualizados.');
   usinas.forEach(function(u){ u.tarifa=tarifa; u.tarifaDist=tarifaDist; u.liquido=liquido; });
   persistirUsinas();
   if(usinaAtual){ renderUsina(); }
+}
+function aplicarBandeirasConfig(){
+  var t=getTarifasUser();
+  BAND.amarela.acr=t.bandAmarela; BAND.amarela.desc='+R$ '+t.bandAmarela.toFixed(5)+'/kWh';
+  BAND.verm1.acr=t.bandVerm1;    BAND.verm1.desc='+R$ '+t.bandVerm1.toFixed(5)+'/kWh';
+  BAND.verm2.acr=t.bandVerm2;    BAND.verm2.desc='+R$ '+t.bandVerm2.toFixed(5)+'/kWh';
+  var el=document.getElementById('band-desc');if(el)el.textContent=BAND[bandSel].desc;
+}
+function salvarBandeirasConfig(){
+  var t=getTarifasUser();
+  var amarela=parseFloat((document.getElementById('cfg-band-amarela')||{value:'0.01885'}).value)||0.01885;
+  var verm1  =parseFloat((document.getElementById('cfg-band-verm1')||{value:'0.04463'}).value)||0.04463;
+  var verm2  =parseFloat((document.getElementById('cfg-band-verm2')||{value:'0.07877'}).value)||0.07877;
+  salvarTarifasUser({tarifa:t.tarifaCobrada,tarifaCobrada:t.tarifaCobrada,lucroLiquido:t.lucroLiquido,cobrarIP:t.cobrarIP,pctIP:t.pctIP,cobrarFioB:t.cobrarFioB,valorFioB:t.valorFioB,tarifaDist:t.tarifaDist,bandAmarela:amarela,bandVerm1:verm1,bandVerm2:verm2});
+  aplicarBandeirasConfig();
+  toast('✅ Bandeiras tarifárias salvas!');
 }
 function renderQRCode(divId, text, size){
   size = size || 160;
@@ -8593,6 +8614,25 @@ function renderConfiguracoes(){
     + '<div id="cfg-preview-calc" style="background:#E8F5E9;border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--green-t);margin-bottom:12px"></div>'
     + '<button class="btn-p" onclick="salvarTarifasConfig()" style="width:auto;padding:8px 20px">Salvar tarifas</button>';
   el.appendChild(secTarifas);
+
+  // ── BANDEIRAS TARIFÁRIAS ──
+  var secBand = document.createElement('div');
+  secBand.className = 'cfg-section';
+  var _tb = getTarifasUser();
+  var inpStyle = 'width:110px;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:right';
+  secBand.innerHTML = '<div class="cfg-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Bandeiras tarifárias (acréscimo R$/kWh)</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:14px">Valores oficiais da ANEEL. Afetam o cálculo da fatura PDF e o comparativo "com/sem solar".</div>'
+    + '<div class="fr"><label style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;background:#F9A825;border-radius:2px"></span>Amarela (R$/kWh)</label>'
+    + '<div style="display:flex;align-items:center;gap:8px"><input type="number" id="cfg-band-amarela" value="'+_tb.bandAmarela.toFixed(5)+'" min="0" step="0.00001" style="'+inpStyle+'">'
+    + '<span style="font-size:12px;color:var(--text2)">ex: 0,01885</span></div></div>'
+    + '<div class="fr"><label style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;background:#E64A19;border-radius:2px"></span>Vermelha P1 (R$/kWh)</label>'
+    + '<div style="display:flex;align-items:center;gap:8px"><input type="number" id="cfg-band-verm1" value="'+_tb.bandVerm1.toFixed(5)+'" min="0" step="0.00001" style="'+inpStyle+'">'
+    + '<span style="font-size:12px;color:var(--text2)">ex: 0,04463</span></div></div>'
+    + '<div class="fr"><label style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;background:#C62828;border-radius:2px"></span>Vermelha P2 (R$/kWh)</label>'
+    + '<div style="display:flex;align-items:center;gap:8px"><input type="number" id="cfg-band-verm2" value="'+_tb.bandVerm2.toFixed(5)+'" min="0" step="0.00001" style="'+inpStyle+'">'
+    + '<span style="font-size:12px;color:var(--text2)">ex: 0,07877</span></div></div>'
+    + '<button class="btn-p" onclick="salvarBandeirasConfig()" style="width:auto;padding:8px 20px">Salvar bandeiras</button>';
+  el.appendChild(secBand);
 
   // Adiciona listeners para preview ao vivo
   ['cfg-tarifa','cfg-tarifa-dist','cfg-liquido','cfg-pct-ip','cfg-valor-fiob'].forEach(function(id){
