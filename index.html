@@ -9187,7 +9187,36 @@ function voltarGeral(){
   if(graficoComp){graficoComp.destroy();graficoComp=null;}
   renderGeral();
 }
-function renderUsina(){renderKPIs();renderClientes();renderPagamentos();renderCreditos();renderListaAjustes();}
+// Recalcula TODAS as abas de uma vez (Investimento e Fatura ficavam de fora e
+// só atualizavam ao clicar na aba). Cada etapa roda isolada: falha em uma não
+// impede as demais.
+function renderUsina(){
+  var etapas=[
+    ['KPIs',renderKPIs],
+    ['Clientes',renderClientes],
+    ['Pagamentos',renderPagamentos],
+    ['Créditos',renderCreditos],
+    ['Ajustes',renderListaAjustes],
+    ['Investimento',renderInvestimento],
+    ['Fatura',atualizarFatura],
+    ['Cobranças',_renderCobrançasMantendoMes]
+  ];
+  etapas.forEach(function(e){
+    try{ e[1](); }catch(err){ console.warn('renderUsina: falha em '+e[0],err); }
+  });
+}
+// renderCobranças() remonta o <select> de mês e perde a seleção do usuário —
+// preserva e restaura.
+function _renderCobrançasMantendoMes(){
+  var sel=document.getElementById('sel-cob-mes');
+  var prev=sel?sel.value:null;
+  renderCobranças();
+  var novo=document.getElementById('sel-cob-mes');
+  if(novo&&prev!==null&&prev!==''&&novo.querySelector('option[value="'+prev+'"]')){
+    novo.value=prev;
+    renderListaCobranças();
+  }
+}
 
 // === RENDER ABAS ===
 function renderKPIs(){
