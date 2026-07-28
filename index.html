@@ -2303,9 +2303,14 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     <div style="font-size:15px;font-weight:600;margin-bottom:14px">Editar pagamento</div>
     <div id="edit-pag-info" style="font-size:12px;color:var(--text2);margin-bottom:12px"></div>
     <div class="fr"><label>Consumido real (kWh)</label><input id="ep-kwh" type="number" oninput="calcValorEdit()"></div>
-    <div class="fr"><label>Valor (R$) — calculado automaticamente</label><input id="ep-valor" type="number"></div>
+    <div class="fr"><label>Valor (R$) — calculado automaticamente</label><input id="ep-valor" type="number" oninput="atualizarTotalEditPag()"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fr"><label>Multa (R$)</label><input id="ep-multa" type="number" min="0" step="0.01" placeholder="0,00" oninput="atualizarTotalEditPag()"></div>
+      <div class="fr"><label>Juros (R$)</label><input id="ep-juros" type="number" min="0" step="0.01" placeholder="0,00" oninput="atualizarTotalEditPag()"></div>
+    </div>
     <div class="fr"><label>Vencimento</label><input id="ep-venc" type="text" placeholder="DD/MM/AAAA"></div>
     <div class="fr"><label>Status</label><select id="ep-status"><option>Pendente</option><option>Pago</option><option>Atrasado</option></select></div>
+    <div id="ep-total-info" style="font-size:13px;font-weight:600;margin-top:6px"></div>
     <div id="ep-saldo-info" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button class="btn-s" onclick="fecharModal('modalEditPag')">Cancelar</button>
@@ -8845,12 +8850,14 @@ function calcAuto(cid){
   const ger=parseFloat(document.getElementById('f-geracao').value)||u.geracaoEst;
   const aloc=kwhAloc(c,ger),consEl=document.getElementById(`cons-${cid}`);
   const cons=consEl?(parseFloat(consEl.value)||0):0;
-  const valor=parseFloat((cons*u.tarifa).toFixed(2)),saldo=parseFloat((aloc-cons).toFixed(1));
+  const multaEl=document.getElementById(`mult-${cid}`),jurosEl=document.getElementById(`jur-${cid}`);
+  const multa=multaEl?(parseFloat(multaEl.value)||0):0,juros=jurosEl?(parseFloat(jurosEl.value)||0):0;
+  const base=parseFloat((cons*u.tarifa).toFixed(2)),valor=parseFloat((base+multa+juros).toFixed(2)),saldo=parseFloat((aloc-cons).toFixed(1));
   const elV=document.getElementById(`lp-val-${cid}`);if(elV)elV.value=valor>0?valor:'';
   const elS=document.getElementById(`saldo-mes-${cid}`);
   if(elS){elS.textContent=`${saldo>=0?'+':''}${saldo} kWh`;elS.style.color=saldo>=0?'#1B5E20':'#B71C1C';}
   const elA=document.getElementById(`auto-val-${cid}`);
-  if(elA)elA.textContent=cons>0?`R$ ${fmt(valor)}`:'—';
+  if(elA)elA.textContent=valor>0?`R$ ${fmt(valor)}`:'—';
 }
 function calcValorEdit(){
   const u=usinaAtual;if(!u||!editCtx)return;
@@ -8861,6 +8868,17 @@ function calcValorEdit(){
   const saldo=parseFloat((aloc-cons).toFixed(1));
   const el=document.getElementById('ep-saldo-info');
   if(el)el.innerHTML=`Alocado: ${aloc.toFixed(1)} kWh &nbsp;|&nbsp; Saldo mês: <strong style="color:${saldo>=0?'#1B5E20':'#B71C1C'}">${saldo>=0?'+':''}${saldo} kWh</strong>`;
+  atualizarTotalEditPag();
+}
+// Recalcula só a linha "Total a cobrar" — chamada tanto por calcValorEdit()
+// (quando o kWh muda) quanto ao editar Valor/Multa/Juros manualmente.
+function atualizarTotalEditPag(){
+  const valor=parseFloat(document.getElementById('ep-valor').value)||0;
+  const multa=parseFloat(document.getElementById('ep-multa').value)||0;
+  const juros=parseFloat(document.getElementById('ep-juros').value)||0;
+  const total=parseFloat((valor+multa+juros).toFixed(2));
+  const elT=document.getElementById('ep-total-info');
+  if(elT)elT.textContent=(multa>0||juros>0)?`Total a cobrar: R$ ${fmt(total)}  (energia R$ ${fmt(valor)} + multa R$ ${fmt(multa)} + juros R$ ${fmt(juros)})`:'';
 }
 function abrirLancamento(idx=null){
   const u=usinaAtual;editMesIdx=idx;const m=idx!==null?u.meses[idx]:null;
@@ -8876,7 +8894,10 @@ function abrirLancamento(idx=null){
     const aloc=kwhAloc(c,ger);
     const cons=m?(m.consumos[c.id]!=null?m.consumos[c.id]:''):'';
     const cn=cons!==''?parseFloat(cons):null;
-    const vp=cn!=null?parseFloat((cn*u.tarifa).toFixed(2)):null;
+    const pExist=m?m.pagamentos[c.id]:null;
+    const multaIni=pExist&&pExist.multa?pExist.multa:'';
+    const jurosIni=pExist&&pExist.juros?pExist.juros:'';
+    const vp=cn!=null?parseFloat((cn*u.tarifa+(parseFloat(multaIni)||0)+(parseFloat(jurosIni)||0)).toFixed(2)):null;
     const sp=cn!=null?parseFloat((aloc-cn).toFixed(1)):null;
     return`<div class="cons-card">
       <div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600">${c.nome}</div>${c.codigo?`<span style="font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1px 7px">#${c.codigo}</span>`:''}</div>
@@ -8889,6 +8910,16 @@ function abrirLancamento(idx=null){
         <div><div style="font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500">Saldo do mês</div>
           <div style="font-size:20px;font-weight:700" id="saldo-mes-${c.id}">${sp!=null?(sp>=0?'+':'')+sp+' kWh':'—'}</div>
           <div style="font-size:11px;color:var(--text2);margin-top:2px">(alocado − consumido)</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;margin-top:10px">
+        <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:500">Multa (R$)</label>
+          <input type="number" id="mult-${c.id}" placeholder="0,00" value="${multaIni}" min="0" step="0.01"
+            oninput="calcAuto(${c.id})" onfocus="this.style.borderColor='#1E6B2E'" onblur="this.style.borderColor='rgba(0,0,0,0.13)'">
+        </div>
+        <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:500">Juros (R$)</label>
+          <input type="number" id="jur-${c.id}" placeholder="0,00" value="${jurosIni}" min="0" step="0.01"
+            oninput="calcAuto(${c.id})" onfocus="this.style.borderColor='#1E6B2E'" onblur="this.style.borderColor='rgba(0,0,0,0.13)'">
         </div>
       </div>
       <div class="valor-auto">
@@ -8942,7 +8973,10 @@ function salvarLancamento(){
     // Usa o valor digitado; se campo vazio usa 0 (não usa alocado como fallback)
     const cons=consEl&&consEl.value!==''?parseFloat(consEl.value):0;
     co[c.id]=parseFloat(cons.toFixed(1));
-    pa[c.id]={valor:parseFloat((cons*u.tarifa).toFixed(2)),status:document.getElementById('lp-st-'+c.id).value,venc:document.getElementById('lp-vc-'+c.id).value||'—'};
+    const multaEl=document.getElementById('mult-'+c.id),jurosEl=document.getElementById('jur-'+c.id);
+    const multa=multaEl&&multaEl.value!==''?parseFloat(multaEl.value)||0:0;
+    const juros=jurosEl&&jurosEl.value!==''?parseFloat(jurosEl.value)||0:0;
+    pa[c.id]={valor:parseFloat((cons*u.tarifa).toFixed(2)),multa,juros,status:document.getElementById('lp-st-'+c.id).value,venc:document.getElementById('lp-vc-'+c.id).value||'—'};
   });
   // Guarda o índice do mês que será salvo
   const idxSalvo = editMesIdx !== null ? editMesIdx : u.meses.length;
@@ -9267,8 +9301,11 @@ function renderPagamentos(){
     u.clientes.filter(c=>!c.previsto).forEach(c=>{
       const p=m.pagamentos[c.id];if(!p)return;if(fS&&p.status!==fS)return;
       const aloc=kwhAloc(c,m.geracao),cons=m.consumos[c.id]||0,sm=parseFloat((aloc-cons).toFixed(1)),sa=saldoAcum(u,c.id,mi),liq=cons*u.liquido,bruto=parseFloat((cons*u.tarifa).toFixed(2));
-      tA+=aloc;tC+=cons;tB+=bruto;tL+=liq;if(p.status==='Pago')tP+=bruto;
+      const multa=p.multa||0,juros=p.juros||0,totalCobrar=parseFloat((bruto+multa+juros).toFixed(2));
+      tA+=aloc;tC+=cons;tB+=totalCobrar;tL+=liq;if(p.status==='Pago')tP+=totalCobrar;
       const cl=p.status==='Pago'?'bv':p.status==='Atrasado'?'br':'by';
+      const temEncargo=multa>0||juros>0;
+      const tituloEncargo=temEncargo?' title="Energia: R$ '+fmt(bruto)+(multa>0?' + Multa: R$ '+fmt(multa):'')+(juros>0?' + Juros: R$ '+fmt(juros):'')+'"':'';
       rows.push(
       '<tr>'
       +'<td><div style="font-weight:500">'+c.nome+'</div>'+(c.codigo!=null&&c.codigo!==''?'<div style="font-size:11px;color:var(--text2)">#'+c.codigo+'</div>':'')+'</td>'
@@ -9278,7 +9315,7 @@ function renderPagamentos(){
       +'<td style="text-align:right">'+cons+'</td>'
       +'<td style="text-align:right;font-weight:500;color:'+(sm>=0?'#1B5E20':'#B71C1C')+'">'+(sm>=0?'+':'')+sm+'</td>'
       +'<td style="text-align:right;font-weight:700;color:'+(sa>=0?'#1B5E20':'#B71C1C')+'">'+(sa>=0?'+':'')+sa+'</td>'
-      +'<td style="text-align:right">R$ '+fmt(bruto)+'</td>'
+      +'<td style="text-align:right"'+tituloEncargo+'>R$ '+fmt(totalCobrar)+(temEncargo?' <span style="font-size:9px;color:#E65100;font-weight:700">•</span>':'')+'</td>'
       +'<td style="text-align:right;color:#1B5E20">R$ '+fmt(liq)+'</td>'
       +'<td>'+(p.venc||'—')+'</td>'
       +'<td><span class="badge '+cl+'">'+p.status+'</span></td>'
@@ -9410,7 +9447,13 @@ function calcFatura(cid,mi){
     ecoAcum += vssX - vcsX;
   });
 
-  return{kwh:kwhCons, kwhAloc:kwhAloc_, temLancamento, vSS, vCS, eco, ecoPct, ecoAcum,
+  // Multa/juros do pagamento do mês (cobrança de atraso repassada na fatura)
+  const pag = m.pagamentos ? (m.pagamentos[cid] != null ? m.pagamentos[cid] : m.pagamentos[String(cid)]) : null;
+  const multa = pag ? (parseFloat(pag.multa) || 0) : 0;
+  const juros = pag ? (parseFloat(pag.juros) || 0) : 0;
+  const vCSTotal = parseFloat((vCS + multa + juros).toFixed(2));
+
+  return{kwh:kwhCons, kwhAloc:kwhAloc_, temLancamento, vSS, vCS, vCSTotal, multa, juros, eco, ecoPct, ecoAcum,
          ipComSolar, ipSemSolar, ipPct, ipMunicipal, ipDesconto, ipEfetivo,
          fioB, band, c, m, tarifaDist:tdist};
 }
@@ -9670,19 +9713,23 @@ function abrirEditPag(mi,cid){
   const aloc=kwhAloc(c,m.geracao);
   document.getElementById('edit-pag-info').textContent=`${c.nome} — ${m.mes} | ${c.cotaPct.toFixed(1)}% = ${aloc.toFixed(1)} kWh alocados`;
   document.getElementById('ep-kwh').value=m.consumos[cid]||0;document.getElementById('ep-valor').value=p.valor;
+  document.getElementById('ep-multa').value=p.multa||'';document.getElementById('ep-juros').value=p.juros||'';
   document.getElementById('ep-venc').value=p.venc||'';document.getElementById('ep-status').value=p.status;
   const cons=m.consumos[cid]||0,saldo=parseFloat((aloc-cons).toFixed(1));
   const el=document.getElementById('ep-saldo-info');
   if(el)el.innerHTML=`Saldo mês: <strong style="color:${saldo>=0?'#1B5E20':'#B71C1C'}">${saldo>=0?'+':''}${saldo} kWh</strong>`;
   document.getElementById('modalEditPag').classList.add('open');
+  calcValorEdit();
 }
 function salvarEditPag(){
   if(!editCtx)return;const{mi,cid}=editCtx,u=usinaAtual;
   const cons=parseFloat(document.getElementById('ep-kwh').value)||0;
   const valor=parseFloat(document.getElementById('ep-valor').value)||parseFloat((cons*u.tarifa).toFixed(2));
+  const multa=parseFloat(document.getElementById('ep-multa').value)||0;
+  const juros=parseFloat(document.getElementById('ep-juros').value)||0;
   u.meses[mi].consumos[cid]=cons;
   const _prev=u.meses[mi].pagamentos[cid]||{};
-  u.meses[mi].pagamentos[cid]={valor,status:document.getElementById('ep-status').value,venc:document.getElementById('ep-venc').value||'—',faturaGerada:_prev.faturaGerada||false,dataFatura:_prev.dataFatura||''};
+  u.meses[mi].pagamentos[cid]={valor,multa,juros,status:document.getElementById('ep-status').value,venc:document.getElementById('ep-venc').value||'—',faturaGerada:_prev.faturaGerada||false,dataFatura:_prev.dataFatura||''};
   persistirUsinas();
   fecharModal('modalEditPag');
   renderUsina();
@@ -9824,13 +9871,24 @@ function _faturaDocAsync(done){
   doc.setFont('helvetica','normal');doc.text(f.m.mes,W-M-4,y+11,{align:'right'});
   y+=24;
 
-  // VALOR A PAGAR
-  doc.setFillColor(cr,cg,cb);doc.roundedRect(M,y,W-M*2,26,3,3,'F');doc.setTextColor(255,255,255);
+  // VALOR A PAGAR (inclui multa/juros de atraso, quando houver)
+  const temEncargoPdf=(f.multa>0||f.juros>0);
+  const boxHPag=temEncargoPdf?31:26;
+  doc.setFillColor(cr,cg,cb);doc.roundedRect(M,y,W-M*2,boxHPag,3,3,'F');doc.setTextColor(255,255,255);
   doc.setFontSize(8);doc.setFont('helvetica','normal');
   doc.text('Cota: '+f.c.cotaPct.toFixed(1)+'%  x  '+f.kwh.toFixed(1)+' kWh  x  R$ '+u.tarifa.toFixed(2)+'/kWh',W/2,y+7,{align:'center'});
-  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text('VALOR A PAGAR',W/2,y+13,{align:'center'});
-  doc.setFontSize(20);doc.text('R$ '+fmt(f.vCS),W/2,y+22,{align:'center'});
-  y+=32;
+  if(temEncargoPdf){
+    var _partesEnc=[];
+    if(f.multa>0)_partesEnc.push('Multa R$ '+fmt(f.multa));
+    if(f.juros>0)_partesEnc.push('Juros R$ '+fmt(f.juros));
+    doc.setFontSize(7.5);doc.text('Energia R$ '+fmt(f.vCS)+'  +  '+_partesEnc.join('  +  '),W/2,y+12,{align:'center'});
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text('VALOR A PAGAR',W/2,y+18,{align:'center'});
+    doc.setFontSize(20);doc.text('R$ '+fmt(f.vCSTotal),W/2,y+27,{align:'center'});
+  } else {
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text('VALOR A PAGAR',W/2,y+13,{align:'center'});
+    doc.setFontSize(20);doc.text('R$ '+fmt(f.vCSTotal),W/2,y+22,{align:'center'});
+  }
+  y+=boxHPag+6;
 
   // VENCIMENTO destaque laranja
   doc.setFillColor(255,248,225);doc.roundedRect(M,y,W-M*2,16,3,3,'F');
@@ -9845,7 +9903,7 @@ function _faturaDocAsync(done){
   y+=22;
 
   // PIX + QR CODE
-  const pixPayload=gerarPayloadPix(u.pix,f.vCS,emp.empresa||u.nome,emp.endereco?(emp.endereco.split(',')[0]):'Brasil');
+  const pixPayload=gerarPayloadPix(u.pix,f.vCSTotal,emp.empresa||u.nome,emp.endereco?(emp.endereco.split(',')[0]):'Brasil');
   const qrS=46;
   doc.setFillColor(232,245,233);doc.roundedRect(M,y,W-M*2,qrS+10,3,3,'F');
   doc.setFillColor(255,255,255);doc.roundedRect(M+4,y+4,qrS+2,qrS+2,2,2,'F');
@@ -9857,7 +9915,7 @@ function _faturaDocAsync(done){
   if(pixChave.length>28){doc.text(pixChave.substring(0,28),tx2,y+23);doc.text(pixChave.substring(28),tx2,y+28);}
   else{doc.text(pixChave,tx2,y+23);}
   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(80,80,80);doc.text('Valor ja incluso no QR Code:',tx2,y+34);
-  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(27,94,32);doc.text('R$ '+fmt(f.vCS),tx2,y+41);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(27,94,32);doc.text('R$ '+fmt(f.vCSTotal),tx2,y+41);
   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(120,120,120);
   doc.text('Escaneie com o app do seu banco',tx2,y+47);
   // QR Code local (sem API externa)
