@@ -9518,7 +9518,7 @@ function atualizarFatura(){
   
   // ── Gera QR Code PIX para o preview ──
   const _trPrev = getTarifasUser();
-  const _pixPayloadPrev = gerarPayloadPix(u.pix, f.vCS, emp.empresa||u.nome, emp.endereco?(emp.endereco.split(',')[0]):'Brasil');
+  const _pixPayloadPrev = gerarPayloadPix(u.pix, f.vCSTotal, emp.empresa||u.nome, emp.endereco?(emp.endereco.split(',')[0]):'Brasil');
   const _logoHTML = cfg.logoBase64
     ? `<img src="${cfg.logoBase64}" style="max-height:48px;max-width:160px;object-fit:contain;display:block">`
     : `<div style="font-size:13px;font-weight:700;color:var(--green)">${emp.empresa||u.nome}</div>`;
@@ -9552,7 +9552,8 @@ function atualizarFatura(){
       </div>
       <div style="text-align:right">
         <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em">Valor a pagar</div>
-        <div style="font-size:26px;font-weight:700;color:var(--green);line-height:1.1;margin-top:2px">R$ ${fmt(f.vCS)}</div>
+        <div style="font-size:26px;font-weight:700;color:var(--green);line-height:1.1;margin-top:2px">R$ ${fmt(f.vCSTotal)}</div>
+        ${(f.multa>0||f.juros>0)?'<div style="font-size:11px;color:#E65100;margin-top:2px">Energia R$ '+fmt(f.vCS)+(f.multa>0?' + Multa R$ '+fmt(f.multa):'')+(f.juros>0?' + Juros R$ '+fmt(f.juros):'')+'</div>':''}
       </div>
     </div>
     <div style="padding:10px 16px;background:${venc&&venc!=='—'?'#FFF8E1':'var(--bg2)'};border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
@@ -9568,7 +9569,7 @@ function atualizarFatura(){
         <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Pagamento via PIX</div>
         <div style="font-size:12px;font-weight:600;word-break:break-all;color:var(--green)">${u.pix}</div>
         <div style="font-size:11px;color:var(--text2);margin-top:4px">Escaneie o QR Code ou copie a chave</div>
-        <div style="font-size:11px;color:var(--text2)">O QR Code já inclui o valor: <strong>R$ ${fmt(f.vCS)}</strong></div>
+        <div style="font-size:11px;color:var(--text2)">O QR Code já inclui o valor: <strong>R$ ${fmt(f.vCSTotal)}</strong></div>
       </div>
     </div>
     <div style="padding:10px 16px;background:#E8F5E9">
@@ -9688,6 +9689,24 @@ function atualizarFatura(){
       f.vSS - f.vCS,
       true
     );
+
+    // Multa/juros de atraso — cobrança à parte, repassada nesta fatura.
+    // Não entra na comparação com/sem solar (não há equivalente "sem solar").
+    if(f.multa>0 || f.juros>0){
+      rows += '<tr><td colspan="4" style="padding:9px 10px;font-weight:600;color:#E65100;background:#FFF3E0">⚠️ Encargos por atraso (repassados nesta fatura)</td></tr>';
+      if(f.multa>0) rows += '<tr><td style="padding:9px 10px">Multa</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:#E65100;font-weight:600">R$ '+fmt(f.multa)+'</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:var(--text2)">—</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:var(--text2)">—</td></tr>';
+      if(f.juros>0) rows += '<tr><td style="padding:9px 10px">Juros</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:#E65100;font-weight:600">R$ '+fmt(f.juros)+'</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:var(--text2)">—</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:var(--text2)">—</td></tr>';
+      rows += '<tr style="background:var(--bg2)"><td style="padding:9px 10px"><strong>VALOR FINAL A PAGAR</strong></td>'
+        +'<td style="text-align:right;padding:9px 10px;color:#1B5E20;font-weight:700">R$ '+fmt(f.vCSTotal)+'</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:var(--text2)">—</td>'
+        +'<td style="text-align:right;padding:9px 10px;color:var(--text2)">—</td></tr>';
+    }
 
     return rows;
   })();
