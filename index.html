@@ -5831,13 +5831,28 @@ function gerarPDFProposta(modo){
     doc.text('Consumo atual',startX+52,lgY+2.5);
     y+=chartH+22;
   }
-  // Descritivo
-  if(descritivo&&y<H-40){
+  // Descritivo do sistema — antes cortava/sumia se não coubesse no resto da
+  // página 2 (sem paginação). Agora, se faltar espaço, continua numa página
+  // extra (mantendo o rótulo "Página 2 de 4") em vez de truncar o texto.
+  if(descritivo){
+    var linesDesc=doc.splitTextToSize(descritivo,W-mg*2-4);
+    if(y+17>H-25){
+      addFooter(doc,'2');
+      doc.addPage();
+      addHeader(doc,'Sistema Fotovoltaico Dimensionado','2');
+      y=26;
+    }
     y=sectionTitle(doc,y,'Descritivo do sistema');
-    var lines=doc.splitTextToSize(descritivo,W-mg*2-4);
     doc.setTextColor(80,80,75); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    var maxLines=Math.min(lines.length,Math.floor((H-40-y)/5));
-    for(var li=0;li<maxLines;li++){ doc.text(lines[li],mg+2,y); y+=5; }
+    for(var li=0;li<linesDesc.length;li++){
+      if(y>H-25){
+        addFooter(doc,'2');
+        doc.addPage();
+        addHeader(doc,'Sistema Fotovoltaico Dimensionado','2');
+        y=26;
+      }
+      doc.text(linesDesc[li],mg+2,y); y+=5;
+    }
     y+=4;
   }
   addFooter(doc,'2');
