@@ -1791,9 +1791,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Personalização do PDF
         </div>
-        <div class="prop-cor-row">
+        <div class="prop-cor-row" style="flex-wrap:wrap">
           <label>Cor da proposta</label>
           <input type="color" id="p-cor-proposta" value="#1E6B2E" oninput="atualizarPreviewProposta()" title="Cor principal do PDF">
+          <button type="button" class="btn-s" onclick="salvarCorPropostaPadrao()" style="font-size:11px;padding:5px 10px;white-space:nowrap" title="Usar esta cor em todas as novas propostas">💾 Salvar como padrão</button>
           <span style="font-size:11px;color:var(--text2)">Clique para mudar a cor dos cabeçalhos e destaques</span>
         </div>
         <div class="prop-logo-mini" id="prop-logo-preview-row">
@@ -5557,7 +5558,7 @@ function irParaProposta(){
 function initCorProposta(){
   var cfg=getCfg();
   var inp=document.getElementById('p-cor-proposta');
-  if(inp&&inp.value==='#1e6b2e') inp.value=cfg.corPrimaria||'#1E6B2E';
+  if(inp&&inp.value==='#1e6b2e') inp.value=cfg.corPropostaPadrao||cfg.corPrimaria||'#1E6B2E';
   aplicarCorProposta();
   var row=document.getElementById('prop-logo-preview-row');
   if(!row) return;
@@ -6113,6 +6114,16 @@ function salvarComopadraoDados(){
   _persistirPerfil(u); atualizarPill(); initCorProposta();
   _atualizarBadgeEmpresa();
   toast('✅ Dados salvos como padrão para todas as propostas!');
+}
+// Guarda a cor escolhida para ela vir pré-selecionada em toda NOVA proposta
+// (não altera a cor global do app — só o padrão desta tela).
+function salvarCorPropostaPadrao(){
+  var u=usuarioAtual; if(!u) return;
+  var hex=((document.getElementById('p-cor-proposta')||{}).value)||'#1E6B2E';
+  if(!u.config) u.config={};
+  u.config.corPropostaPadrao=hex;
+  salvarCfg();
+  toast('✅ Cor salva como padrão para novas propostas!');
 }
 function toggleRodapaoPadrao(){ atualizarRodapePreview(); }
 function atualizarRodapePreview(){
