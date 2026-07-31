@@ -1756,6 +1756,14 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="fr" style="margin-bottom:0"><label class="prop-label">Garantia instalação (anos)</label><input id="p-gar-inst" class="prop-input" type="number" value="2" min="1" max="10" oninput="gerarDescritivo();atualizarPreviewProposta()"></div>
           <div class="fr" style="margin-bottom:0"><label class="prop-label">Monitoramento incluso (anos)</label><input id="p-mon-anos" class="prop-input" type="number" value="2" min="0" max="10" oninput="gerarDescritivo();atualizarPreviewProposta()"></div>
         </div>
+        <div class="prop-grid3" style="margin-top:10px">
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Garantia módulo — desempenho (anos)</label><input id="p-gar-mod-desemp" class="prop-input" type="number" value="25" min="1" max="30" oninput="gerarDescritivo();atualizarPreviewProposta()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Garantia módulo — defeito fabricação (anos)</label><input id="p-gar-mod-defeito" class="prop-input" type="number" value="12" min="1" max="30" oninput="gerarDescritivo();atualizarPreviewProposta()"></div>
+          <div class="fr" style="margin-bottom:0"><label class="prop-label">Garantia do inversor (anos)</label><input id="p-gar-inversor" class="prop-input" type="number" value="10" min="1" max="30" oninput="gerarDescritivo();atualizarPreviewProposta()"></div>
+        </div>
+        <div style="margin-top:8px">
+          <button type="button" class="btn-s" onclick="salvarGarantiasPadrao()" style="font-size:11px;padding:5px 12px" title="Usar esses tempos de garantia em todas as novas propostas">💾 Salvar garantias como padrão</button>
+        </div>
       </div>
 
       <!-- PORTFÓLIO -->
@@ -1927,12 +1935,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             <div class="a4-section-title">Forma de pagamento</div>
             <div id="prev-pagamento-info" style="margin-bottom:12px"></div>
             <div class="a4-section-title">Garantias</div>
-            <div class="a4-guarantee-row">
-              <div class="a4-guar-item"><div class="a4-guar-v">25 anos</div><div class="a4-guar-l">Módulos</div></div>
-              <div class="a4-guar-item"><div class="a4-guar-v">10 anos</div><div class="a4-guar-l">Inversor</div></div>
-              <div class="a4-guar-item"><div class="a4-guar-v">5 anos</div><div class="a4-guar-l">Estrutura</div></div>
-              <div class="a4-guar-item"><div class="a4-guar-v" id="prev-gar-inst-v">2 anos</div><div class="a4-guar-l">Instalação</div></div>
-            </div>
+            <div class="a4-guarantee-row" id="prev-garantias"></div>
             <div class="a4-section-title" style="margin-top:14px">Validade da proposta</div>
             <div id="prev-validade-info" style="font-size:12px;color:var(--text2);margin-bottom:10px">–</div>
             <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:6px;font-size:11px;color:var(--text2);line-height:1.7">
@@ -5544,9 +5547,26 @@ function atualizarPreviewProposta(){
       }
     }
   }
-  // Garantia instalação no preview
-  var garInstEl=document.getElementById('prev-gar-inst-v');
-  if(garInstEl){var gi=parseInt((document.getElementById('p-gar-inst')||{}).value)||2; garInstEl.textContent=gi+' ano'+(gi!==1?'s':'');}
+  // Garantias no preview — reflete os mesmos campos usados no PDF
+  var garantiasEl=document.getElementById('prev-garantias');
+  if(garantiasEl){
+    var giP=parseInt((document.getElementById('p-gar-inst')||{}).value)||2;
+    var gmoP=parseInt((document.getElementById('p-mon-anos')||{}).value); if(isNaN(gmoP)) gmoP=2;
+    var gdeP=parseInt((document.getElementById('p-gar-mod-desemp')||{}).value)||25;
+    var gdfP=parseInt((document.getElementById('p-gar-mod-defeito')||{}).value)||12;
+    var givP=parseInt((document.getElementById('p-gar-inversor')||{}).value)||10;
+    var itensGarantia=[
+      [gdeP+' anos','Módulos (desempenho)'],
+      [gdfP+' anos','Módulos (defeito fab.)'],
+      [givP+' ano'+(givP!==1?'s':''),'Inversor'],
+      ['5 anos','Estrutura'],
+      [giP+' ano'+(giP!==1?'s':''),'Instalação'],
+    ];
+    if(gmoP>0) itensGarantia.push([gmoP+' ano'+(gmoP!==1?'s':''),'Monitoramento']);
+    garantiasEl.innerHTML=itensGarantia.map(function(it){
+      return '<div class="a4-guar-item"><div class="a4-guar-v">'+it[0]+'</div><div class="a4-guar-l">'+it[1]+'</div></div>';
+    }).join('');
+  }
   // Validade
   var valEl=document.getElementById('prev-validade-info');
   if(valEl) valEl.textContent='Esta proposta é válida por '+validade+' dias corridos — até '+_dataValidade(validade)+'.';
@@ -5578,9 +5598,37 @@ function salvarTarifaPropostaPadrao(){
   salvarCfg();
   toast('✅ Tarifa salva como padrão para novas propostas!');
 }
+// Garantias (módulo desempenho/defeito + inversor) — mesmo padrão da
+// tarifa: só aplica o padrão salvo em campo ainda no valor de fábrica,
+// pra não sobrescrever proposta em edição ou carregada do histórico.
+function initGarantiasProposta(){
+  var cfg=getCfg();
+  var d=document.getElementById('p-gar-mod-desemp');
+  if(d&&parseInt(d.value)===25&&cfg.garModDesempPadrao!=null) d.value=cfg.garModDesempPadrao;
+  var f=document.getElementById('p-gar-mod-defeito');
+  if(f&&parseInt(f.value)===12&&cfg.garModDefeitoPadrao!=null) f.value=cfg.garModDefeitoPadrao;
+  var i=document.getElementById('p-gar-inversor');
+  if(i&&parseInt(i.value)===10&&cfg.garInversorPadrao!=null) i.value=cfg.garInversorPadrao;
+}
+function salvarGarantiasPadrao(){
+  var u=usuarioAtual; if(!u) return;
+  var desemp=parseInt((document.getElementById('p-gar-mod-desemp')||{}).value);
+  var defeito=parseInt((document.getElementById('p-gar-mod-defeito')||{}).value);
+  var inv=parseInt((document.getElementById('p-gar-inversor')||{}).value);
+  if(!desemp||desemp<=0||!defeito||defeito<=0||!inv||inv<=0){
+    toast('Informe valores de garantia válidos antes de salvar.','warn'); return;
+  }
+  if(!u.config) u.config={};
+  u.config.garModDesempPadrao=desemp;
+  u.config.garModDefeitoPadrao=defeito;
+  u.config.garInversorPadrao=inv;
+  salvarCfg();
+  toast('✅ Garantias salvas como padrão para novas propostas!');
+}
 function initCorProposta(){
   var cfg=getCfg();
   initTarifaProposta();
+  initGarantiasProposta();
   var inp=document.getElementById('p-cor-proposta');
   if(inp&&inp.value==='#1e6b2e') inp.value=cfg.corPropostaPadrao||cfg.corPrimaria||'#1E6B2E';
   aplicarCorProposta();
@@ -5656,12 +5704,58 @@ function gerarPDFProposta(modo){
   var doc=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var W=210, H=297, mg=15;
 
+  // Numeração de páginas dinâmica — antes era hardcoded "Página X de 4",
+  // então quando o descritivo (ou o portfólio) criava páginas extras, o
+  // rótulo ficava errado e repetido (ex.: "Página 2 de 4" aparecendo 2x).
+  // Pré-calcula quantas páginas o descritivo vai ocupar (mesma matemática
+  // do desenho real, sem desenhar nada) para saber o TOTAL antes de
+  // começar, e mantém um contador (pgAtual) incrementado a cada addPage().
+  function _qtdPaginasDescritivo(texto){
+    if(!texto) return 0;
+    // splitTextToSize depende da fonte/tamanho ATIVOS no momento da chamada
+    // (afeta a largura de cada caractere e, portanto, a quebra de linha) —
+    // precisa ser a MESMA fonte usada para desenhar de verdade (helvetica
+    // normal 9), senão a contagem de páginas diverge do desenho real.
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    var linhas=doc.splitTextToSize(texto,W-mg*2-4);
+    var idx=0,paginas=0;
+    while(idx<linhas.length){
+      paginas++;
+      var linhasCabem=Math.max(1,Math.floor(((H-25)-30-6)/5));
+      idx+=Math.min(linhasCabem,linhas.length-idx);
+    }
+    return paginas;
+  }
+  // Pré-calcula se a página de Investimento vai precisar continuar numa
+  // página extra (pagamento "todas as opções" + financiamento com várias
+  // parcelas + garantias em 2 linhas podem não caber juntos). Mantém a
+  // MESMA conta usada no desenho real logo abaixo (bloco "PÁG SEGUINTE —
+  // INVESTIMENTO") — se mexer numa altura, mexer na outra também.
+  function _investimentoPrecisaContinuar(){
+    var yT=26+42+12;
+    function altura(n){ return 10+n*8+4; }
+    var finOptsQtd=_getFinOpts().length;
+    var finLinhasQtd=finOptsQtd>0?finOptsQtd+1:1;
+    if(pagSel==='todas') yT+=altura(1)+altura(2)+altura(finLinhasQtd);
+    else if(pagSel==='avista') yT+=altura(1);
+    else if(pagSel==='50-50') yT+=altura(2);
+    else yT+=altura(finLinhasQtd);
+    yT+=4+12;
+    var monAnosT=parseInt(((document.getElementById('p-mon-anos')||{}).value)||2);
+    var qtdGarsT=5+(monAnosT>0?1:0);
+    var linhasGarT=qtdGarsT>4?2:1;
+    yT+=linhasGarT*24+2;
+    return (yT+40>H-25);
+  }
+  var pgAtual=1;
+  var totalPaginas=4+_qtdPaginasDescritivo(descritivo)+(_investimentoPrecisaContinuar()?1:0)+((_portfolioImgs&&_portfolioImgs.length>0)?1:0);
+
   function addHeader(doc,title,pg){
     doc.setFillColor(pcr,pcg,pcb); doc.rect(0,0,W,18,'F');
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(13);
     doc.text(title,mg,12);
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(pcrW,pcgW,pcbW);
-    doc.text('Página '+pg+' de 4',W-mg,12,{align:'right'});
+    doc.text('Página '+pg+' de '+totalPaginas,W-mg,12,{align:'right'});
   }
   function addFooter(doc,pg){
     var fH=rodInfo.length>0?Math.max(14,8+rodInfo.length*3.8):12;
@@ -5671,7 +5765,7 @@ function gerarPDFProposta(modo){
     if(rodInfo.length){
       doc.setFontSize(8);
       doc.text(empresa,mg,H-fH+5.5);
-      doc.text('Página '+pg+' de 4',W-mg,H-fH+5.5,{align:'right'});
+      doc.text('Página '+pg+' de '+totalPaginas,W-mg,H-fH+5.5,{align:'right'});
       doc.setFontSize(6.5);
       rodInfo.forEach(function(item,idx){
         doc.text(item,mg,H-fH+10.5+idx*3.8);
@@ -5679,7 +5773,7 @@ function gerarPDFProposta(modo){
     } else {
       doc.setFontSize(8);
       doc.text(empresa,mg,H-4);
-      doc.text('Página '+pg+' de 4',W-mg,H-4,{align:'right'});
+      doc.text('Página '+pg+' de '+totalPaginas,W-mg,H-4,{align:'right'});
     }
   }
   function specRow(doc,y,label,val,shade){
@@ -5754,11 +5848,11 @@ function gerarPDFProposta(modo){
   doc.text(empresa,mg,H-9);
   if(contato||email){ doc.setFontSize(7.5); doc.setTextColor(pcrW,pcgW,pcbW); doc.text(contato||(email||''),mg,H-3); }
   doc.setTextColor(255,255,255); doc.setFontSize(8);
-  doc.text('1 / 4',W-mg,H-9,{align:'right'});
+  doc.text(pgAtual+' / '+totalPaginas,W-mg,H-9,{align:'right'});
 
   // ═══ PÁG 2 — SISTEMA ═══
-  doc.addPage();
-  addHeader(doc,'Sistema Fotovoltaico Dimensionado','2');
+  doc.addPage(); pgAtual++;
+  addHeader(doc,'Sistema Fotovoltaico Dimensionado',pgAtual);
   var y=26; var shade=false;
   y=sectionTitle(doc,y,'Dados do consumo');
   y=specRow(doc,y,'Local da instalação',local,shade=!shade);
@@ -5831,39 +5925,35 @@ function gerarPDFProposta(modo){
     doc.text('Consumo atual',startX+52,lgY+2.5);
     y+=chartH+22;
   }
-  // Descritivo do sistema — antes cortava/sumia se não coubesse no resto da
-  // página 2. Depois, quando precisava continuar em outra página, a
-  // continuação saía sem título e com a cor de texto herdada do cabeçalho
-  // (clara/ilegível). Agora cada "pedaço" que cabe numa página ganha seu
-  // próprio título (com "(continuação)" a partir do 2º) e uma caixa de
-  // fundo, igual às demais seções — e a cor do texto é sempre restaurada.
+  addFooter(doc,pgAtual);
+
+  // ═══ PÁG 3 — DESCRITIVO DO SISTEMA (página própria, nunca disputa
+  // espaço com specs/gráfico — não fica mais "quebrado" com a página 2) ═══
   if(descritivo){
+    // Mesma fonte usada na pré-contagem (_qtdPaginasDescritivo) — senão a
+    // quebra de linha real diverge da prevista (o total "de N" ficaria errado).
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
     var linesDesc=doc.splitTextToSize(descritivo,W-mg*2-4);
     var idxDesc=0, primeiraPagDesc=true;
     while(idxDesc<linesDesc.length){
-      if(y+17>H-25){
-        addFooter(doc,'2');
-        doc.addPage();
-        addHeader(doc,'Sistema Fotovoltaico Dimensionado','2');
-        y=26;
-      }
-      y=sectionTitle(doc,y,'Descritivo do sistema'+(primeiraPagDesc?'':' (continuação)'));
-      var linhasCabem=Math.max(1,Math.floor(((H-25)-y-6)/5));
+      doc.addPage(); pgAtual++;
+      addHeader(doc,'Descritivo do Sistema'+(primeiraPagDesc?'':' (continuação)'),pgAtual);
+      var yD=30;
+      var linhasCabem=Math.max(1,Math.floor(((H-25)-yD-6)/5));
       var linhasChunk=Math.min(linhasCabem,linesDesc.length-idxDesc);
       var boxH=linhasChunk*5+6;
-      doc.setFillColor(245,245,242); doc.roundedRect(mg,y-2,W-mg*2,boxH,2,2,'F');
+      doc.setFillColor(245,245,242); doc.roundedRect(mg,yD-2,W-mg*2,boxH,2,2,'F');
       doc.setTextColor(80,80,75); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      for(var kk=0;kk<linhasChunk;kk++){ doc.text(linesDesc[idxDesc+kk],mg+4,y+4+kk*5); }
-      y+=boxH+4;
+      for(var kk=0;kk<linhasChunk;kk++){ doc.text(linesDesc[idxDesc+kk],mg+4,yD+4+kk*5); }
+      addFooter(doc,pgAtual);
       idxDesc+=linhasChunk;
       primeiraPagDesc=false;
     }
   }
-  addFooter(doc,'2');
 
-  // ═══ PÁG 3 — FINANCEIRO ═══
-  doc.addPage();
-  addHeader(doc,'Análise Financeira','3');
+  // ═══ PÁG SEGUINTE — FINANCEIRO ═══
+  doc.addPage(); pgAtual++;
+  addHeader(doc,'Análise Financeira',pgAtual);
   y=26;
   if(c.econMensal){
     var eco25=0,em=c.econMensal;
@@ -5926,11 +6016,11 @@ function gerarPDFProposta(modo){
     doc.setTextColor(pcrM,pcgM,pcbM); doc.setFont('helvetica','normal'); doc.setFontSize(8);
     doc.text('Equivalente em plantio',mg+ambW+10+ambW/2,y+17,{align:'center'});
   }
-  addFooter(doc,'3');
+  addFooter(doc,pgAtual);
 
-  // ═══ PÁG 4 — INVESTIMENTO ═══
-  doc.addPage();
-  addHeader(doc,'Investimento & Pagamento','4');
+  // ═══ PÁG SEGUINTE — INVESTIMENTO ═══
+  doc.addPage(); pgAtual++;
+  addHeader(doc,'Investimento & Pagamento',pgAtual);
   y=26;
   // Investment big box
   doc.setFillColor(pcr,pcg,pcb); doc.roundedRect(mg,y,W-mg*2,36,3,3,'F');
@@ -5977,19 +6067,45 @@ function gerarPDFProposta(modo){
   y=sectionTitle(doc,y,'Garantias');
   var garInstVal=parseInt(((document.getElementById('p-gar-inst')||{}).value)||2);
   var monAnosVal=parseInt(((document.getElementById('p-mon-anos')||{}).value)||2);
-  var gars=[['Módulos fotovoltaicos','25 anos (geração)'],['Inversor','10 anos'],['Estrutura metálica','5 anos'],['Instalação',garInstVal+' ano'+(garInstVal>1?'s':'')]];
+  var garModDesempVal=parseInt(((document.getElementById('p-gar-mod-desemp')||{}).value)||25);
+  var garModDefeitoVal=parseInt(((document.getElementById('p-gar-mod-defeito')||{}).value)||12);
+  var garInversorVal=parseInt(((document.getElementById('p-gar-inversor')||{}).value)||10);
+  var gars=[
+    ['Módulos (desempenho)',garModDesempVal+' anos'],
+    ['Módulos (defeito fab.)',garModDefeitoVal+' anos'],
+    ['Inversor',garInversorVal+' ano'+(garInversorVal>1?'s':'')],
+    ['Estrutura metálica','5 anos'],
+    ['Instalação',garInstVal+' ano'+(garInstVal>1?'s':'')]
+  ];
   if(monAnosVal>0) gars.push(['Monitoramento',monAnosVal+' ano'+(monAnosVal>1?'s':'')]);
-  var garW=(W-mg*2-(gars.length-1)*5)/gars.length;
-  gars.forEach(function(g,i){
-    var gx=mg+i*(garW+5);
-    doc.setFillColor(pcrL,pcgL,pcbL); doc.roundedRect(gx,y,garW,20,2,2,'F');
-    doc.setDrawColor(pcrB,pcgB,pcbB); doc.roundedRect(gx,y,garW,20,2,2,'S');
-    doc.setTextColor(pcr,pcg,pcb); doc.setFont('helvetica','bold'); doc.setFontSize(10);
-    doc.text(g[1],gx+garW/2,y+9,{align:'center'});
-    doc.setTextColor(pcrM,pcgM,pcbM); doc.setFont('helvetica','normal'); doc.setFontSize(7);
-    doc.text(g[0],gx+garW/2,y+15,{align:'center'});
+  // Em 2 linhas quando há mais de 4 itens — evita caixas espremidas.
+  var itensPorLinha=gars.length>4?Math.ceil(gars.length/2):gars.length;
+  var garLinhas=[];
+  for(var gi2=0;gi2<gars.length;gi2+=itensPorLinha) garLinhas.push(gars.slice(gi2,gi2+itensPorLinha));
+  garLinhas.forEach(function(linhaItens,linhaIdx){
+    var garW=(W-mg*2-(linhaItens.length-1)*5)/linhaItens.length;
+    var gy=y+linhaIdx*24;
+    linhaItens.forEach(function(g,i){
+      var gx=mg+i*(garW+5);
+      doc.setFillColor(pcrL,pcgL,pcbL); doc.roundedRect(gx,gy,garW,20,2,2,'F');
+      doc.setDrawColor(pcrB,pcgB,pcbB); doc.roundedRect(gx,gy,garW,20,2,2,'S');
+      doc.setTextColor(pcr,pcg,pcb); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+      doc.text(g[1],gx+garW/2,gy+9,{align:'center'});
+      doc.setTextColor(pcrM,pcgM,pcbM); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+      doc.text(g[0],gx+garW/2,gy+15,{align:'center'});
+    });
   });
-  y+=26;
+  y+=garLinhas.length*24+2;
+  // Salvaguarda: se validade+assinaturas não couberem (pagamento "todas as
+  // opções" + financiamento com várias parcelas + muitas garantias podem
+  // encostar no rodapé), continua numa página extra — ver
+  // _investimentoPrecisaContinuar() acima, que já reserva essa página no total.
+  if(y+40>H-25){
+    addFooter(doc,pgAtual);
+    doc.addPage(); pgAtual++;
+    addHeader(doc,'Investimento & Pagamento (continuação)',pgAtual);
+    y=26;
+  }
   y=sectionTitle(doc,y,'Validade da proposta');
   doc.setTextColor(80,80,75); doc.setFont('helvetica','normal'); doc.setFontSize(10);
   doc.text('Esta proposta é válida por '+validade+' dias — até '+valEl,mg+2,y);
@@ -6005,14 +6121,12 @@ function gerarPDFProposta(modo){
   doc.text(empresa,mg+sigW/2,y+5,{align:'center'});
   doc.text(nome,mg+sigW+30+sigW/2,y+5,{align:'center'});
   y+=14;
-  addFooter(doc,'4');
+  addFooter(doc,pgAtual);
 
-  // Portfólio (pág 5 se houver imagens)
-  var totPg=4;
+  // Portfólio (página extra, se houver imagens)
   if(_portfolioImgs&&_portfolioImgs.length>0){
-    totPg=5;
-    doc.addPage();
-    addHeader(doc,'Portfólio de Instalações','5');
+    doc.addPage(); pgAtual++;
+    addHeader(doc,'Portfólio de Instalações',pgAtual);
     var py=26, px=mg, pCols=3, pGap=4, pW=(W-mg*2-(pCols-1)*pGap)/pCols, pH=pW*0.75;
     _portfolioImgs.forEach(function(img,idx){
       var col=idx%pCols, row=Math.floor(idx/pCols);
@@ -6020,9 +6134,8 @@ function gerarPDFProposta(modo){
       if(iy+pH>H-22) return;
       try{ doc.addImage(img.base64,img.type||'JPEG',ix,iy,pW,pH); }catch(e){}
     });
-    addFooter(doc,'5');
+    addFooter(doc,pgAtual);
   }
-  // Atualizar total de páginas nas páginas anteriores (não trivial em jsPDF — mantemos o número estático)
 
   // Save / Share / View
   var filename='Proposta_'+nome.replace(/\s+/g,'_')+'_'+new Date().getFullYear()+'.pdf';
@@ -6273,9 +6386,14 @@ function gerarDescritivo(){
     linhas.push('Material CA — cabos, conectores, disjuntor e proteção DPS');
   if((document.getElementById('inc-proj')||{}).checked) linhas.push('Projeto elétrico e memorial de cálculo');
   if((document.getElementById('inc-hom')||{}).checked)  linhas.push('Homologação na distribuidora');
-  var monAnos=parseInt((document.getElementById('p-mon-anos')||{}).value)||2;
+  var monAnos=parseInt((document.getElementById('p-mon-anos')||{}).value); if(isNaN(monAnos)) monAnos=2;
   if((document.getElementById('inc-mon')||{}).checked&&monAnos>0) linhas.push('Sistema de monitoramento online ('+monAnos+' ano'+(monAnos>1?'s':'')+')');
   if((document.getElementById('inc-inst')||{}).checked) linhas.push('Instalação completa do sistema');
+  var garModDesemp=parseInt((document.getElementById('p-gar-mod-desemp')||{}).value)||25;
+  var garModDefeito=parseInt((document.getElementById('p-gar-mod-defeito')||{}).value)||12;
+  var garInversor=parseInt((document.getElementById('p-gar-inversor')||{}).value)||10;
+  linhas.push('Garantia dos módulos — '+garModDesemp+' anos de desempenho e '+garModDefeito+' anos contra defeito de fabricação');
+  linhas.push('Garantia do inversor — '+garInversor+' ano'+(garInversor>1?'s':''));
   var garInst=parseInt((document.getElementById('p-gar-inst')||{}).value)||2;
   linhas.push('Garantia de instalação — '+garInst+' ano'+(garInst>1?'s':''));
   if((document.getElementById('inc-pad')||{}).checked)  linhas.push('Adequação do padrão de entrada');
@@ -6320,6 +6438,7 @@ function salvarProposta(){
       fin3parc:gv('p-fin3-parc',''), fin3val:gv('p-fin3-val',''),
       descritivo:gv('p-descritivo',''), corProposta:gv('p-cor-proposta','#1E6B2E'),
       garInst:gv('p-gar-inst','2'), monAnos:gv('p-mon-anos','2'),
+      garModDesemp:gv('p-gar-mod-desemp','25'), garModDefeito:gv('p-gar-mod-defeito','12'), garInversor:gv('p-gar-inversor','10'),
       rodapaoPadrao:gc('p-rodape-padrao'),
       rodCnpj:gv('p-rod-cnpj',''), rodTel:gv('p-rod-tel',''), rodEmail:gv('p-rod-email',''), rodEnd:gv('p-rod-end',''),
       nomeEmpresa:gv('p-nome-empresa',''), propLogo:_propLogoBase64||'',
@@ -6444,6 +6563,7 @@ function editarProposta(id){
   sv('p-estrutura',p.estrutura);
   sv('p-cor-proposta',s.corProposta||'#1E6B2E');
   sv('p-gar-inst',s.garInst||'2'); sv('p-mon-anos',s.monAnos||'2');
+  sv('p-gar-mod-desemp',s.garModDesemp||'25'); sv('p-gar-mod-defeito',s.garModDefeito||'12'); sv('p-gar-inversor',s.garInversor||'10');
   sv('p-nome-empresa',s.nomeEmpresa||'');
   _propLogoBase64=s.propLogo||null;
   // Restaurar rodapé — usar valores salvos ou fallback para perfil
