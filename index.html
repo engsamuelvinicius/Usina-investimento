@@ -1519,7 +1519,13 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         </div>
         <div class="prop-grid3">
           <div class="fr" style="margin-bottom:8px"><label class="prop-label">kWh/mês *</label><input id="p-kwh" class="prop-input" type="number" placeholder="1500" min="0" oninput="dimensionarAuto()"></div>
-          <div class="fr" style="margin-bottom:8px"><label class="prop-label">R$/kWh *</label><input id="p-tarifa" class="prop-input" type="number" placeholder="0,97" step="0.01" min="0" value="0.97" oninput="dimensionarAuto()"></div>
+          <div class="fr" style="margin-bottom:8px">
+            <label class="prop-label" style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+              <span>R$/kWh *</span>
+              <button type="button" onclick="salvarTarifaPropostaPadrao()" title="Usar este valor em todas as novas propostas" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:11px;padding:0;line-height:1">💾</button>
+            </label>
+            <input id="p-tarifa" class="prop-input" type="number" placeholder="0,97" step="0.01" min="0" value="0.97" oninput="dimensionarAuto()">
+          </div>
           <div class="fr" style="margin-bottom:8px">
             <label class="prop-label">Ligação</label>
             <select id="p-ligacao" class="prop-select" onchange="onLigacaoChange()">
@@ -5555,8 +5561,26 @@ function irParaProposta(){
   carregarCidades();
   atualizarRodapePreview();
 }
+// Aplica o valor de R$/kWh salvo como padrão em toda proposta NOVA — só
+// entra se o campo ainda estiver no valor padrão de fábrica (0.97), para
+// não sobrescrever uma proposta já em edição ou carregada do histórico.
+function initTarifaProposta(){
+  var cfg=getCfg();
+  var inp=document.getElementById('p-tarifa');
+  if(inp&&parseFloat(inp.value)===0.97&&cfg.tarifaPropostaPadrao!=null) inp.value=cfg.tarifaPropostaPadrao;
+}
+function salvarTarifaPropostaPadrao(){
+  var u=usuarioAtual; if(!u) return;
+  var val=parseFloat((document.getElementById('p-tarifa')||{}).value);
+  if(!val||val<=0){ toast('Informe um valor de R$/kWh válido antes de salvar.','warn'); return; }
+  if(!u.config) u.config={};
+  u.config.tarifaPropostaPadrao=val;
+  salvarCfg();
+  toast('✅ Tarifa salva como padrão para novas propostas!');
+}
 function initCorProposta(){
   var cfg=getCfg();
+  initTarifaProposta();
   var inp=document.getElementById('p-cor-proposta');
   if(inp&&inp.value==='#1e6b2e') inp.value=cfg.corPropostaPadrao||cfg.corPrimaria||'#1E6B2E';
   aplicarCorProposta();
