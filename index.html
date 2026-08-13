@@ -648,6 +648,21 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 .a4-guar-item{background:var(--prop-cor-l);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--prop-cor-t);flex:1;text-align:center;border:1px solid var(--prop-cor-l2)}
 .a4-guar-v{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
 .a4-guar-l{font-size:9px;margin-top:2px;opacity:.7}
+.a4-mat-table{width:100%;border-collapse:collapse;font-size:10px}
+.a4-mat-table thead th{background:var(--prop-cor);color:#fff;font-size:8.5px;text-transform:uppercase;letter-spacing:.03em;padding:6px 8px;text-align:left}
+.a4-mat-table tbody tr{border-bottom:1px solid var(--border)}
+.a4-mat-table tbody tr:nth-child(even){background:var(--bg2)}
+.a4-mat-total{display:flex;justify-content:space-between;align-items:center;background:var(--prop-cor-l);border:1px solid var(--prop-cor-l2);border-radius:8px;padding:10px 14px;margin-top:8px;font-weight:700;font-size:12px;color:var(--prop-cor-t)}
+.a4-mat-total span{font-family:'Outfit',sans-serif;font-size:15px}
+.a4-case-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.a4-case-card{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:var(--bg2)}
+.a4-case-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.a4-case-noimg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:10px}
+.a4-case-overlay{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,rgba(0,0,0,.75),rgba(0,0,0,0));padding:8px;color:#fff}
+.a4-case-badge{font-size:8px;font-weight:800;background:#f97316;display:inline-block;padding:2px 6px;border-radius:4px;margin-bottom:3px}
+.a4-case-eco{font-size:9px;line-height:1.3;margin-bottom:3px}
+.a4-case-eco b{font-size:13px}
+.a4-case-chips{display:flex;gap:6px;flex-wrap:wrap;font-size:7.5px;opacity:.85}
 .prop-tabs{display:flex;background:rgba(255,255,255,.1);border-radius:10px;padding:3px;gap:2px}
 .prop-tab{background:transparent;border:none;color:rgba(255,255,255,.6);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
 .prop-tab.active{background:#fff;color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.18)}
@@ -1481,6 +1496,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         Dados da proposta
       </div>
 
+      <div class="prop-mode-toggle" id="prop-tipo-toggle" style="margin-bottom:16px">
+        <button class="mode-btn active" id="tipo-convencional" style="flex:1" onclick="setTipoProposta('convencional')">📄 Convencional</button>
+        <button class="mode-btn" id="tipo-avancada" style="flex:1" onclick="setTipoProposta('avancada')">📋 Avançada</button>
+      </div>
+
       <!-- CLIENTE -->
       <div class="prop-section">
         <div class="prop-section-label">
@@ -1780,6 +1800,46 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <div id="prop-folio-grid" class="prop-folio-grid"></div>
       </div>
 
+      <!-- ═══ SEÇÕES DA PROPOSTA AVANÇADA ═══ -->
+      <div id="prop-avancada-wrap" style="display:none">
+
+        <!-- LISTA DE MATERIAIS -->
+        <div class="prop-section">
+          <div class="prop-section-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></svg>
+            Lista de materiais e serviço <span style="font-size:10px;color:var(--text2)">(orçamento item a item, digitado manualmente)</span>
+          </div>
+          <div id="prop-mat-list"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+            <button type="button" class="btn-s" onclick="matAdicionarLinha(false)">+ Adicionar item</button>
+            <button type="button" class="btn-s" onclick="matAdicionarLinha(true)">+ Adicionar sub-cabeçalho de grupo</button>
+          </div>
+          <div style="margin-top:10px;text-align:right;font-size:13px;font-weight:700" id="prop-mat-total">Total: R$ 0,00</div>
+        </div>
+
+        <!-- TERMOS E CONDIÇÕES -->
+        <div class="prop-section">
+          <div class="prop-section-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            Termos e condições
+          </div>
+          <div id="prop-termos-list"></div>
+          <button type="button" class="btn-s" onclick="termosAdicionar()">+ Adicionar termo</button>
+        </div>
+
+        <!-- CASES DE SUCESSO / PROJETO REFERÊNCIA -->
+        <div class="prop-section">
+          <div class="prop-section-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Cases de sucesso / Projeto referência <span style="font-size:10px;color:var(--text2)">(fotos + cliente + observação)</span>
+          </div>
+          <div id="prop-cases-list"></div>
+          <button type="button" class="btn-s" onclick="caseAdicionar()">+ Adicionar case</button>
+        </div>
+
+      </div>
+      <!-- ═══ /SEÇÕES DA PROPOSTA AVANÇADA ═══ -->
+
       <!-- RODAPÉ DA PROPOSTA -->
       <div class="prop-section">
         <div class="prop-section-label">
@@ -1862,7 +1922,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             </div>
             <div class="a4-cover-footer">
               <div class="a4-cover-footer-co" id="prev-capa-empresa">Sua Empresa · contato@empresa.com</div>
-              <div class="a4-cover-footer-pg">1 / 4</div>
+              <div class="a4-cover-footer-pg" id="a4num-1">1 / 4</div>
             </div>
           </div>
         </div>
@@ -1872,7 +1932,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <div class="a4-page">
           <div class="a4-header">
             <div class="a4-header-title">Sistema Fotovoltaico</div>
-            <div class="a4-header-pg">Página 2 / 4</div>
+            <div class="a4-header-pg" id="a4num-2h">Página 2 / 4</div>
           </div>
           <div class="a4-body">
             <div class="a4-section-title">Dados do Consumo</div>
@@ -1892,7 +1952,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             <div class="a4-section-title" style="margin-top:10px">Itens inclusos</div>
             <div class="a4-incl-grid" id="prev-inclusos"></div>
           </div>
-          <div class="a4-footer"><span id="prev-p2-empresa">Proposta Comercial</span><span>Página 2 de 4</span></div>
+          <div class="a4-footer"><span id="prev-p2-empresa">Proposta Comercial</span><span id="a4num-2f">Página 2 de 4</span></div>
         </div>
 
         <!-- PÁG 3: FINANCEIRO -->
@@ -1900,7 +1960,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <div class="a4-page">
           <div class="a4-header">
             <div class="a4-header-title">Análise Financeira</div>
-            <div class="a4-header-pg">Página 3 / 4</div>
+            <div class="a4-header-pg" id="a4num-3h">Página 3 / 4</div>
           </div>
           <div class="a4-body">
             <div class="a4-section-title">Indicadores do investimento</div>
@@ -1916,7 +1976,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             <div class="a4-section-title" style="margin-top:14px">Impacto ambiental (25 anos)</div>
             <div style="display:flex;gap:8px;margin-top:8px" id="prev-ambiental"></div>
           </div>
-          <div class="a4-footer"><span id="prev-p3-empresa">Proposta Comercial</span><span>Página 3 de 4</span></div>
+          <div class="a4-footer"><span id="prev-p3-empresa">Proposta Comercial</span><span id="a4num-3f">Página 3 de 4</span></div>
         </div>
 
         <!-- PÁG 4: INVESTIMENTO -->
@@ -1924,7 +1984,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <div class="a4-page">
           <div class="a4-header">
             <div class="a4-header-title">Investimento & Pagamento</div>
-            <div class="a4-header-pg">Página 4 / 4</div>
+            <div class="a4-header-pg" id="a4num-4h">Página 4 / 4</div>
           </div>
           <div class="a4-body">
             <div class="a4-invest-box" id="prev-invest-box">
@@ -1946,8 +2006,40 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
               <div style="flex:1;border-top:1px solid var(--text2);padding-top:6px;font-size:11px;color:var(--text2);text-align:center" id="prev-assin-cliente">Cliente</div>
             </div>
           </div>
-          <div class="a4-footer"><span id="prev-p4-empresa">Proposta Comercial</span><span>Página 4 de 4</span></div>
+          <div class="a4-footer"><span id="prev-p4-empresa">Proposta Comercial</span><span id="a4num-4f">Página 4 de 4</span></div>
         </div>
+
+        <!-- ═══ PÁGINAS DA PROPOSTA AVANÇADA ═══ -->
+        <div id="prop-avancada-preview-pages" style="display:none">
+
+          <!-- PÁG 5: LISTA DE MATERIAIS -->
+          <div class="a4-label">Página 5 — Lista de Materiais</div>
+          <div class="a4-page">
+            <div class="a4-header">
+              <div class="a4-header-title">Lista de Materiais e Serviço</div>
+              <div class="a4-header-pg" id="a4num-5h">Página 5 / 7</div>
+            </div>
+            <div class="a4-body" id="prev-mat-body"></div>
+            <div class="a4-footer"><span id="prev-p5-empresa">Proposta Comercial</span><span id="a4num-5f">Página 5 de 7</span></div>
+          </div>
+
+          <!-- PÁG 6: TERMOS E CONDIÇÕES -->
+          <div class="a4-label">Página 6 — Termos e Condições</div>
+          <div class="a4-page">
+            <div class="a4-header">
+              <div class="a4-header-title">Termos e Condições</div>
+              <div class="a4-header-pg" id="a4num-6h">Página 6 / 7</div>
+            </div>
+            <div class="a4-body" id="prev-termos-body"></div>
+            <div class="a4-footer"><span id="prev-p6-empresa">Proposta Comercial</span><span id="a4num-6f">Página 6 de 7</span></div>
+          </div>
+
+          <!-- PÁG 7: CASES DE SUCESSO -->
+          <div class="a4-label">Página 7 — Cases de Sucesso</div>
+          <div id="prev-cases-pages-container"></div>
+
+        </div>
+        <!-- ═══ /PÁGINAS DA PROPOSTA AVANÇADA ═══ -->
 
       </div><!-- /a4-wrap -->
     </div><!-- /preview-panel -->
@@ -5111,6 +5203,209 @@ function setModoCalc(modo){
   document.getElementById('equip-manual-fields').style.display = modo==='manual'?'block':'none';
   dimensionarAuto();
 }
+// ── MODO CONVENCIONAL/AVANÇADA ──────────────────────
+function setTipoProposta(tipo){
+  _tipoProposta = tipo;
+  document.getElementById('tipo-convencional').classList.toggle('active', tipo==='convencional');
+  document.getElementById('tipo-avancada').classList.toggle('active', tipo==='avancada');
+  var wrap = document.getElementById('prop-avancada-wrap');
+  if(wrap) wrap.style.display = tipo==='avancada' ? 'block' : 'none';
+  var pwrap = document.getElementById('prop-avancada-preview-pages');
+  if(pwrap) pwrap.style.display = tipo==='avancada' ? 'block' : 'none';
+  if(tipo==='avancada' && _propTermos.length===0) _seedTermosDefaults();
+  matRenderLista(); termosRender(); casesRender();
+  atualizarPreviewProposta();
+}
+function _seedTermosDefaults(){
+  _propTermos = [
+    {titulo:'PADRÃO DE ENTRADA', desc:'Não está incluso no valor da proposta custos relativos a uma possível adequação do padrão de entrada de energia da unidade consumidora.'},
+    {titulo:'TELHADO', desc:'A depender da estrutura do telhado, será necessária a elaboração de laudos técnicos e/ou reforços na estrutura; estes custos não estão inclusos na proposta comercial.'},
+    {titulo:'VISITA TÉCNICA', desc:'Será realizada uma visita técnica no local de instalação para melhor avaliação dos parâmetros necessários para elaboração do projeto.'},
+    {titulo:'MONITORAMENTO', desc:'É necessário ter internet no local de instalação para o uso do monitoramento online do sistema de energia solar.'}
+  ];
+}
+
+// ── LISTA DE MATERIAIS (Proposta Avançada) ──────────
+function matRenderLista(){
+  var list=document.getElementById('prop-mat-list'); if(!list) return;
+  list.innerHTML=_propMateriais.map(function(m,i){
+    if(m.grupo){
+      return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;background:var(--bg2);padding:6px 8px;border-radius:6px">'
+        +'<input class="prop-input" style="font-weight:700" value="'+_esc(m.item||'')+'" oninput="_propMateriais['+i+'].item=this.value;matAtualizarPreviewSeAtivo()" placeholder="Ex: GERADOR 33 KWP">'
+        +'<button type="button" onclick="matRemoverLinha('+i+')" style="background:none;border:none;color:#c53030;cursor:pointer;font-size:14px">✕</button></div>';
+    }
+    return '<div style="display:grid;grid-template-columns:2fr 1fr 0.7fr 0.7fr 0.9fr 0.9fr auto;gap:5px;margin-bottom:6px;align-items:end">'
+      +'<div class="fr" style="margin:0"><input class="prop-input" value="'+_esc(m.discriminacao||'')+'" oninput="_propMateriais['+i+'].discriminacao=this.value;matAtualizarPreviewSeAtivo()" placeholder="Discriminação"></div>'
+      +'<div class="fr" style="margin:0"><input class="prop-input" value="'+_esc(m.marca||'')+'" oninput="_propMateriais['+i+'].marca=this.value;matAtualizarPreviewSeAtivo()" placeholder="Marca"></div>'
+      +'<div class="fr" style="margin:0"><input class="prop-input" value="'+_esc(m.und||'')+'" oninput="_propMateriais['+i+'].und=this.value;matAtualizarPreviewSeAtivo()" placeholder="Und"></div>'
+      +'<div class="fr" style="margin:0"><input class="prop-input" type="number" value="'+(m.qtd||0)+'" oninput="_propMateriais['+i+'].qtd=parseFloat(this.value)||0;matAtualizarPreviewSeAtivo()" placeholder="Qtd"></div>'
+      +'<div class="fr" style="margin:0"><input class="prop-input" type="number" step="0.01" value="'+(m.vrUnit||0)+'" oninput="_propMateriais['+i+'].vrUnit=parseFloat(this.value)||0;matAtualizarPreviewSeAtivo()" placeholder="Vr Unit"></div>'
+      +'<div style="font-size:12px;font-weight:600;padding:7px 0">R$ '+_fmt((m.qtd||0)*(m.vrUnit||0))+'</div>'
+      +'<button type="button" onclick="matRemoverLinha('+i+')" style="background:none;border:none;color:#c53030;cursor:pointer;font-size:14px">✕</button></div>';
+  }).join('');
+  var totalEl=document.getElementById('prop-mat-total');
+  if(totalEl) totalEl.textContent='Total: R$ '+_fmt(matTotal());
+  matAtualizarPreviewSeAtivo();
+}
+function matAdicionarLinha(grupo){
+  _propMateriais.push(grupo?{grupo:true,item:''}:{grupo:false,discriminacao:'',marca:'-',und:'un',qtd:1,vrUnit:0});
+  matRenderLista();
+}
+function matRemoverLinha(i){ _propMateriais.splice(i,1); matRenderLista(); }
+function matTotal(){ return _propMateriais.reduce(function(s,m){ return s+(m.grupo?0:(m.qtd||0)*(m.vrUnit||0)); },0); }
+function matAtualizarPreviewSeAtivo(){ if(_tipoProposta==='avancada') _renderPreviewMateriais(); }
+function _renderPreviewMateriais(){
+  var body=document.getElementById('prev-mat-body'); if(!body) return;
+  var nome=(document.getElementById('p-nome')||{}).value||'–';
+  var kwp=(_propCalc&&_propCalc.kWpReal)?_propCalc.kWpReal.toFixed(2)+' kWp':'–';
+  var cidade=((document.getElementById('p-cidade')||{}).value||'')+'/'+((document.getElementById('p-estado')||{}).value||'');
+  var rows=_propMateriais.map(function(m,i){
+    if(m.grupo){
+      return '<tr><td colspan="7" style="background:var(--bg2);font-weight:700;padding:6px 8px">'+_esc(m.item||'')+'</td></tr>';
+    }
+    var n=_propMateriais.slice(0,i).filter(function(x){return !x.grupo;}).length+1;
+    return '<tr>'
+      +'<td style="padding:5px 8px;text-align:center">'+n+'</td>'
+      +'<td style="padding:5px 8px">'+_esc(m.discriminacao||'')+'</td>'
+      +'<td style="padding:5px 8px;text-align:center">'+_esc(m.marca||'-')+'</td>'
+      +'<td style="padding:5px 8px;text-align:center">'+_esc(m.und||'')+'</td>'
+      +'<td style="padding:5px 8px;text-align:center">'+(m.qtd||0)+'</td>'
+      +'<td style="padding:5px 8px;text-align:right">R$ '+_fmt(m.vrUnit||0)+'</td>'
+      +'<td style="padding:5px 8px;text-align:right;font-weight:600">R$ '+_fmt((m.qtd||0)*(m.vrUnit||0))+'</td></tr>';
+  }).join('');
+  body.innerHTML=''
+    +'<div class="a4-section-title">Dados do orçamento</div>'
+    +'<div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.8"><b>Cliente:</b> '+_esc(nome)+' &nbsp;·&nbsp; <b>UFV:</b> '+kwp+' &nbsp;·&nbsp; <b>Local:</b> '+_esc(cidade)+'</div>'
+    +'<table class="a4-mat-table"><thead><tr>'
+      +'<th style="width:26px">Item</th><th>Discriminação</th><th style="width:60px">Marca</th><th style="width:46px">Und</th><th style="width:42px">Qtd</th><th style="width:64px">Vr Unit</th><th style="width:74px">Vr Total</th>'
+    +'</tr></thead><tbody>'+(rows||'<tr><td colspan="7" style="padding:14px;text-align:center;color:var(--text2)">Nenhum item adicionado ainda.</td></tr>')+'</tbody></table>'
+    +'<div class="a4-mat-total">TOTAL <span>R$ '+_fmt(matTotal())+'</span></div>';
+}
+
+// ── TERMOS E CONDIÇÕES (Proposta Avançada) ──────────
+function termosRender(){
+  var list=document.getElementById('prop-termos-list'); if(!list) return;
+  list.innerHTML=_propTermos.map(function(t,i){
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg2)">'
+      +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">'
+      +'<input class="prop-input" style="font-weight:700;flex:1" value="'+_esc(t.titulo||'')+'" oninput="_propTermos['+i+'].titulo=this.value;termosAtualizarPreviewSeAtivo()" placeholder="Ex: PADRÃO DE ENTRADA">'
+      +'<button type="button" onclick="termosMover('+i+',-1)" style="background:none;border:none;cursor:pointer;font-size:13px" title="Mover para cima">↑</button>'
+      +'<button type="button" onclick="termosMover('+i+',1)" style="background:none;border:none;cursor:pointer;font-size:13px" title="Mover para baixo">↓</button>'
+      +'<button type="button" onclick="termosRemover('+i+')" style="background:none;border:none;color:#c53030;cursor:pointer;font-size:14px">✕</button></div>'
+      +'<textarea class="prop-input" rows="3" oninput="_propTermos['+i+'].desc=this.value;termosAtualizarPreviewSeAtivo()" placeholder="Descrição...">'+_esc(t.desc||'')+'</textarea></div>';
+  }).join('');
+  termosAtualizarPreviewSeAtivo();
+}
+function termosAdicionar(){ _propTermos.push({titulo:'',desc:''}); termosRender(); }
+function termosRemover(i){ _propTermos.splice(i,1); termosRender(); }
+function termosMover(i,dir){
+  var j=i+dir; if(j<0||j>=_propTermos.length) return;
+  var t=_propTermos[i]; _propTermos[i]=_propTermos[j]; _propTermos[j]=t; termosRender();
+}
+function termosAtualizarPreviewSeAtivo(){ if(_tipoProposta==='avancada') _renderPreviewTermos(); }
+function _renderPreviewTermos(){
+  var body=document.getElementById('prev-termos-body'); if(!body) return;
+  body.innerHTML=''
+    +'<div style="font-size:11px;color:var(--text2);margin-bottom:12px">Os dados abaixo descrevem os termos e condições para fornecimento dos produtos e serviços descritos nesta proposta comercial.</div>'
+    +_propTermos.map(function(t){
+      return '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--prop-cor-t);text-transform:uppercase;margin-bottom:3px">'+_esc(t.titulo||'')+'</div>'
+        +'<div style="font-size:11px;color:var(--text2);line-height:1.7">'+_esc(t.desc||'')+'</div></div>';
+    }).join('');
+}
+
+// ── CASES DE SUCESSO / PROJETO REFERÊNCIA (Proposta Avançada) ──────────
+function _downscaleImgFile(file, maxW, quality, cb){
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var scale=Math.min(1, maxW/img.width);
+      var w=Math.round(img.width*scale), h=Math.round(img.height*scale);
+      var cnv=document.createElement('canvas'); cnv.width=w; cnv.height=h;
+      cnv.getContext('2d').drawImage(img,0,0,w,h);
+      cb(cnv.toDataURL('image/jpeg', quality));
+    };
+    img.src=e.target.result;
+  };
+  rd.readAsDataURL(file);
+}
+function caseFotoAdd(input, caseIdx){
+  Array.from(input.files||[]).forEach(function(f){
+    if(_propCases[caseIdx].fotos.length>=4) return;
+    _downscaleImgFile(f, 1000, 0.72, function(b64){
+      _propCases[caseIdx].fotos.push({base64:b64, type:'JPEG', name:f.name});
+      casesRender();
+    });
+  });
+  input.value='';
+}
+function caseFotoRemove(caseIdx, fotoIdx){ _propCases[caseIdx].fotos.splice(fotoIdx,1); casesRender(); }
+function caseAdicionar(){ _propCases.push({fotos:[],cliente:'',cidade:'',potencia:'',economia:'',obs:''}); casesRender(); }
+function caseRemover(i){ _propCases.splice(i,1); casesRender(); }
+function _caseIsCompacta(c){ return c.fotos.length<=1 && (!c.obs || c.obs.length<=140); }
+function casesRender(){
+  var list=document.getElementById('prop-cases-list'); if(!list) return;
+  list.innerHTML=_propCases.map(function(c,i){
+    var fotosHtml=c.fotos.map(function(f,fi){
+      return '<div class="prop-folio-item"><img src="'+f.base64+'" alt="foto '+(fi+1)+'"><button type="button" class="prop-folio-rm" onclick="caseFotoRemove('+i+','+fi+')">✕</button></div>';
+    }).join('');
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;background:var(--bg2)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<span style="font-size:11px;font-weight:700;color:var(--text2)">Case #'+(i+1)+'</span>'
+      +'<button type="button" onclick="caseRemover('+i+')" style="background:none;border:none;color:#c53030;cursor:pointer;font-size:14px">✕ Remover</button></div>'
+      +'<div class="prop-folio-grid" style="margin-bottom:8px">'+fotosHtml+'</div>'
+      +'<button type="button" class="btn-s" onclick="document.getElementById(\'case-foto-input-'+i+'\').click()" style="margin-bottom:8px">📎 Adicionar foto(s)</button>'
+      +'<input type="file" id="case-foto-input-'+i+'" accept="image/*" multiple style="display:none" onchange="caseFotoAdd(this,'+i+')">'
+      +'<div class="prop-grid2">'
+      +'<div class="fr" style="margin-bottom:8px"><label class="prop-label">Nome do cliente</label><input class="prop-input" value="'+_esc(c.cliente||'')+'" oninput="_propCases['+i+'].cliente=this.value;casesAtualizarPreviewSeAtivo()" placeholder="Ex: João Silva"></div>'
+      +'<div class="fr" style="margin-bottom:8px"><label class="prop-label">Cidade</label><input class="prop-input" value="'+_esc(c.cidade||'')+'" oninput="_propCases['+i+'].cidade=this.value;casesAtualizarPreviewSeAtivo()" placeholder="Ex: Natal-RN"></div>'
+      +'</div>'
+      +'<div class="prop-grid2">'
+      +'<div class="fr" style="margin-bottom:8px"><label class="prop-label">Potência (kWp)</label><input class="prop-input" value="'+_esc(c.potencia||'')+'" oninput="_propCases['+i+'].potencia=this.value;casesAtualizarPreviewSeAtivo()" placeholder="Ex: 44,24"></div>'
+      +'<div class="fr" style="margin-bottom:8px"><label class="prop-label">Economia anual estimada (R$)</label><input class="prop-input" value="'+_esc(c.economia||'')+'" oninput="_propCases['+i+'].economia=this.value;casesAtualizarPreviewSeAtivo()" placeholder="Ex: 85.950,00"></div>'
+      +'</div>'
+      +'<div class="fr" style="margin-bottom:0"><label class="prop-label">Observação / Situação</label><textarea class="prop-input" rows="3" oninput="_propCases['+i+'].obs=this.value;casesAtualizarPreviewSeAtivo()" placeholder="Ex: Projeto de ampliação de ZERO GRID...">'+_esc(c.obs||'')+'</textarea></div>'
+      +'</div>';
+  }).join('');
+  casesAtualizarPreviewSeAtivo();
+}
+function casesAtualizarPreviewSeAtivo(){ if(_tipoProposta==='avancada') _renderPreviewCases(); }
+function _renderPreviewCases(){
+  var cont=document.getElementById('prev-cases-pages-container'); if(!cont) return;
+  var compactas=_propCases.filter(_caseIsCompacta);
+  var detalhadas=_propCases.filter(function(c){ return !_caseIsCompacta(c); });
+  var html='';
+  if(compactas.length){
+    var cardsHtml=compactas.map(function(c){
+      var foto=c.fotos[0];
+      return '<div class="a4-case-card">'
+        +(foto?'<img src="'+foto.base64+'" alt="case">':'<div class="a4-case-noimg">Sem foto</div>')
+        +'<div class="a4-case-overlay">'
+          +'<div class="a4-case-badge">+1 PROJETO CONCLUÍDO</div>'
+          +(c.economia?'<div class="a4-case-eco">Economia Anual Estimada<br><b>R$ '+_esc(c.economia)+'</b></div>':'')
+          +'<div class="a4-case-chips">'+[c.cidade,c.cliente,c.potencia?c.potencia+' kWp':''].filter(Boolean).map(function(t){return '<span>'+_esc(t)+'</span>';}).join('')+'</div>'
+        +'</div></div>';
+    }).join('');
+    html+='<div class="a4-label">Página 7 — Cases de Sucesso</div><div class="a4-page"><div class="a4-header"><div class="a4-header-title">Cases de Sucesso</div><div class="a4-header-pg" id="a4num-7h">Página 7 / 7</div></div>'
+      +'<div class="a4-body"><div class="a4-case-grid">'+cardsHtml+'</div></div>'
+      +'<div class="a4-footer"><span id="prev-p7-empresa">Proposta Comercial</span><span id="a4num-7f">Página 7 de 7</span></div></div>';
+  }
+  detalhadas.forEach(function(c,idx){
+    var fotosHtml=c.fotos.map(function(f){ return '<img src="'+f.base64+'" alt="foto" style="width:calc(33.33% - 6px);border-radius:6px;object-fit:cover;aspect-ratio:4/3">'; }).join('');
+    html+='<div class="a4-label">Página '+(8+idx)+' — Projeto Referência</div><div class="a4-page"><div class="a4-header"><div class="a4-header-title">Projeto Referência</div><div class="a4-header-pg">–</div></div>'
+      +'<div class="a4-body">'
+        +'<div style="font-size:11px;line-height:2;margin-bottom:10px">'
+          +(c.cliente?'<b>CLIENTE:</b> '+_esc(c.cliente)+'<br>':'')
+          +(c.cidade?'<b>CIDADE:</b> '+_esc(c.cidade)+'<br>':'')
+          +(c.obs?'<b>SITUAÇÃO:</b> '+_esc(c.obs):'')
+        +'</div>'
+        +'<div style="display:flex;gap:8px;flex-wrap:wrap">'+fotosHtml+'</div>'
+      +'</div>'
+      +'<div class="a4-footer"><span>Proposta Comercial</span><span>–</span></div></div>';
+  });
+  cont.innerHTML=html;
+}
+
 function setSimult(val, tipo){
   document.getElementById('p-simult').value = val;
   document.getElementById('p-simult-val').textContent = val+'%';
@@ -5570,6 +5865,30 @@ function atualizarPreviewProposta(){
   // Validade
   var valEl=document.getElementById('prev-validade-info');
   if(valEl) valEl.textContent='Esta proposta é válida por '+validade+' dias corridos — até '+_dataValidade(validade)+'.';
+
+  if(_tipoProposta==='avancada'){
+    _renderPreviewMateriais();
+    _renderPreviewTermos();
+    _renderPreviewCases();
+  }
+  _atualizarNumeracaoPreview();
+}
+
+function _atualizarNumeracaoPreview(){
+  var total = _tipoProposta==='avancada' ? 7 : 4;
+  ['1','2h','2f','3h','3f','4h','4f'].forEach(function(k){
+    var el=document.getElementById('a4num-'+k);
+    if(!el) return;
+    if(k==='1') el.textContent='1 / '+total;
+    else if(k.charAt(1)==='h') el.textContent='Página '+k.charAt(0)+' / '+total;
+    else el.textContent='Página '+k.charAt(0)+' de '+total;
+  });
+  ['5h','5f','6h','6f'].forEach(function(k){
+    var el=document.getElementById('a4num-'+k);
+    if(!el) return;
+    if(k.charAt(1)==='h') el.textContent='Página '+k.charAt(0)+' / '+total;
+    else el.textContent='Página '+k.charAt(0)+' de '+total;
+  });
 }
 
 function irParaProposta(){
@@ -5747,8 +6066,43 @@ function gerarPDFProposta(modo){
     yT+=linhasGarT*24+2;
     return (yT+40>H-25);
   }
+  // Pré-cálculo de páginas da Proposta Avançada (Materiais/Termos/Cases) —
+  // mesma disciplina do descritivo/investimento acima: uma função de layout
+  // é usada tanto para CONTAR quanto para DESENHAR, então nunca diverge.
+  function _layoutMateriais(){
+    var rowsPerPage=Math.max(1,Math.floor(((H-25)-48)/6));
+    var paginas=[];
+    for(var i=0;i<_propMateriais.length;i+=rowsPerPage){
+      paginas.push(_propMateriais.slice(i,i+rowsPerPage));
+    }
+    return paginas;
+  }
+  function _qtdPaginasMateriais(){ return _propMateriais.length?_layoutMateriais().length:0; }
+  function _layoutTermos(){
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    var paginas=[[]], yBudgetPrimeira=(H-25)-52, yBudgetOutras=(H-25)-30;
+    var yUsado=0, pagIdx=0;
+    _propTermos.forEach(function(t){
+      var linhas=doc.splitTextToSize(t.desc||'',W-mg*2-4);
+      var alt=6+linhas.length*4.3+6;
+      var budget=pagIdx===0?yBudgetPrimeira:yBudgetOutras;
+      if(yUsado+alt>budget && paginas[pagIdx].length>0){ pagIdx++; paginas.push([]); yUsado=0; }
+      paginas[pagIdx].push({titulo:t.titulo,desc:t.desc,linhas:linhas});
+      yUsado+=alt;
+    });
+    return paginas;
+  }
+  function _qtdPaginasTermos(){ return _propTermos.length?_layoutTermos().length:0; }
+  function _qtdPaginasCases(){
+    if(!_propCases.length) return 0;
+    var compactas=_propCases.filter(_caseIsCompacta).length;
+    var detalhadas=_propCases.length-compactas;
+    return (compactas>0?Math.ceil(compactas/4):0)+detalhadas;
+  }
   var pgAtual=1;
-  var totalPaginas=4+_qtdPaginasDescritivo(descritivo)+(_investimentoPrecisaContinuar()?1:0)+((_portfolioImgs&&_portfolioImgs.length>0)?1:0);
+  var totalPaginas=4+_qtdPaginasDescritivo(descritivo)+(_investimentoPrecisaContinuar()?1:0)
+    +(_tipoProposta==='avancada' ? (_qtdPaginasMateriais()+_qtdPaginasTermos()+_qtdPaginasCases()) : 0)
+    +((_portfolioImgs&&_portfolioImgs.length>0)?1:0);
 
   function addHeader(doc,title,pg){
     doc.setFillColor(pcr,pcg,pcb); doc.rect(0,0,W,18,'F');
@@ -5791,6 +6145,134 @@ function gerarPDFProposta(modo){
     doc.text(title.toUpperCase(),mg+6,y+4);
     doc.setDrawColor(pcr,pcg,pcb); doc.line(mg+6,y+5,W-mg,y+5);
     return y+12;
+  }
+
+  // ═══ PROPOSTA AVANÇADA — desenho das 3 seções extras ═══
+  function _desenharPaginasMateriais(){
+    if(!_propMateriais.length) return;
+    var paginas=_layoutMateriais();
+    paginas.forEach(function(linhas,pIdx){
+      doc.addPage(); pgAtual++;
+      addHeader(doc,'Lista de Materiais e Serviço',pgAtual);
+      var y=26;
+      if(pIdx===0){
+        var kwpC=(c&&c.kWpReal)?c.kWpReal.toFixed(2)+' kWp':'—';
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,85);
+        doc.text('Cliente: '+nome+'   ·   UFV: '+kwpC+'   ·   Local: '+local,mg,y+4);
+        y+=12;
+      } else { y+=4; }
+      doc.setFillColor(pcr,pcg,pcb); doc.rect(mg,y,W-mg*2,7,'F');
+      doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+      doc.text('ITEM',mg+2,y+5); doc.text('DISCRIMINAÇÃO',mg+16,y+5);
+      doc.text('MARCA',W-mg-74,y+5); doc.text('UND',W-mg-56,y+5); doc.text('QTD',W-mg-42,y+5);
+      doc.text('VR UNIT',W-mg-30,y+5); doc.text('VR TOTAL',W-mg-2,y+5,{align:'right'});
+      y+=9;
+      var itemNum=paginas.slice(0,pIdx).reduce(function(s,pg){return s+pg.filter(function(m){return !m.grupo;}).length;},0);
+      linhas.forEach(function(m){
+        if(m.grupo){
+          doc.setFillColor(240,240,236); doc.rect(mg,y-4.5,W-mg*2,6,'F');
+          doc.setTextColor(60,60,55); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+          doc.text((m.item||'').toUpperCase(),mg+2,y);
+          y+=6.5; return;
+        }
+        itemNum++;
+        doc.setTextColor(70,70,65); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+        doc.text(String(itemNum),mg+2,y);
+        doc.text(String(m.discriminacao||''),mg+16,y,{maxWidth:W-mg-16-90});
+        doc.text(String(m.marca||'-'),W-mg-74,y);
+        doc.text(String(m.und||''),W-mg-56,y);
+        doc.text(String(m.qtd||0),W-mg-42,y);
+        doc.text('R$ '+_fmt(m.vrUnit||0),W-mg-30,y);
+        doc.setFont('helvetica','bold');
+        doc.text('R$ '+_fmt((m.qtd||0)*(m.vrUnit||0)),W-mg-2,y,{align:'right'});
+        doc.setDrawColor(230,230,226); doc.line(mg,y+2,W-mg,y+2);
+        y+=6;
+      });
+      if(pIdx===paginas.length-1){
+        y+=4;
+        doc.setFillColor(pcrL,pcgL,pcbL); doc.rect(mg,y-5,W-mg*2,8,'F');
+        doc.setTextColor(pcrM,pcgM,pcbM); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+        doc.text('TOTAL',mg+2,y);
+        doc.text('R$ '+_fmt(matTotal()),W-mg-2,y,{align:'right'});
+      }
+      addFooter(doc,pgAtual);
+    });
+  }
+  function _desenharPaginasTermos(){
+    if(!_propTermos.length) return;
+    var paginas=_layoutTermos();
+    paginas.forEach(function(itens,pIdx){
+      doc.addPage(); pgAtual++;
+      addHeader(doc,'Termos e Condições',pgAtual);
+      var y=30;
+      if(pIdx===0){
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,90,85);
+        var introLinhas=doc.splitTextToSize('Os dados abaixo descrevem os termos e condições para fornecimento dos produtos e serviços descritos nesta proposta comercial.',W-mg*2-4);
+        doc.text(introLinhas,mg,y); y+=introLinhas.length*4.3+6;
+      } else { y+=4; }
+      itens.forEach(function(it){
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(pcr,pcg,pcb);
+        doc.text((it.titulo||'').toUpperCase(),mg,y); y+=5.5;
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80,80,75);
+        doc.text(it.linhas,mg,y); y+=it.linhas.length*4.3+6;
+      });
+      addFooter(doc,pgAtual);
+    });
+  }
+  function _desenharPaginasCases(){
+    if(!_propCases.length) return;
+    var compactas=_propCases.filter(_caseIsCompacta);
+    var detalhadas=_propCases.filter(function(cs){return !_caseIsCompacta(cs);});
+    var idx=0;
+    while(idx<compactas.length){
+      var grupo=compactas.slice(idx,idx+4);
+      doc.addPage(); pgAtual++;
+      addHeader(doc,'Cases de Sucesso',pgAtual);
+      var cCols=2,cGap=6,cW=(W-mg*2-cGap)/cCols,cH=70,cy0=26;
+      grupo.forEach(function(cs,gi){
+        var col=gi%cCols, row=Math.floor(gi/cCols);
+        var cx=mg+col*(cW+cGap), cy=cy0+row*(cH+cGap);
+        doc.setFillColor(235,235,230); doc.roundedRect(cx,cy,cW,cH,2,2,'F');
+        var foto=cs.fotos[0];
+        if(foto){ try{ doc.addImage(foto.base64,foto.type||'JPEG',cx,cy,cW,cH); }catch(e){} }
+        doc.setFillColor(20,20,18); doc.rect(cx,cy+cH-26,cW,26,'F');
+        doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+        doc.text('+1 PROJETO CONCLUÍDO',cx+3,cy+cH-20);
+        if(cs.economia){
+          doc.setFontSize(10);
+          doc.text('R$ '+cs.economia,cx+3,cy+cH-13);
+        }
+        doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+        var chips=[cs.cidade,cs.cliente,cs.potencia?cs.potencia+' kWp':''].filter(Boolean).join('   ·   ');
+        doc.text(chips,cx+3,cy+cH-4,{maxWidth:cW-6});
+      });
+      addFooter(doc,pgAtual);
+      idx+=4;
+    }
+    detalhadas.forEach(function(cs){
+      doc.addPage(); pgAtual++;
+      addHeader(doc,'Projeto Referência',pgAtual);
+      var y=30;
+      doc.setFontSize(10); doc.setTextColor(60,60,55);
+      if(cs.cliente){ doc.setFont('helvetica','bold'); doc.text('CLIENTE: ',mg,y); doc.setFont('helvetica','normal'); doc.text(String(cs.cliente),mg+22,y); y+=7; }
+      if(cs.cidade){ doc.setFont('helvetica','bold'); doc.text('CIDADE: ',mg,y); doc.setFont('helvetica','normal'); doc.text(String(cs.cidade),mg+22,y); y+=7; }
+      if(cs.obs){
+        doc.setFont('helvetica','bold'); doc.text('SITUAÇÃO:',mg,y); y+=5;
+        doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        var linhasObs=doc.splitTextToSize(String(cs.obs),W-mg*2-4);
+        doc.text(linhasObs,mg,y); y+=linhasObs.length*4.5+6;
+      }
+      y+=4;
+      var fotos=cs.fotos||[];
+      var fCols=Math.min(3,fotos.length)||1, fGap=4, fW=(W-mg*2-(fCols-1)*fGap)/fCols, fH=fW*0.75;
+      fotos.forEach(function(f,fi){
+        var col=fi%fCols, row=Math.floor(fi/fCols);
+        var fx=mg+col*(fW+fGap), fy=y+row*(fH+fGap);
+        if(fy+fH>H-25) return;
+        try{ doc.addImage(f.base64,f.type||'JPEG',fx,fy,fW,fH); }catch(e){}
+      });
+      addFooter(doc,pgAtual);
+    });
   }
 
   // ═══ PÁG 1 — CAPA ═══
@@ -6123,6 +6605,13 @@ function gerarPDFProposta(modo){
   y+=14;
   addFooter(doc,pgAtual);
 
+  // Proposta Avançada — Materiais / Termos / Cases (páginas extras)
+  if(_tipoProposta==='avancada'){
+    _desenharPaginasMateriais();
+    _desenharPaginasTermos();
+    _desenharPaginasCases();
+  }
+
   // Portfólio (página extra, se houver imagens)
   if(_portfolioImgs&&_portfolioImgs.length>0){
     doc.addPage(); pgAtual++;
@@ -6447,9 +6936,16 @@ function salvarProposta(){
       cobrarICMS:!!(document.getElementById('p-cobrar-icms')||{}).checked,
       icmsPct:gv('p-icms-pct','17'),
       numProp:_propNumPDF||'',
-      hsp:_propHSP||5.0
+      hsp:_propHSP||5.0,
+      tipoProposta:_tipoProposta||'convencional',
+      materiais:JSON.parse(JSON.stringify(_propMateriais||[])),
+      termos:JSON.parse(JSON.stringify(_propTermos||[])),
+      cases:JSON.parse(JSON.stringify(_propCases||[]))
     }
   };
+  if(JSON.stringify(prop).length>900000){
+    toast('⚠️ Muitas fotos nos cases — a proposta foi salva neste dispositivo, mas pode não sincronizar na nuvem. Reduza a quantidade/tamanho das fotos.');
+  }
   var hist=_loadHist();
   if(_editandoPropostaId){
     prop.id=_editandoPropostaId; prop.data=prop.data;
@@ -6525,6 +7021,10 @@ function cancelarEdicao(){
   var ne=document.getElementById('p-nome-empresa'); if(ne) ne.value='';
   // Repreencher rodapé com dados do perfil para nova proposta
   if(typeof preencherRodapaoDoPerfil==='function') preencherRodapaoDoPerfil();
+  // Limpar dados da Proposta Avançada (não vazar cliente anterior)
+  _propMateriais=[]; _propCases=[];
+  _seedTermosDefaults();
+  setTipoProposta('convencional');
 }
 function _setBannerEdicao(cliente){
   _editandoPropostaId=null; // será redefinido depois
@@ -6585,6 +7085,10 @@ function editarProposta(id){
   if(s.hsp) _propHSP=s.hsp; else buscarHSP();
   dimensionarAuto();
   if(s.descritivo){ sv('p-descritivo',s.descritivo); }
+  _propMateriais=s.materiais?JSON.parse(JSON.stringify(s.materiais)):[];
+  _propTermos=s.termos?JSON.parse(JSON.stringify(s.termos)):[];
+  _propCases=s.cases?JSON.parse(JSON.stringify(s.cases)):[];
+  setTipoProposta(s.tipoProposta||'convencional');
   atualizarPreviewProposta();
   window.scrollTo(0,0);
   toast('✏️ Proposta carregada para edição.');
@@ -7612,6 +8116,11 @@ var _resetPending = {}; // mantido por compatibilidade; lógica migrada para API
 var _editandoPropostaId = null;
 var _portfolioImgs = []; // [{base64, name}]
 var _propLogoBase64 = null; // logo override para a proposta atual
+
+var _tipoProposta = 'convencional'; // 'convencional' | 'avancada'
+var _propMateriais = []; // [{grupo:false,discriminacao,marca,und,qtd,vrUnit}] ou [{grupo:true,item}]
+var _propTermos = []; // [{titulo,desc}]
+var _propCases = []; // [{fotos:[{base64,type,name}],cliente,cidade,potencia,economia,obs}]
 
 function _hideAllAuthForms(){
   ['aform-login','aform-cadastro','aform-recuperar','aform-codigo','aform-link','aform-recuperar-ok'].forEach(function(id){
