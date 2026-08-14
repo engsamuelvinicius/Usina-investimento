@@ -1635,10 +1635,20 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <!-- MANUAL -->
         <div id="equip-manual-fields" class="prop-manual-box" style="display:none">
           <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:10px">✏️ Inserção manual — informe os valores diretamente</div>
+          <label class="prop-check-item" style="margin-bottom:10px"><input type="checkbox" id="p-ampliacao" onchange="onAmpliacaoChange()"> Cliente já tem uma usina (este é um serviço de ampliação)</label>
+          <div id="ampliacao-existente-fields" style="display:none;margin-bottom:12px;padding:10px;background:var(--bg2);border-radius:8px">
+            <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Usina existente</div>
+            <div class="prop-grid3">
+              <div class="fr" style="margin-bottom:0"><label class="prop-label">kWp existente</label><input id="p-kwp-existente" class="prop-input" type="number" step="0.01" min="0" placeholder="33.00" oninput="dimensionarAuto()"></div>
+              <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº módulos existentes</label><input id="p-nmod-existente" class="prop-input" type="number" min="0" placeholder="79" oninput="dimensionarAuto()"></div>
+              <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº inversores existentes</label><input id="p-ninv-existente" class="prop-input" type="number" min="0" placeholder="1" oninput="dimensionarAuto()"></div>
+            </div>
+          </div>
+          <div id="ampliacao-nova-label" style="display:none;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Nova usina (ampliação)</div>
           <div class="prop-grid3" style="margin-bottom:8px">
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">kWp total</label><input id="p-kwp-manual" class="prop-input" type="number" placeholder="6.40" step="0.01" min="0" oninput="_manualKwp()"></div>
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº de módulos</label><input id="p-nmod-manual" class="prop-input" type="number" placeholder="11" min="1" oninput="_manualNmodOuWmod()"></div>
-            <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº de inversores</label><input id="p-ninv-manual" class="prop-input" type="number" placeholder="1" min="1" oninput="dimensionarAuto()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label" id="lbl-kwp-manual">kWp total</label><input id="p-kwp-manual" class="prop-input" type="number" placeholder="6.40" step="0.01" min="0" oninput="_manualKwp()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label" id="lbl-nmod-manual">Nº de módulos</label><input id="p-nmod-manual" class="prop-input" type="number" placeholder="11" min="1" oninput="_manualNmodOuWmod()"></div>
+            <div class="fr" style="margin-bottom:0"><label class="prop-label" id="lbl-ninv-manual">Nº de inversores</label><input id="p-ninv-manual" class="prop-input" type="number" placeholder="1" min="1" oninput="dimensionarAuto()"></div>
           </div>
           <div class="prop-grid2">
             <div class="fr" style="margin-bottom:0"><label class="prop-label">Pot. módulo (W)</label><input id="p-wmodulo-m" class="prop-input" type="number" placeholder="590" value="590" min="100" max="800" oninput="_manualNmodOuWmod()"></div>
@@ -5224,6 +5234,19 @@ function setModoCalc(modo){
   document.getElementById('equip-manual-fields').style.display = modo==='manual'?'block':'none';
   dimensionarAuto();
 }
+// Ampliação (usina existente + nova) — só existe no modo Manual, para
+// diferenciar na proposta o que o cliente já tem do que está sendo
+// acrescentado (kWp/módulos/inversores somam para o total do sistema).
+function onAmpliacaoChange(){
+  var chk=document.getElementById('p-ampliacao');
+  var on=!!(chk&&chk.checked);
+  var ex=document.getElementById('ampliacao-existente-fields'); if(ex) ex.style.display=on?'block':'none';
+  var lbl=document.getElementById('ampliacao-nova-label'); if(lbl) lbl.style.display=on?'block':'none';
+  var lk=document.getElementById('lbl-kwp-manual'); if(lk) lk.textContent=on?'kWp da ampliação':'kWp total';
+  var lm=document.getElementById('lbl-nmod-manual'); if(lm) lm.textContent=on?'Nº módulos (ampliação)':'Nº de módulos';
+  var li=document.getElementById('lbl-ninv-manual'); if(li) li.textContent=on?'Nº inversores (ampliação)':'Nº de inversores';
+  dimensionarAuto();
+}
 // ── MODO CONVENCIONAL/AVANÇADA ──────────────────────
 function setTipoProposta(tipo){
   _tipoProposta = tipo;
@@ -5497,14 +5520,28 @@ function dimensionarAuto(){
   var simPct = parseFloat(document.getElementById('p-simult').value||'40');
   var sim=simPct/100, ip=ipPct/100;
   var kWpReal,nMod,nInv,wMod,kInv,fdi,fdiOk;
+  var ampliacao=false, kWpExistente=0, nModExistente=0, nInvExistente=0;
   if(_modoCalc==='manual'){
+    ampliacao=!!(document.getElementById('p-ampliacao')||{}).checked;
     kWpReal=parseFloat((document.getElementById('p-kwp-manual')||{}).value)||0;
     nMod=parseInt((document.getElementById('p-nmod-manual')||{}).value)||0;
     nInv=parseInt((document.getElementById('p-ninv-manual')||{}).value)||1;
     wMod=parseFloat((document.getElementById('p-wmodulo-m')||{}).value)||580;
     kInv=parseFloat((document.getElementById('p-kinversor-m')||{}).value)||8;
-    if(kWpReal<=0){document.getElementById('prop-results-box').style.display='none';atualizarPreviewProposta();return;}
-    if(!nMod)nMod=Math.ceil(kWpReal*1000/wMod);
+    if(ampliacao){
+      kWpExistente=parseFloat((document.getElementById('p-kwp-existente')||{}).value)||0;
+      nModExistente=parseInt((document.getElementById('p-nmod-existente')||{}).value)||0;
+      nInvExistente=parseInt((document.getElementById('p-ninv-existente')||{}).value)||0;
+    }
+    if(kWpReal<=0 && kWpExistente<=0){document.getElementById('prop-results-box').style.display='none';atualizarPreviewProposta();return;}
+    if(!nMod && kWpReal>0)nMod=Math.ceil(kWpReal*1000/wMod);
+    // A partir daqui kWpReal/nMod/nInv passam a representar o TOTAL
+    // (existente + novo) — os campos digitados acima eram só a parte nova
+    // quando "ampliação" está marcado (quando não está, existente=0 e nada
+    // muda em relação ao comportamento anterior).
+    kWpReal=kWpReal+kWpExistente;
+    nMod=nMod+nModExistente;
+    nInv=nInv+nInvExistente;
     fdi=kWpReal/(nInv*kInv); fdiOk=fdi>=0.5&&fdi<=1.5;
   } else {
     wMod=parseFloat(document.getElementById('p-wmodulo').value)||580;
@@ -5536,7 +5573,9 @@ function dimensionarAuto(){
   var econMensal=Math.max(_kwhRef*_fullRate - fatComSolar, 0);
   var econAnual=econMensal*12;
   var payback=(valor>0&&econAnual>0)?valor/econAnual:0;
-  _propCalc={kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,valor,fioB,ipPct,bandeira,simPct,sim,fatComSolar,SC,INJ_util,grid_rem};
+  _propCalc={kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,valor,fioB,ipPct,bandeira,simPct,sim,fatComSolar,SC,INJ_util,grid_rem,
+    ampliacao:ampliacao, kWpExistente:kWpExistente, nModExistente:nModExistente, nInvExistente:nInvExistente,
+    kWpNovo:(kWpReal-kWpExistente), nModNovo:(nMod-nModExistente), nInvNovo:(nInv-nInvExistente)};
   document.getElementById('prop-results-box').style.display='block';
   document.getElementById('pr-kwp').textContent=kWpReal.toFixed(2)+' kWp';
   document.getElementById('pr-mod').textContent=nMod;
@@ -5775,8 +5814,13 @@ function atualizarPreviewProposta(){
   var brandInv=(document.getElementById('p-brand-inversor')||{}).value||'';
   var expansao=((document.getElementById('p-expansao')||{}).value)||'Não';
   var sps=document.getElementById('prev-sistema-specs');
+  var ampliacaoRows = c.ampliacao ?
+    '<div class="a4-spec-row" style="background:var(--green-l)"><span class="a4-spec-key" style="font-weight:700">Usina já existente</span><span class="a4-spec-val">'+(c.kWpExistente||0).toFixed(2)+' kWp — '+(c.nModExistente||0)+' módulos — '+(c.nInvExistente||0)+' inv.</span></div>'+
+    '<div class="a4-spec-row" style="background:var(--green-l)"><span class="a4-spec-key" style="font-weight:700">Ampliação (novo)</span><span class="a4-spec-val">'+(c.kWpNovo||0).toFixed(2)+' kWp — '+(c.nModNovo||0)+' módulos — '+(c.nInvNovo||0)+' inv.</span></div>'
+    : '';
   if(sps) sps.innerHTML= c.kWpReal?
-    '<div class="a4-spec-row"><span class="a4-spec-key">Potência instalada</span><span class="a4-spec-val">'+c.kWpReal.toFixed(2)+' kWp</span></div>'+
+    ampliacaoRows+
+    '<div class="a4-spec-row"><span class="a4-spec-key">'+(c.ampliacao?'Potência total (existente + ampliação)':'Potência instalada')+'</span><span class="a4-spec-val">'+c.kWpReal.toFixed(2)+' kWp</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Módulos fotovoltaicos</span><span class="a4-spec-val">'+c.nMod+' × '+(c.wMod||580)+'W'+(brandMod?' — '+brandMod:'')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Inversores</span><span class="a4-spec-val">'+c.nInv+' × '+(c.kInv||8)+' kW'+(brandInv?' — '+brandInv:'')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">FDI (sobrecarga)</span><span class="a4-spec-val">'+(c.fdi?c.fdi.toFixed(2):'-')+' '+(c.fdiOk?'✓ Ok':'⚠ Atenção')+'</span></div>'+
@@ -6446,7 +6490,11 @@ function gerarPDFProposta(modo){
   y+=4;
   y=sectionTitle(doc,y,'Dimensionamento do sistema');
   if(c.kWpReal){
-    y=specRow(doc,y,'Potência instalada',c.kWpReal.toFixed(2)+' kWp',shade=!shade);
+    if(c.ampliacao){
+      y=specRow(doc,y,'Usina já existente',(c.kWpExistente||0).toFixed(2)+' kWp — '+(c.nModExistente||0)+' módulos — '+(c.nInvExistente||0)+' inv.',shade=!shade);
+      y=specRow(doc,y,'Ampliação (novo)',(c.kWpNovo||0).toFixed(2)+' kWp — '+(c.nModNovo||0)+' módulos — '+(c.nInvNovo||0)+' inv.',shade=!shade);
+    }
+    y=specRow(doc,y,c.ampliacao?'Potência total (existente + ampliação)':'Potência instalada',c.kWpReal.toFixed(2)+' kWp',shade=!shade);
     var modLabel=brandMod?(c.nMod+' × '+brandMod):(c.nMod+' × '+(c.wMod||580)+'W');
     var invLabel=brandInv?(c.nInv+' × '+brandInv):(c.nInv+' × '+(c.kInv||8)+' kW');
     y=specRow(doc,y,'Módulos fotovoltaicos',modLabel,shade=!shade);
@@ -6987,6 +7035,11 @@ function gerarDescritivo(){
   var brandInv=(document.getElementById('p-brand-inversor')||{}).value||'';
   var est=(document.getElementById('p-estrutura')||{}).value||'Cerâmico';
   var linhas=[];
+  if(c.ampliacao){
+    linhas.push('Sistema já existente: '+(c.kWpExistente||0).toFixed(2)+' kWp ('+(c.nModExistente||0)+' módulos, '+(c.nInvExistente||0)+' inversor'+((c.nInvExistente||0)!==1?'es':'')+')');
+    linhas.push('Ampliação (novo): '+(c.kWpNovo||0).toFixed(2)+' kWp ('+(c.nModNovo||0)+' módulos'+(brandMod?' '+brandMod:'')+')');
+    linhas.push('Potência total após ampliação: '+c.kWpReal.toFixed(2)+' kWp');
+  }
   if((document.getElementById('inc-eq')||{}).checked)
     linhas.push(c.nMod+' módulos fotovoltaicos '+(c.wMod||580)+'W'+(brandMod?' '+brandMod:''));
   if((document.getElementById('inc-eq')||{}).checked)
@@ -7045,6 +7098,8 @@ function salvarProposta(){
       wMod:gv('p-wmodulo','580'), kInv:gv('p-kinversor','8'), margem:gv('p-margem','0'),
       kwpManual:gv('p-kwp-manual',''), nModManual:gv('p-nmod-manual',''), nInvManual:gv('p-ninv-manual',''),
       wModM:gv('p-wmodulo-m','580'), kInvM:gv('p-kinversor-m','8'),
+      ampliacao:!!(document.getElementById('p-ampliacao')||{}).checked,
+      kwpExistente:gv('p-kwp-existente',''), nModExistente:gv('p-nmod-existente',''), nInvExistente:gv('p-ninv-existente',''),
       pagamento:gv('p-pagamento',''),
       fin1parc:gv('p-fin1-parc',''), fin1val:gv('p-fin1-val',''),
       fin2parc:gv('p-fin2-parc',''), fin2val:gv('p-fin2-val',''),
@@ -7206,7 +7261,12 @@ function editarProposta(id){
   initCorProposta();
   if(s.modoCalc) { setModoCalc(s.modoCalc);
     if(s.modoCalc==='auto'){ sv('p-wmodulo',s.wMod); sv('p-kinversor',s.kInv); sv('p-margem',s.margem); }
-    else { sv('p-kwp-manual',s.kwpManual); sv('p-nmod-manual',s.nModManual); sv('p-ninv-manual',s.nInvManual); sv('p-wmodulo-m',s.wModM); sv('p-kinversor-m',s.kInvM); }
+    else {
+      sv('p-kwp-manual',s.kwpManual); sv('p-nmod-manual',s.nModManual); sv('p-ninv-manual',s.nInvManual); sv('p-wmodulo-m',s.wModM); sv('p-kinversor-m',s.kInvM);
+      var ampCb=document.getElementById('p-ampliacao'); if(ampCb) ampCb.checked=!!s.ampliacao;
+      sv('p-kwp-existente',s.kwpExistente); sv('p-nmod-existente',s.nModExistente); sv('p-ninv-existente',s.nInvExistente);
+      onAmpliacaoChange();
+    }
   }
   sc('inc-eq',s.incEq); sc('inc-cabo',s.incCabo); sc('inc-ca',s.incCa); sc('inc-proj',s.incProj);
   sc('inc-inst',s.incInst); sc('inc-hom',s.incHom); sc('inc-mon',s.incMon); sc('inc-pad',s.incPad);
