@@ -5531,9 +5531,7 @@ function dimensionarAuto(){
     ampliacao=!!(document.getElementById('p-ampliacao')||{}).checked;
     kWpReal=parseFloat((document.getElementById('p-kwp-manual')||{}).value)||0;
     nMod=parseInt((document.getElementById('p-nmod-manual')||{}).value)||0;
-    nInv=parseInt((document.getElementById('p-ninv-manual')||{}).value)||1;
     wMod=parseFloat((document.getElementById('p-wmodulo-m')||{}).value)||580;
-    kInv=parseFloat((document.getElementById('p-kinversor-m')||{}).value)||8;
     if(ampliacao){
       kWpExistente=parseFloat((document.getElementById('p-kwp-existente')||{}).value)||0;
       nModExistente=parseInt((document.getElementById('p-nmod-existente')||{}).value)||0;
@@ -5542,8 +5540,26 @@ function dimensionarAuto(){
       wModExistente=parseFloat((document.getElementById('p-wmod-existente')||{}).value)||0;
       kInvExistente=parseFloat((document.getElementById('p-kinv-existente')||{}).value)||0;
     }
+    // Nº/potência de inversores da parte NOVA: em ampliação, 0 (ou vazio) é
+    // valor válido — pode não haver inversor novo nenhum (ex: realocação
+    // pura da usina existente). Sem ampliação, mantém o mínimo de 1
+    // inversor / 8kW de sempre (sistema não faz sentido sem inversor).
+    var _nInvManualRaw=parseInt((document.getElementById('p-ninv-manual')||{}).value);
+    var _kInvManualRaw=parseFloat((document.getElementById('p-kinversor-m')||{}).value);
+    if(ampliacao){
+      nInv=isNaN(_nInvManualRaw)?0:_nInvManualRaw;
+      kInv=isNaN(_kInvManualRaw)?0:_kInvManualRaw;
+    } else {
+      nInv=_nInvManualRaw||1;
+      kInv=_kInvManualRaw||8;
+    }
     if(kWpReal<=0 && kWpExistente<=0){document.getElementById('prop-results-box').style.display='none';atualizarPreviewProposta();return;}
     if(!nMod && kWpReal>0)nMod=Math.ceil(kWpReal*1000/wMod);
+    // Capacidade total de inversores em kW = existente + nova. Antes o FDI
+    // e o rótulo "N×kW" multiplicavam a CONTAGEM total pela potência de um
+    // único inversor (o novo), dando resultado errado sempre que existente
+    // e novo tivessem potências diferentes — ou nem houvesse inversor novo.
+    var invCapNovo=nInv*kInv, invCapExistente=nInvExistente*kInvExistente, invCapTotal=invCapNovo+invCapExistente;
     // A partir daqui kWpReal/nMod/nInv passam a representar o TOTAL
     // (existente + novo) — os campos digitados acima eram só a parte nova
     // quando "ampliação" está marcado (quando não está, existente=0 e nada
@@ -5551,7 +5567,7 @@ function dimensionarAuto(){
     kWpReal=kWpReal+kWpExistente;
     nMod=nMod+nModExistente;
     nInv=nInv+nInvExistente;
-    fdi=kWpReal/(nInv*kInv); fdiOk=fdi>=0.5&&fdi<=1.5;
+    fdi = invCapTotal>0 ? kWpReal/invCapTotal : 0; fdiOk=fdi>=0.5&&fdi<=1.5;
   } else {
     wMod=parseFloat(document.getElementById('p-wmodulo').value)||580;
     kInv=parseFloat(document.getElementById('p-kinversor').value)||8;
@@ -5560,6 +5576,19 @@ function dimensionarAuto(){
     var kWpNec=kwh*(1+margem/100)/(hsp*30*efic);
     nMod=Math.ceil(kWpNec*1000/wMod); kWpReal=nMod*wMod/1000;
     nInv=Math.ceil(kWpReal/(1.5*kInv)); fdi=kWpReal/(nInv*kInv); fdiOk=fdi>=0.5&&fdi<=1.5;
+  }
+  // Rótulo dos inversores — em ampliação, separa existente/novo quando os
+  // dois existem (potências podem ser diferentes), ou mostra só a parte
+  // que existe quando só há um dos dois (ex: realocação sem inversor novo).
+  var invLabel;
+  if(ampliacao){
+    var _partesInv=[];
+    if(nInvExistente>0) _partesInv.push(nInvExistente+'×'+(kInvExistente||'?')+'kW');
+    var _nInvNovoCalc=nInv-nInvExistente;
+    if(_nInvNovoCalc>0) _partesInv.push(_nInvNovoCalc+'×'+(kInv||'?')+'kW');
+    invLabel = _partesInv.length ? _partesInv.join(' + ') : (nInv+'×'+(kInv||8)+'kW');
+  } else {
+    invLabel = nInv+'×'+kInv+'kW';
   }
   var gerMensal=kWpReal*hsp*30*efic, area=Math.ceil(nMod*3.0);
   var _kwhRef=kwh>0?kwh:gerMensal;
@@ -5585,11 +5614,11 @@ function dimensionarAuto(){
   _propCalc={kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,valor,fioB,ipPct,bandeira,simPct,sim,fatComSolar,SC,INJ_util,grid_rem,
     ampliacao:ampliacao, kWpExistente:kWpExistente, nModExistente:nModExistente, nInvExistente:nInvExistente,
     kWpNovo:(kWpReal-kWpExistente), nModNovo:(nMod-nModExistente), nInvNovo:(nInv-nInvExistente),
-    brandModExistente:brandModExistente, wModExistente:wModExistente, kInvExistente:kInvExistente};
+    brandModExistente:brandModExistente, wModExistente:wModExistente, kInvExistente:kInvExistente, invLabel:invLabel};
   document.getElementById('prop-results-box').style.display='block';
   document.getElementById('pr-kwp').textContent=kWpReal.toFixed(2)+' kWp';
   document.getElementById('pr-mod').textContent=nMod;
-  document.getElementById('pr-inv').textContent=nInv+'×'+kInv+'kW';
+  document.getElementById('pr-inv').textContent=invLabel;
   document.getElementById('pr-ger').textContent=Math.round(gerMensal)+' kWh';
   document.getElementById('pr-area').textContent=area+' m²';
   document.getElementById('pr-eco').textContent='R$ '+_fmt(econMensal);
@@ -5834,7 +5863,7 @@ function atualizarPreviewProposta(){
     ampliacaoRows+
     '<div class="a4-spec-row"><span class="a4-spec-key">'+(c.ampliacao?'Potência total (existente + ampliação)':'Potência instalada')+'</span><span class="a4-spec-val">'+c.kWpReal.toFixed(2)+' kWp</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Módulos fotovoltaicos</span><span class="a4-spec-val">'+c.nMod+' × '+(c.wMod||580)+'W'+(brandMod?' — '+brandMod:'')+'</span></div>'+
-    '<div class="a4-spec-row"><span class="a4-spec-key">Inversores</span><span class="a4-spec-val">'+c.nInv+' × '+(c.kInv||8)+' kW'+(brandInv?' — '+brandInv:'')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Inversores</span><span class="a4-spec-val">'+(c.invLabel||(c.nInv+' × '+(c.kInv||8)+' kW'))+(brandInv?' — '+brandInv:'')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">FDI (sobrecarga)</span><span class="a4-spec-val">'+(c.fdi?c.fdi.toFixed(2):'-')+' '+(c.fdiOk?'✓ Ok':'⚠ Atenção')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Geração média mensal</span><span class="a4-spec-val">'+(c.gerMensal?Math.round(c.gerMensal)+' kWh/mês':'–')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Área estimada</span><span class="a4-spec-val">'+(c.area?c.area+' m²':'–')+'</span></div>'+
@@ -6510,9 +6539,9 @@ function gerarPDFProposta(modo){
     }
     y=specRow(doc,y,c.ampliacao?'Potência total (existente + ampliação)':'Potência instalada',c.kWpReal.toFixed(2)+' kWp',shade=!shade);
     var modLabel=brandMod?(c.nMod+' × '+brandMod):(c.nMod+' × '+(c.wMod||580)+'W');
-    var invLabel=brandInv?(c.nInv+' × '+brandInv):(c.nInv+' × '+(c.kInv||8)+' kW');
+    var invLabelPdf=brandInv?(c.nInv+' × '+brandInv):(c.invLabel||(c.nInv+' × '+(c.kInv||8)+' kW'));
     y=specRow(doc,y,'Módulos fotovoltaicos',modLabel,shade=!shade);
-    y=specRow(doc,y,'Inversores',invLabel,shade=!shade);
+    y=specRow(doc,y,'Inversores',invLabelPdf,shade=!shade);
     y=specRow(doc,y,'FDI (fator sobrecarga)',c.fdi.toFixed(2)+' '+(c.fdiOk?'[OK]':'[!]'),shade=!shade);
     y=specRow(doc,y,'Geração média mensal',Math.round(c.gerMensal)+' kWh/mês',shade=!shade);
     y=specRow(doc,y,'Área estimada no telhado',c.area+' m²',shade=!shade);
@@ -7059,7 +7088,7 @@ function gerarDescritivo(){
   if((document.getElementById('inc-eq')||{}).checked)
     linhas.push(c.nMod+' módulos fotovoltaicos '+(c.wMod||580)+'W'+(brandMod?' '+brandMod:''));
   if((document.getElementById('inc-eq')||{}).checked)
-    linhas.push(c.nInv+' inversor'+(c.nInv>1?'es':'')+' '+(c.kInv||8)+'kW'+(brandInv?' '+brandInv:''));
+    linhas.push('Inversor'+(c.nInv>1?'es':'')+': '+(c.invLabel||(c.nInv+'×'+(c.kInv||8)+'kW'))+(brandInv?' '+brandInv:''));
   linhas.push('Estrutura de fixação — Telhado '+est);
   if((document.getElementById('inc-cabo')||{}).checked){
     linhas.push('50m de cabo fotovoltaico preto + 50m de cabo fotovoltaico vermelho');
