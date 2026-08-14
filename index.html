@@ -1639,13 +1639,13 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div id="ampliacao-existente-fields" style="display:none;margin-bottom:12px;padding:10px;background:var(--bg2);border-radius:8px">
             <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Usina existente</div>
             <div class="prop-grid3">
-              <div class="fr" style="margin-bottom:0"><label class="prop-label">kWp existente</label><input id="p-kwp-existente" class="prop-input" type="number" step="0.01" min="0" placeholder="33.00" oninput="dimensionarAuto()"></div>
-              <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº módulos existentes</label><input id="p-nmod-existente" class="prop-input" type="number" min="0" placeholder="79" oninput="dimensionarAuto()"></div>
+              <div class="fr" style="margin-bottom:0"><label class="prop-label">kWp existente</label><input id="p-kwp-existente" class="prop-input" type="number" step="0.01" min="0" placeholder="33.00" oninput="_existenteKwp()"></div>
+              <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº módulos existentes</label><input id="p-nmod-existente" class="prop-input" type="number" min="0" placeholder="79" oninput="_existenteNmodOuWmod()"></div>
               <div class="fr" style="margin-bottom:0"><label class="prop-label">Nº inversores existentes</label><input id="p-ninv-existente" class="prop-input" type="number" min="0" placeholder="1" oninput="dimensionarAuto()"></div>
             </div>
             <div class="prop-grid3" style="margin-top:8px">
               <div class="fr" style="margin-bottom:0"><label class="prop-label">Marca/modelo do módulo existente</label><input id="p-brand-modulo-existente" class="prop-input" placeholder="Ex: SUNOVA 560W" oninput="dimensionarAuto()"></div>
-              <div class="fr" style="margin-bottom:0"><label class="prop-label">Pot. módulo existente (W)</label><input id="p-wmod-existente" class="prop-input" type="number" min="100" max="800" placeholder="560" oninput="dimensionarAuto()"></div>
+              <div class="fr" style="margin-bottom:0"><label class="prop-label">Pot. módulo existente (W)</label><input id="p-wmod-existente" class="prop-input" type="number" min="100" max="800" placeholder="560" oninput="_existenteNmodOuWmod()"></div>
               <div class="fr" style="margin-bottom:0"><label class="prop-label">Pot. inversor existente (kW)</label><input id="p-kinv-existente" class="prop-input" type="number" min="1" max="200" placeholder="50" oninput="dimensionarAuto()"></div>
             </div>
           </div>
@@ -5727,6 +5727,29 @@ function _manualKwp(){
   }
   dimensionarAuto();
 }
+// Mesmo padrão de _manualNmodOuWmod/_manualKwp, aplicado à USINA EXISTENTE —
+// evita o usuário digitar kWp/módulos/potência do módulo de forma
+// inconsistente entre si (ex: 33 kWp com 79 módulos de 560W, que na
+// verdade são 44,24 kWp).
+function _existenteNmodOuWmod(){
+  var nMod = parseInt((document.getElementById('p-nmod-existente')||{}).value)||0;
+  var wMod = parseFloat((document.getElementById('p-wmod-existente')||{}).value)||0;
+  if(nMod > 0 && wMod > 0){
+    var kwp = nMod * wMod / 1000;
+    var el = document.getElementById('p-kwp-existente');
+    if(el) el.value = kwp.toFixed(2);
+  }
+  dimensionarAuto();
+}
+function _existenteKwp(){
+  var kWp  = parseFloat((document.getElementById('p-kwp-existente')||{}).value)||0;
+  var wMod = parseFloat((document.getElementById('p-wmod-existente')||{}).value)||0;
+  var nModEl = document.getElementById('p-nmod-existente');
+  if(kWp > 0 && wMod > 0 && nModEl && !nModEl.value){
+    nModEl.value = Math.ceil(kWp * 1000 / wMod);
+  }
+  dimensionarAuto();
+}
 function _fmt(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function _fmtK(v){ if(v>=1000000) return 'R$ '+_fmt(v/1000000)+' M'; if(v>=1000) return 'R$ '+_fmt(v/1000)+' mil'; return 'R$ '+_fmt(v); }
 function _dataHoje(){ var d=new Date(); return d.toLocaleDateString('pt-BR'); }
@@ -7308,6 +7331,13 @@ function editarProposta(id){
   if(s.modoCalc) { setModoCalc(s.modoCalc);
     if(s.modoCalc==='auto'){ sv('p-wmodulo',s.wMod); sv('p-kinversor',s.kInv); sv('p-margem',s.margem); }
     else {
+      // Zera tudo primeiro — sv() só escreve quando o snap tem valor, então
+      // sem isso um campo preenchido ao editar uma proposta ficaria
+      // "grudado" ao trocar para outra proposta (na mesma sessão, sem
+      // recarregar a página) cujo snapshot não tenha esse campo.
+      ['p-kwp-manual','p-nmod-manual','p-ninv-manual','p-kwp-existente','p-nmod-existente','p-ninv-existente','p-brand-modulo-existente','p-wmod-existente','p-kinv-existente'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.value='';
+      });
       sv('p-kwp-manual',s.kwpManual); sv('p-nmod-manual',s.nModManual); sv('p-ninv-manual',s.nInvManual); sv('p-wmodulo-m',s.wModM); sv('p-kinversor-m',s.kInvM);
       var ampCb=document.getElementById('p-ampliacao'); if(ampCb) ampCb.checked=!!s.ampliacao;
       sv('p-kwp-existente',s.kwpExistente); sv('p-nmod-existente',s.nModExistente); sv('p-ninv-existente',s.nInvExistente);
