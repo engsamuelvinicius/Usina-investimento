@@ -2044,20 +2044,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         </div>
         </div>
 
-        <!-- ═══ PÁGINAS DA PROPOSTA AVANÇADA (Materiais/Termos/Cases vêm
-             ANTES do Investimento neste modo — ver setTipoProposta) ═══ -->
+        <!-- ═══ PÁGINAS DA PROPOSTA AVANÇADA (Termos/Cases/Materiais vêm
+             ANTES do Investimento neste modo — ver setTipoProposta. Materiais
+             fica por último desse grupo, penúltima página geral, logo antes
+             do valor final — ver setTipoProposta) ═══ -->
         <div id="prop-avancada-preview-pages" style="display:none">
-
-          <!-- LISTA DE MATERIAIS -->
-          <div class="a4-label">Lista de Materiais e Serviço</div>
-          <div class="a4-page">
-            <div class="a4-header">
-              <div class="a4-header-title">Lista de Materiais e Serviço</div>
-              <div class="a4-header-pg" id="a4num-5h">Página 5 / 7</div>
-            </div>
-            <div class="a4-body" id="prev-mat-body"></div>
-            <div class="a4-footer"><span id="prev-p5-empresa">Proposta Comercial</span><span id="a4num-5f">Página 5 de 7</span></div>
-          </div>
 
           <!-- TERMOS E CONDIÇÕES -->
           <div class="a4-label">Termos e Condições</div>
@@ -2073,6 +2064,17 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <!-- CASES DE SUCESSO -->
           <div class="a4-label">Cases de Sucesso</div>
           <div id="prev-cases-pages-container"></div>
+
+          <!-- LISTA DE MATERIAIS -->
+          <div class="a4-label">Lista de Materiais e Serviço</div>
+          <div class="a4-page">
+            <div class="a4-header">
+              <div class="a4-header-title">Lista de Materiais e Serviço</div>
+              <div class="a4-header-pg" id="a4num-5h">Página 5 / 7</div>
+            </div>
+            <div class="a4-body" id="prev-mat-body"></div>
+            <div class="a4-footer"><span id="prev-p5-empresa">Proposta Comercial</span><span id="a4num-5f">Página 5 de 7</span></div>
+          </div>
 
         </div>
         <!-- ═══ /PÁGINAS DA PROPOSTA AVANÇADA ═══ -->
@@ -5261,9 +5263,9 @@ function setTipoProposta(tipo){
   if(wrap) wrap.style.display = tipo==='avancada' ? 'block' : 'none';
   var pwrap = document.getElementById('prop-avancada-preview-pages');
   if(pwrap) pwrap.style.display = tipo==='avancada' ? 'block' : 'none';
-  // No modo avançada, Materiais/Termos/Cases entram ANTES do Investimento
-  // (que passa a ser a última página) — reordenação puramente visual via
-  // CSS order, o DOM continua igual.
+  // No modo avançada, Termos/Cases/Materiais entram ANTES do Investimento
+  // (que passa a ser a última página; Materiais fica logo antes dele, penúltima)
+  // — reordenação puramente visual via CSS order, o DOM continua igual.
   var invWrap = document.getElementById('prop-pagina-investimento-preview');
   if(pwrap && invWrap){
     pwrap.style.order = tipo==='avancada' ? '1' : '0';
@@ -6081,10 +6083,11 @@ function _atualizarNumeracaoPreview(){
   setNum('a4num-2h','a4num-2f',2);
   setNum('a4num-3h','a4num-3f',3);
   if(_tipoProposta==='avancada'){
-    // Materiais → Termos → Cases → Investimento (por último, ver setTipoProposta)
-    setNum('a4num-5h','a4num-5f',4);
-    setNum('a4num-6h','a4num-6f',5);
-    setNum('a4num-7h','a4num-7f',6);
+    // Termos → Cases → Materiais (penúltima, antes do valor) → Investimento
+    // (por último, ver setTipoProposta)
+    setNum('a4num-6h','a4num-6f',4);
+    setNum('a4num-7h','a4num-7f',5);
+    setNum('a4num-5h','a4num-5f',6);
     setNum('a4num-4h','a4num-4f',7);
   } else {
     // Ordem convencional: Investimento continua sendo a página 4
@@ -6886,13 +6889,15 @@ function gerarPDFProposta(modo){
 
   // Ordem das páginas finais:
   // Convencional (inalterado): Investimento → Portfólio.
-  // Avançada: Materiais → Termos → Cases → Portfólio → Investimento (por
-  // último), para o cliente ver escopo/cases/prova social ANTES do valor.
+  // Avançada: Termos → Cases → Portfólio → Materiais (penúltima, o
+  // detalhamento do orçamento) → Investimento (por último, o valor final)
+  // — mantém a cronologia: prova social/escopo primeiro, depois o
+  // detalhamento dos itens, e só então o total a pagar.
   if(_tipoProposta==='avancada'){
-    _desenharPaginasMateriais();
     _desenharPaginasTermos();
     _desenharPaginasCases();
     _desenharPaginaPortfolio();
+    _desenharPaginasMateriais();
     _desenharPaginaInvestimento();
   } else {
     _desenharPaginaInvestimento();
