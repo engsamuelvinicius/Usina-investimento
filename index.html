@@ -6358,6 +6358,13 @@ function gerarPDFProposta(modo){
   function _desenharPaginasMateriais(){
     if(!_propMateriais.length) return;
     var paginas=_layoutMateriais();
+    // Colunas numéricas alinhadas à DIREITA, cada uma com sua própria
+    // largura reservada — antes "VR UNIT" era desenhado alinhado à
+    // ESQUERDA bem perto de "VR TOTAL" (alinhado à direita), então valores
+    // largos (ex: "R$ 136.000,00") invadiam a coluna vizinha e ficavam
+    // sobrepostos/ilegíveis.
+    var xVrTotal=W-mg-2, xVrUnit=xVrTotal-26, xQtd=xVrUnit-20, xUnd=xQtd-14, xMarca=xUnd-18;
+    var discMaxWidth=xMarca-2-(mg+16);
     paginas.forEach(function(linhas,pIdx){
       doc.addPage(); pgAtual++;
       addHeader(doc,'Lista de Materiais e Serviço',pgAtual);
@@ -6371,8 +6378,8 @@ function gerarPDFProposta(modo){
       doc.setFillColor(pcr,pcg,pcb); doc.rect(mg,y,W-mg*2,7,'F');
       doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
       doc.text('ITEM',mg+2,y+5); doc.text('DISCRIMINAÇÃO',mg+16,y+5);
-      doc.text('MARCA',W-mg-74,y+5); doc.text('UND',W-mg-56,y+5); doc.text('QTD',W-mg-42,y+5);
-      doc.text('VR UNIT',W-mg-30,y+5); doc.text('VR TOTAL',W-mg-2,y+5,{align:'right'});
+      doc.text('MARCA',xMarca,y+5,{align:'right'}); doc.text('UND',xUnd,y+5,{align:'right'}); doc.text('QTD',xQtd,y+5,{align:'right'});
+      doc.text('VR UNIT',xVrUnit,y+5,{align:'right'}); doc.text('VR TOTAL',xVrTotal,y+5,{align:'right'});
       y+=9;
       var itemNum=paginas.slice(0,pIdx).reduce(function(s,pg){return s+pg.filter(function(m){return !m.grupo;}).length;},0);
       linhas.forEach(function(m){
@@ -6385,13 +6392,13 @@ function gerarPDFProposta(modo){
         itemNum++;
         doc.setTextColor(70,70,65); doc.setFont('helvetica','normal'); doc.setFontSize(8);
         doc.text(String(itemNum),mg+2,y);
-        doc.text(String(m.discriminacao||''),mg+16,y,{maxWidth:W-mg-16-90});
-        doc.text(String(m.marca||'-'),W-mg-74,y);
-        doc.text(String(m.und||''),W-mg-56,y);
-        doc.text(String(m.qtd||0),W-mg-42,y);
-        doc.text('R$ '+_fmt(m.vrUnit||0),W-mg-30,y);
+        doc.text(String(m.discriminacao||''),mg+16,y,{maxWidth:discMaxWidth});
+        doc.text(String(m.marca||'-'),xMarca,y,{align:'right'});
+        doc.text(String(m.und||''),xUnd,y,{align:'right'});
+        doc.text(String(m.qtd||0),xQtd,y,{align:'right'});
+        doc.text('R$ '+_fmt(m.vrUnit||0),xVrUnit,y,{align:'right'});
         doc.setFont('helvetica','bold');
-        doc.text('R$ '+_fmt((m.qtd||0)*(m.vrUnit||0)),W-mg-2,y,{align:'right'});
+        doc.text('R$ '+_fmt((m.qtd||0)*(m.vrUnit||0)),xVrTotal,y,{align:'right'});
         doc.setDrawColor(230,230,226); doc.line(mg,y+2,W-mg,y+2);
         y+=6;
       });
@@ -6442,29 +6449,36 @@ function gerarPDFProposta(modo){
         doc.setFillColor(235,235,230); doc.roundedRect(cx,cy,cW,cH,2,2,'F');
         var foto=cs.fotos[0];
         if(foto){ try{ doc.addImage(foto.base64,foto.type||'JPEG',cx,cy,cW,cH); }catch(e){} }
-        // Degradê translúcido na base da foto (em vez de um bloco preto
-        // sólido cobrindo boa parte da imagem) — a foto continua visível
-        // por baixo do texto, só escurecida o suficiente pra legibilidade.
+        // Degradê translúcido curto na base da foto — só o suficiente pra
+        // legibilidade do texto, sem cobrir boa parte da imagem.
         try{
-          var gradH=26, gradSteps=8;
+          var gradH=22, gradSteps=7;
           for(var gsI=0; gsI<gradSteps; gsI++){
             var gsFrac=gsI/(gradSteps-1);
-            doc.setGState(new doc.GState({opacity:0.12+gsFrac*0.63}));
+            doc.setGState(new doc.GState({opacity:0.08+gsFrac*0.55}));
             doc.setFillColor(8,10,8);
             var gsStepH=gradH/gradSteps;
             doc.rect(cx, cy+cH-gradH+gsI*gsStepH, cW, gsStepH+0.4, 'F');
           }
           doc.setGState(new doc.GState({opacity:1}));
         }catch(e){
-          doc.setFillColor(20,20,18); doc.rect(cx,cy+cH-22,cW,22,'F');
+          doc.setFillColor(20,20,18); doc.rect(cx,cy+cH-18,cW,18,'F');
         }
-        doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(7);
-        doc.text('+1 PROJETO CONCLUÍDO',cx+3,cy+cH-20);
+        // Badge laranja "+1 PROJETO CONCLUÍDO" — igual ao preview em tela
+        // (antes era só texto branco solto sobre o degradê, sem o pill).
+        doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+        var badgeTxt='+1 PROJETO CONCLUÍDO';
+        var badgeTxtW=doc.getTextWidth(badgeTxt);
+        var badgeY=cy+cH-19, badgeH=4.6, badgePadX=1.8;
+        doc.setFillColor(249,115,22);
+        doc.roundedRect(cx+3, badgeY, badgeTxtW+badgePadX*2, badgeH, 0.8, 0.8, 'F');
+        doc.setTextColor(255,255,255);
+        doc.text(badgeTxt, cx+3+badgePadX, badgeY+badgeH-1.3);
         if(cs.economia){
-          doc.setFontSize(10);
-          doc.text('R$ '+cs.economia,cx+3,cy+cH-13);
+          doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
+          doc.text('R$ '+cs.economia,cx+3,cy+cH-12);
         }
-        doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+        doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(255,255,255);
         var chips=[cs.cidade,cs.cliente,cs.potencia?cs.potencia+' kWp':''].filter(Boolean).join('   ·   ');
         doc.text(chips,cx+3,cy+cH-4,{maxWidth:cW-6});
       });
