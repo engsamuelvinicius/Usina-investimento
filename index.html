@@ -6016,8 +6016,8 @@ function atualizarPreviewProposta(){
       pagInfo.innerHTML='<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Pagamento à vista — 100% na assinatura do contrato</div></div>';
     } else if(pagSel==='50-50'){
       var v50=valor/2;
-      pagInfo.innerHTML='<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> na chegada dos equipamentos — R$ '+_fmt(v50)+'</div></div>'+
-        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> após conclusão e funcionamento do sistema — R$ '+_fmt(v50)+'</div></div>';
+      pagInfo.innerHTML='<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> de entrada — R$ '+_fmt(v50)+'</div></div>'+
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> após conclusão do serviço — R$ '+_fmt(v50)+'</div></div>';
     } else if(pagSel==='todas'){
       var v50t=valor/2;
       var finOpts=_getFinOpts();
@@ -6026,8 +6026,8 @@ function atualizarPreviewProposta(){
         : '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div>Financiamento bancário — <strong>Consulte condições</strong></div></div>';
       pagInfo.innerHTML=
         '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>À vista</strong> — 100% na assinatura do contrato</div></div>'+
-        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> na chegada dos equipamentos — R$ '+_fmt(v50t)+'</div></div>'+
-        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> após conclusão e funcionamento — R$ '+_fmt(v50t)+'</div></div>'+
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> de entrada — R$ '+_fmt(v50t)+'</div></div>'+
+        '<div class="a4-pay-item"><div class="a4-pay-dot"></div><div><strong>50%</strong> após conclusão do serviço — R$ '+_fmt(v50t)+'</div></div>'+
         finHtml;
     } else {
       var finOpts=_getFinOpts();
@@ -6799,12 +6799,12 @@ function gerarPDFProposta(modo){
     : ['Consulte condições'];
   if(pagSel==='todas'){
     y=_drawPagOpt(doc,y,'À vista — desconto especial',['Pagamento integral no ato da contratação'],false);
-    y=_drawPagOpt(doc,y,'50% entrada + 50% conclusão',[valor>0?'50% na entrega dos equipamentos: R$ '+_fmt(valor/2):'50% na entrega dos equipamentos',valor>0?'50% após conclusão e comissionamento: R$ '+_fmt(valor/2):'50% após conclusão e comissionamento'],false);
+    y=_drawPagOpt(doc,y,'50% entrada + 50% conclusão',[valor>0?'50% de entrada: R$ '+_fmt(valor/2):'50% de entrada',valor>0?'50% após conclusão do serviço: R$ '+_fmt(valor/2):'50% após conclusão do serviço'],false);
     y=_drawPagOpt(doc,y,'Financiamento bancário',_finLinhas,_finOpts.length>0);
   } else if(pagSel==='avista'){
     y=_drawPagOpt(doc,y,'À vista — desconto especial',['Pagamento integral no ato da contratação'],true);
   } else if(pagSel==='50-50'){
-    y=_drawPagOpt(doc,y,'50% entrada + 50% conclusão',[valor>0?'50% na entrega dos equipamentos: R$ '+_fmt(valor/2):'50% na entrega dos equipamentos',valor>0?'50% após conclusão e comissionamento: R$ '+_fmt(valor/2):'50% após conclusão e comissionamento'],true);
+    y=_drawPagOpt(doc,y,'50% entrada + 50% conclusão',[valor>0?'50% de entrada: R$ '+_fmt(valor/2):'50% de entrada',valor>0?'50% após conclusão do serviço: R$ '+_fmt(valor/2):'50% após conclusão do serviço'],true);
   } else {
     y=_drawPagOpt(doc,y,'Financiamento bancário',_finLinhas,_finOpts.length>0);
   }
