@@ -5590,6 +5590,20 @@ function dimensionarAuto(){
   } else {
     invLabel = nInv+'×'+kInv+'kW';
   }
+  // Rótulo dos módulos — mesmo raciocínio: em ampliação, "wMod" sozinho
+  // representa só a potência do módulo NOVO, então usar nMod(total)+wMod(novo)
+  // mostrava a potência errada para os módulos existentes (ex: 79 módulos
+  // existentes de 560W exibidos como "79×580W", a potência do novo).
+  var modLabel;
+  if(ampliacao){
+    var _partesMod=[];
+    if(nModExistente>0) _partesMod.push('('+nModExistente+'x'+(wModExistente||wMod||580)+'W)');
+    var _nModNovoCalc=nMod-nModExistente;
+    if(_nModNovoCalc>0) _partesMod.push('('+_nModNovoCalc+'x'+(wMod||580)+'W)');
+    modLabel = _partesMod.length ? _partesMod.join('+') : (nMod+'x'+(wMod||580)+'W');
+  } else {
+    modLabel = nMod+'×'+wMod+'W';
+  }
   var gerMensal=kWpReal*hsp*30*efic, area=Math.ceil(nMod*3.0);
   var _kwhRef=kwh>0?kwh:gerMensal;
   // Tarifa cheia por kWh (IP é encargo fixo aditivo, não multiplicador)
@@ -5614,7 +5628,7 @@ function dimensionarAuto(){
   _propCalc={kWpReal,nMod,nInv,fdi,fdiOk,gerMensal,area,econMensal,econAnual,payback,tarifa,kwh,hsp,wMod,kInv,valor,fioB,ipPct,bandeira,simPct,sim,fatComSolar,SC,INJ_util,grid_rem,
     ampliacao:ampliacao, kWpExistente:kWpExistente, nModExistente:nModExistente, nInvExistente:nInvExistente,
     kWpNovo:(kWpReal-kWpExistente), nModNovo:(nMod-nModExistente), nInvNovo:(nInv-nInvExistente),
-    brandModExistente:brandModExistente, wModExistente:wModExistente, kInvExistente:kInvExistente, invLabel:invLabel};
+    brandModExistente:brandModExistente, wModExistente:wModExistente, kInvExistente:kInvExistente, invLabel:invLabel, modLabel:modLabel};
   document.getElementById('prop-results-box').style.display='block';
   document.getElementById('pr-kwp').textContent=kWpReal.toFixed(2)+' kWp';
   document.getElementById('pr-mod').textContent=nMod;
@@ -5885,7 +5899,7 @@ function atualizarPreviewProposta(){
   if(sps) sps.innerHTML= c.kWpReal?
     ampliacaoRows+
     '<div class="a4-spec-row"><span class="a4-spec-key">'+(c.ampliacao?'Potência total (existente + ampliação)':'Potência instalada')+'</span><span class="a4-spec-val">'+c.kWpReal.toFixed(2)+' kWp</span></div>'+
-    '<div class="a4-spec-row"><span class="a4-spec-key">Módulos fotovoltaicos</span><span class="a4-spec-val">'+c.nMod+' × '+(c.wMod||580)+'W'+(brandMod?' — '+brandMod:'')+'</span></div>'+
+    '<div class="a4-spec-row"><span class="a4-spec-key">Módulos fotovoltaicos</span><span class="a4-spec-val">'+(c.modLabel||(c.nMod+' × '+(c.wMod||580)+'W'))+(brandMod?' — '+brandMod:'')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Inversores</span><span class="a4-spec-val">'+(c.invLabel||(c.nInv+' × '+(c.kInv||8)+' kW'))+(brandInv?' — '+brandInv:'')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">FDI (sobrecarga)</span><span class="a4-spec-val">'+(c.fdi?c.fdi.toFixed(2):'-')+' '+(c.fdiOk?'✓ Ok':'⚠ Atenção')+'</span></div>'+
     '<div class="a4-spec-row"><span class="a4-spec-key">Geração média mensal</span><span class="a4-spec-val">'+(c.gerMensal?Math.round(c.gerMensal)+' kWh/mês':'–')+'</span></div>'+
@@ -6561,9 +6575,9 @@ function gerarPDFProposta(modo){
       y=specRow(doc,y,'Ampliação (novo)',(c.kWpNovo||0).toFixed(2)+' kWp — '+(c.nModNovo||0)+' módulos — '+(c.nInvNovo||0)+' inv.',shade=!shade);
     }
     y=specRow(doc,y,c.ampliacao?'Potência total (existente + ampliação)':'Potência instalada',c.kWpReal.toFixed(2)+' kWp',shade=!shade);
-    var modLabel=brandMod?(c.nMod+' × '+brandMod):(c.nMod+' × '+(c.wMod||580)+'W');
+    var modLabelPdf=brandMod?(c.nMod+' × '+brandMod):(c.modLabel||(c.nMod+' × '+(c.wMod||580)+'W'));
     var invLabelPdf=brandInv?(c.nInv+' × '+brandInv):(c.invLabel||(c.nInv+' × '+(c.kInv||8)+' kW'));
-    y=specRow(doc,y,'Módulos fotovoltaicos',modLabel,shade=!shade);
+    y=specRow(doc,y,'Módulos fotovoltaicos',modLabelPdf,shade=!shade);
     y=specRow(doc,y,'Inversores',invLabelPdf,shade=!shade);
     y=specRow(doc,y,'FDI (fator sobrecarga)',c.fdi.toFixed(2)+' '+(c.fdiOk?'[OK]':'[!]'),shade=!shade);
     y=specRow(doc,y,'Geração média mensal',Math.round(c.gerMensal)+' kWh/mês',shade=!shade);
@@ -7109,7 +7123,7 @@ function gerarDescritivo(){
     linhas.push('Potência total após ampliação: '+c.kWpReal.toFixed(2)+' kWp');
   }
   if((document.getElementById('inc-eq')||{}).checked)
-    linhas.push(c.nMod+' módulos fotovoltaicos '+(c.wMod||580)+'W'+(brandMod?' '+brandMod:''));
+    linhas.push('Módulos fotovoltaicos: '+(c.modLabel||(c.nMod+'×'+(c.wMod||580)+'W'))+(brandMod?' '+brandMod:''));
   if((document.getElementById('inc-eq')||{}).checked)
     linhas.push('Inversor'+(c.nInv>1?'es':'')+': '+(c.invLabel||(c.nInv+'×'+(c.kInv||8)+'kW'))+(brandInv?' '+brandInv:''));
   linhas.push('Estrutura de fixação — Telhado '+est);
