@@ -588,13 +588,15 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
 /* A4 preview pages — tons derivados da cor escolhida em "Cor da proposta".
    Valores abaixo são o padrão (verde) até aplicarCorProposta() recalcular. */
 #screen-proposta{--prop-cor:#1E6B2E;--prop-cor2:#2a7a4e;--prop-cor-l:#C8E6C9;--prop-cor-l2:#A5D6A7;--prop-cor-t:#1B5E20;--prop-cor-dark1:#0c1f12;--prop-cor-dark2:#183519;--prop-cor-dark3:#0d2614;--prop-cor-glow:#6dde8f;--prop-cor-glow-rgb:109,222,143}
-.a4-wrap{max-width:640px;margin:0 auto}
+.a4-wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column}
 .a4-label{font-size:10px;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;text-align:center}
 .a4-page{background:#fff;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.18);overflow:hidden;margin-bottom:20px}
 .a4-cover-bg{background:linear-gradient(155deg,var(--prop-cor-dark1) 0%,var(--prop-cor-dark2) 55%,var(--prop-cor-dark3) 100%);padding:36px 44px 0;position:relative;overflow:hidden;min-height:320px}
 .a4-cover-bg::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(var(--prop-cor-glow-rgb),.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none}
 .a4-cover-glow{position:absolute;top:-30%;right:-10%;width:60%;height:70%;background:radial-gradient(ellipse,rgba(var(--prop-cor-glow-rgb),.12) 0%,transparent 70%);pointer-events:none}
 .a4-cover-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(var(--prop-cor-glow-rgb),.12);border:1px solid rgba(var(--prop-cor-glow-rgb),.25);color:var(--prop-cor-glow);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:24px;position:relative}
+.a4-cover-logo{display:flex;justify-content:center;margin-bottom:18px;position:relative}
+.a4-cover-logo img{object-fit:contain;background:#fff;border-radius:8px;padding:8px 16px;box-shadow:0 6px 20px rgba(0,0,0,.28)}
 .a4-cover-title{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;color:#fff;line-height:1.0;letter-spacing:-2px;margin-bottom:28px;position:relative}
 .a4-cover-title em{font-style:normal;color:var(--prop-cor-glow)}
 .a4-cover-infobox{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px 20px;position:relative;margin-bottom:0}
@@ -1821,10 +1823,13 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         <div class="prop-section">
           <div class="prop-section-label">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-            Termos e condições
+            Termos e condições <span style="font-size:10px;color:var(--text2)">(desmarque para não incluir nesta proposta, sem excluir)</span>
           </div>
           <div id="prop-termos-list"></div>
-          <button type="button" class="btn-s" onclick="termosAdicionar()">+ Adicionar termo</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn-s" onclick="termosAdicionar()">+ Adicionar termo</button>
+            <button type="button" class="btn-s" onclick="salvarTermosPadrao()" title="Usar esta lista (com os termos ativos/inativos) em todas as novas propostas">💾 Salvar termos como padrão</button>
+          </div>
         </div>
 
         <!-- CASES DE SUCESSO / PROJETO REFERÊNCIA -->
@@ -1883,6 +1888,14 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             <button id="p-logo-rm" class="btn-s" type="button" style="display:none;color:#c53030;border-color:#FFCDD2" onclick="removerLogoProposta()">✕ Remover</button>
           </div>
           <input type="file" id="p-logo-input" accept="image/*" style="display:none" onchange="carregarLogoProposta(this)">
+          <div class="fr" style="margin-top:10px;margin-bottom:0">
+            <label class="prop-label" style="display:flex;justify-content:space-between;align-items:center">
+              <span>Tamanho do logo na capa</span>
+              <span id="p-logo-tam-val" style="font-weight:700;color:var(--green)">100%</span>
+            </label>
+            <input type="range" id="p-logo-tamanho" min="50" max="160" step="5" value="100" oninput="document.getElementById('p-logo-tam-val').textContent=this.value+'%';atualizarPreviewProposta()" style="width:100%">
+            <button type="button" class="btn-s" onclick="salvarLogoTamanhoPadrao()" style="margin-top:6px;font-size:11px;padding:5px 10px" title="Usar este tamanho em todas as novas propostas">💾 Salvar tamanho como padrão</button>
+          </div>
         </div>
         <!-- Nome da empresa para esta proposta -->
         <div class="fr" style="margin-top:10px;margin-bottom:0">
@@ -1906,10 +1919,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
     <div class="prop-preview-panel">
       <div class="a4-wrap">
         <!-- PÁG 1: CAPA -->
-        <div class="a4-label">Página 1 — Capa</div>
+        <div class="a4-label">Capa</div>
         <div class="a4-page">
           <div class="a4-cover-bg">
             <div class="a4-cover-glow"></div>
+            <div class="a4-cover-logo" id="prev-capa-logo"></div>
             <div class="a4-cover-tag">
               <span style="width:5px;height:5px;border-radius:50%;background:#6dde8f;animation:sun-pulse 2s infinite"></span>
               Proposta Comercial
@@ -1928,7 +1942,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         </div>
 
         <!-- PÁG 2: SISTEMA -->
-        <div class="a4-label">Página 2 — Sistema Dimensionado</div>
+        <div class="a4-label">Sistema Dimensionado</div>
         <div class="a4-page">
           <div class="a4-header">
             <div class="a4-header-title">Sistema Fotovoltaico</div>
@@ -1956,7 +1970,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
         </div>
 
         <!-- PÁG 3: FINANCEIRO -->
-        <div class="a4-label">Página 3 — Análise Financeira</div>
+        <div class="a4-label">Análise Financeira</div>
         <div class="a4-page">
           <div class="a4-header">
             <div class="a4-header-title">Análise Financeira</div>
@@ -1979,8 +1993,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           <div class="a4-footer"><span id="prev-p3-empresa">Proposta Comercial</span><span id="a4num-3f">Página 3 de 4</span></div>
         </div>
 
-        <!-- PÁG 4: INVESTIMENTO -->
-        <div class="a4-label">Página 4 — Investimento & Pagamento</div>
+        <!-- PÁG — INVESTIMENTO (no modo Avançada esta página se move para o
+             final via CSS order, ver setTipoProposta) -->
+        <div id="prop-pagina-investimento-preview">
+        <div class="a4-label">Investimento & Pagamento</div>
         <div class="a4-page">
           <div class="a4-header">
             <div class="a4-header-title">Investimento & Pagamento</div>
@@ -2008,12 +2024,14 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
           </div>
           <div class="a4-footer"><span id="prev-p4-empresa">Proposta Comercial</span><span id="a4num-4f">Página 4 de 4</span></div>
         </div>
+        </div>
 
-        <!-- ═══ PÁGINAS DA PROPOSTA AVANÇADA ═══ -->
+        <!-- ═══ PÁGINAS DA PROPOSTA AVANÇADA (Materiais/Termos/Cases vêm
+             ANTES do Investimento neste modo — ver setTipoProposta) ═══ -->
         <div id="prop-avancada-preview-pages" style="display:none">
 
-          <!-- PÁG 5: LISTA DE MATERIAIS -->
-          <div class="a4-label">Página 5 — Lista de Materiais</div>
+          <!-- LISTA DE MATERIAIS -->
+          <div class="a4-label">Lista de Materiais e Serviço</div>
           <div class="a4-page">
             <div class="a4-header">
               <div class="a4-header-title">Lista de Materiais e Serviço</div>
@@ -2023,8 +2041,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             <div class="a4-footer"><span id="prev-p5-empresa">Proposta Comercial</span><span id="a4num-5f">Página 5 de 7</span></div>
           </div>
 
-          <!-- PÁG 6: TERMOS E CONDIÇÕES -->
-          <div class="a4-label">Página 6 — Termos e Condições</div>
+          <!-- TERMOS E CONDIÇÕES -->
+          <div class="a4-label">Termos e Condições</div>
           <div class="a4-page">
             <div class="a4-header">
               <div class="a4-header-title">Termos e Condições</div>
@@ -2034,8 +2052,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             <div class="a4-footer"><span id="prev-p6-empresa">Proposta Comercial</span><span id="a4num-6f">Página 6 de 7</span></div>
           </div>
 
-          <!-- PÁG 7: CASES DE SUCESSO -->
-          <div class="a4-label">Página 7 — Cases de Sucesso</div>
+          <!-- CASES DE SUCESSO -->
+          <div class="a4-label">Cases de Sucesso</div>
           <div id="prev-cases-pages-container"></div>
 
         </div>
@@ -5212,16 +5230,29 @@ function setTipoProposta(tipo){
   if(wrap) wrap.style.display = tipo==='avancada' ? 'block' : 'none';
   var pwrap = document.getElementById('prop-avancada-preview-pages');
   if(pwrap) pwrap.style.display = tipo==='avancada' ? 'block' : 'none';
+  // No modo avançada, Materiais/Termos/Cases entram ANTES do Investimento
+  // (que passa a ser a última página) — reordenação puramente visual via
+  // CSS order, o DOM continua igual.
+  var invWrap = document.getElementById('prop-pagina-investimento-preview');
+  if(pwrap && invWrap){
+    pwrap.style.order = tipo==='avancada' ? '1' : '0';
+    invWrap.style.order = tipo==='avancada' ? '2' : '0';
+  }
   if(tipo==='avancada' && _propTermos.length===0) _seedTermosDefaults();
   matRenderLista(); termosRender(); casesRender();
   atualizarPreviewProposta();
 }
 function _seedTermosDefaults(){
+  var cfg=(typeof getCfg==='function')?getCfg():{};
+  if(cfg.termosPadrao&&cfg.termosPadrao.length){
+    _propTermos=JSON.parse(JSON.stringify(cfg.termosPadrao));
+    return;
+  }
   _propTermos = [
-    {titulo:'PADRÃO DE ENTRADA', desc:'Não está incluso no valor da proposta custos relativos a uma possível adequação do padrão de entrada de energia da unidade consumidora.'},
-    {titulo:'TELHADO', desc:'A depender da estrutura do telhado, será necessária a elaboração de laudos técnicos e/ou reforços na estrutura; estes custos não estão inclusos na proposta comercial.'},
-    {titulo:'VISITA TÉCNICA', desc:'Será realizada uma visita técnica no local de instalação para melhor avaliação dos parâmetros necessários para elaboração do projeto.'},
-    {titulo:'MONITORAMENTO', desc:'É necessário ter internet no local de instalação para o uso do monitoramento online do sistema de energia solar.'}
+    {titulo:'PADRÃO DE ENTRADA', desc:'Não está incluso no valor da proposta custos relativos a uma possível adequação do padrão de entrada de energia da unidade consumidora.', ativo:true},
+    {titulo:'TELHADO', desc:'A depender da estrutura do telhado, será necessária a elaboração de laudos técnicos e/ou reforços na estrutura; estes custos não estão inclusos na proposta comercial.', ativo:true},
+    {titulo:'VISITA TÉCNICA', desc:'Será realizada uma visita técnica no local de instalação para melhor avaliação dos parâmetros necessários para elaboração do projeto.', ativo:true},
+    {titulo:'MONITORAMENTO', desc:'É necessário ter internet no local de instalação para o uso do monitoramento online do sistema de energia solar.', ativo:true}
   ];
 }
 
@@ -5283,34 +5314,52 @@ function _renderPreviewMateriais(){
 }
 
 // ── TERMOS E CONDIÇÕES (Proposta Avançada) ──────────
+// Cada termo tem "ativo" (default true) — desabilitar não remove o termo da
+// lista, só o oculta do preview/PDF desta proposta. Assim o vendedor pode
+// manter um catálogo de termos e ligar/desligar conforme o caso, sem digitar
+// tudo de novo a cada proposta.
 function termosRender(){
   var list=document.getElementById('prop-termos-list'); if(!list) return;
   list.innerHTML=_propTermos.map(function(t,i){
-    return '<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg2)">'
+    var ativo=t.ativo!==false;
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg2);opacity:'+(ativo?'1':'.55')+'">'
       +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">'
+      +'<label class="prop-check-item" title="Incluir este termo nesta proposta"><input type="checkbox" '+(ativo?'checked':'')+' onchange="termosToggleAtivo('+i+')"></label>'
       +'<input class="prop-input" style="font-weight:700;flex:1" value="'+_esc(t.titulo||'')+'" oninput="_propTermos['+i+'].titulo=this.value;termosAtualizarPreviewSeAtivo()" placeholder="Ex: PADRÃO DE ENTRADA">'
       +'<button type="button" onclick="termosMover('+i+',-1)" style="background:none;border:none;cursor:pointer;font-size:13px" title="Mover para cima">↑</button>'
       +'<button type="button" onclick="termosMover('+i+',1)" style="background:none;border:none;cursor:pointer;font-size:13px" title="Mover para baixo">↓</button>'
-      +'<button type="button" onclick="termosRemover('+i+')" style="background:none;border:none;color:#c53030;cursor:pointer;font-size:14px">✕</button></div>'
+      +'<button type="button" onclick="termosRemover('+i+')" style="background:none;border:none;color:#c53030;cursor:pointer;font-size:14px" title="Excluir definitivamente">✕</button></div>'
       +'<textarea class="prop-input" rows="3" oninput="_propTermos['+i+'].desc=this.value;termosAtualizarPreviewSeAtivo()" placeholder="Descrição...">'+_esc(t.desc||'')+'</textarea></div>';
   }).join('');
   termosAtualizarPreviewSeAtivo();
 }
-function termosAdicionar(){ _propTermos.push({titulo:'',desc:''}); termosRender(); }
+function termosAdicionar(){ _propTermos.push({titulo:'',desc:'',ativo:true}); termosRender(); }
 function termosRemover(i){ _propTermos.splice(i,1); termosRender(); }
 function termosMover(i,dir){
   var j=i+dir; if(j<0||j>=_propTermos.length) return;
   var t=_propTermos[i]; _propTermos[i]=_propTermos[j]; _propTermos[j]=t; termosRender();
 }
+function termosToggleAtivo(i){
+  _propTermos[i].ativo = !(_propTermos[i].ativo!==false);
+  termosRender();
+}
+function salvarTermosPadrao(){
+  var u=usuarioAtual; if(!u) return;
+  if(!u.config) u.config={};
+  u.config.termosPadrao=JSON.parse(JSON.stringify(_propTermos));
+  salvarCfg();
+  toast('✅ Termos salvos como padrão para novas propostas!');
+}
 function termosAtualizarPreviewSeAtivo(){ if(_tipoProposta==='avancada') _renderPreviewTermos(); }
 function _renderPreviewTermos(){
   var body=document.getElementById('prev-termos-body'); if(!body) return;
+  var ativos=_propTermos.filter(function(t){return t.ativo!==false;});
   body.innerHTML=''
     +'<div style="font-size:11px;color:var(--text2);margin-bottom:12px">Os dados abaixo descrevem os termos e condições para fornecimento dos produtos e serviços descritos nesta proposta comercial.</div>'
-    +_propTermos.map(function(t){
+    +(ativos.map(function(t){
       return '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--prop-cor-t);text-transform:uppercase;margin-bottom:3px">'+_esc(t.titulo||'')+'</div>'
         +'<div style="font-size:11px;color:var(--text2);line-height:1.7">'+_esc(t.desc||'')+'</div></div>';
-    }).join('');
+    }).join('')||'<div style="font-size:11px;color:var(--text2)">Nenhum termo ativo para esta proposta.</div>');
 }
 
 // ── CASES DE SUCESSO / PROJETO REFERÊNCIA (Proposta Avançada) ──────────
@@ -5386,13 +5435,13 @@ function _renderPreviewCases(){
           +'<div class="a4-case-chips">'+[c.cidade,c.cliente,c.potencia?c.potencia+' kWp':''].filter(Boolean).map(function(t){return '<span>'+_esc(t)+'</span>';}).join('')+'</div>'
         +'</div></div>';
     }).join('');
-    html+='<div class="a4-label">Página 7 — Cases de Sucesso</div><div class="a4-page"><div class="a4-header"><div class="a4-header-title">Cases de Sucesso</div><div class="a4-header-pg" id="a4num-7h">Página 7 / 7</div></div>'
+    html+='<div class="a4-label">Cases de Sucesso</div><div class="a4-page"><div class="a4-header"><div class="a4-header-title">Cases de Sucesso</div><div class="a4-header-pg" id="a4num-7h">Página 7 / 7</div></div>'
       +'<div class="a4-body"><div class="a4-case-grid">'+cardsHtml+'</div></div>'
       +'<div class="a4-footer"><span id="prev-p7-empresa">Proposta Comercial</span><span id="a4num-7f">Página 7 de 7</span></div></div>';
   }
   detalhadas.forEach(function(c,idx){
     var fotosHtml=c.fotos.map(function(f){ return '<img src="'+f.base64+'" alt="foto" style="width:calc(33.33% - 6px);border-radius:6px;object-fit:cover;aspect-ratio:4/3">'; }).join('');
-    html+='<div class="a4-label">Página '+(8+idx)+' — Projeto Referência</div><div class="a4-page"><div class="a4-header"><div class="a4-header-title">Projeto Referência</div><div class="a4-header-pg">–</div></div>'
+    html+='<div class="a4-label">Projeto Referência</div><div class="a4-page"><div class="a4-header"><div class="a4-header-title">Projeto Referência</div><div class="a4-header-pg">–</div></div>'
       +'<div class="a4-body">'
         +'<div style="font-size:11px;line-height:2;margin-bottom:10px">'
           +(c.cliente?'<b>CLIENTE:</b> '+_esc(c.cliente)+'<br>':'')
@@ -5685,6 +5734,17 @@ function atualizarPreviewProposta(){
   if(c.kWpReal) capaInfo+='<strong>Sistema:</strong> '+c.kWpReal.toFixed(2)+' kWp — '+c.nMod+' módulos';
   document.getElementById('prev-capa-info').innerHTML=capaInfo;
   document.getElementById('prev-capa-empresa').textContent=empresa+(email?' · '+email:'');
+  var logoPrevEl=document.getElementById('prev-capa-logo');
+  if(logoPrevEl){
+    var logoPrev=_propLogoBase64||(getCfg().logoBase64);
+    var logoPct=parseInt((document.getElementById('p-logo-tamanho')||{}).value)||100;
+    if(logoPrev){
+      var lw=Math.round(190*logoPct/100), lh=Math.round(76*logoPct/100);
+      logoPrevEl.innerHTML='<img src="'+logoPrev+'" style="max-width:'+lw+'px;max-height:'+lh+'px">';
+    } else {
+      logoPrevEl.innerHTML='';
+    }
+  }
   if(typeof atualizarRodapePreview==='function') atualizarRodapePreview();
   document.getElementById('prev-assin-empresa').textContent=empresa;
   document.getElementById('prev-assin-cliente').textContent=nome!='—'?nome:'Cliente';
@@ -5876,19 +5936,23 @@ function atualizarPreviewProposta(){
 
 function _atualizarNumeracaoPreview(){
   var total = _tipoProposta==='avancada' ? 7 : 4;
-  ['1','2h','2f','3h','3f','4h','4f'].forEach(function(k){
-    var el=document.getElementById('a4num-'+k);
-    if(!el) return;
-    if(k==='1') el.textContent='1 / '+total;
-    else if(k.charAt(1)==='h') el.textContent='Página '+k.charAt(0)+' / '+total;
-    else el.textContent='Página '+k.charAt(0)+' de '+total;
-  });
-  ['5h','5f','6h','6f'].forEach(function(k){
-    var el=document.getElementById('a4num-'+k);
-    if(!el) return;
-    if(k.charAt(1)==='h') el.textContent='Página '+k.charAt(0)+' / '+total;
-    else el.textContent='Página '+k.charAt(0)+' de '+total;
-  });
+  function setNum(hId,fId,n){
+    var h=document.getElementById(hId); if(h) h.textContent='Página '+n+' / '+total;
+    var f=document.getElementById(fId); if(f) f.textContent='Página '+n+' de '+total;
+  }
+  var a1=document.getElementById('a4num-1'); if(a1) a1.textContent='1 / '+total;
+  setNum('a4num-2h','a4num-2f',2);
+  setNum('a4num-3h','a4num-3f',3);
+  if(_tipoProposta==='avancada'){
+    // Materiais → Termos → Cases → Investimento (por último, ver setTipoProposta)
+    setNum('a4num-5h','a4num-5f',4);
+    setNum('a4num-6h','a4num-6f',5);
+    setNum('a4num-7h','a4num-7f',6);
+    setNum('a4num-4h','a4num-4f',7);
+  } else {
+    // Ordem convencional: Investimento continua sendo a página 4
+    setNum('a4num-4h','a4num-4f',4);
+  }
 }
 
 function irParaProposta(){
@@ -5950,6 +6014,11 @@ function initCorProposta(){
   initGarantiasProposta();
   var inp=document.getElementById('p-cor-proposta');
   if(inp&&inp.value==='#1e6b2e') inp.value=cfg.corPropostaPadrao||cfg.corPrimaria||'#1E6B2E';
+  var logoTamInp=document.getElementById('p-logo-tamanho');
+  if(logoTamInp&&logoTamInp.value==='100'&&cfg.logoTamanhoPadrao){
+    logoTamInp.value=cfg.logoTamanhoPadrao;
+    var ltv=document.getElementById('p-logo-tam-val'); if(ltv) ltv.textContent=cfg.logoTamanhoPadrao+'%';
+  }
   aplicarCorProposta();
   var row=document.getElementById('prop-logo-preview-row');
   if(!row) return;
@@ -6082,7 +6151,8 @@ function gerarPDFProposta(modo){
     doc.setFont('helvetica','normal'); doc.setFontSize(9);
     var paginas=[[]], yBudgetPrimeira=(H-25)-52, yBudgetOutras=(H-25)-30;
     var yUsado=0, pagIdx=0;
-    _propTermos.forEach(function(t){
+    var termosAtivos=_propTermos.filter(function(t){return t.ativo!==false;});
+    termosAtivos.forEach(function(t){
       var linhas=doc.splitTextToSize(t.desc||'',W-mg*2-4);
       var alt=6+linhas.length*4.3+6;
       var budget=pagIdx===0?yBudgetPrimeira:yBudgetOutras;
@@ -6092,7 +6162,7 @@ function gerarPDFProposta(modo){
     });
     return paginas;
   }
-  function _qtdPaginasTermos(){ return _propTermos.length?_layoutTermos().length:0; }
+  function _qtdPaginasTermos(){ return _propTermos.filter(function(t){return t.ativo!==false;}).length?_layoutTermos().length:0; }
   function _qtdPaginasCases(){
     if(!_propCases.length) return 0;
     var compactas=_propCases.filter(_caseIsCompacta).length;
@@ -6199,7 +6269,7 @@ function gerarPDFProposta(modo){
     });
   }
   function _desenharPaginasTermos(){
-    if(!_propTermos.length) return;
+    if(!_propTermos.some(function(t){return t.ativo!==false;})) return;
     var paginas=_layoutTermos();
     paginas.forEach(function(itens,pIdx){
       doc.addPage(); pgAtual++;
@@ -6282,19 +6352,35 @@ function gerarPDFProposta(modo){
   doc.setFillColor(pcr,pcg,pcb); doc.rect(0,0,W,62,'F');
   // Faixa secundária (tom mais escuro)
   doc.setFillColor(pcrD,pcgD,pcbD); doc.rect(0,52,W,10,'F');
-  // Logo ou nome da empresa na faixa (logo da proposta tem prioridade)
+  // Logo ou nome da empresa, centralizada na faixa colorida (logo da
+  // proposta tem prioridade sobre a logo padrão das Configurações).
+  // Tamanho ajustável pelo campo "Tamanho do logo na capa" (p-logo-tamanho,
+  // 50–160%), sempre respeitando a proporção original da imagem.
   var logoUsado=_propLogoBase64||cfg.logoBase64;
   if(logoUsado){
-    doc.setFillColor(255,255,255); doc.roundedRect(mg,8,44,28,2,2,'F');
-    try{doc.addImage(logoUsado,'PNG',mg+2,10,40,24);}catch(e){}
+    var logoPctPdf=parseInt((document.getElementById('p-logo-tamanho')||{}).value)||100;
+    var logoMaxW=92*logoPctPdf/100, logoMaxH=38*logoPctPdf/100;
+    var logoNatW=logoMaxW, logoNatH=logoMaxH;
+    try{ var _ip=doc.getImageProperties(logoUsado); logoNatW=_ip.width; logoNatH=_ip.height; }catch(e){}
+    var logoScale=Math.min(logoMaxW/logoNatW, logoMaxH/logoNatH);
+    var logoW=logoNatW*logoScale, logoH=logoNatH*logoScale;
+    var logoX=(W-logoW)/2, logoY=(52-logoH)/2;
+    var logoPad=6;
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(logoX-logoPad/2,logoY-logoPad/2,logoW+logoPad,logoH+logoPad,2,2,'F');
+    var logoFmt=/^data:image\/jpeg/i.test(logoUsado)?'JPEG':'PNG';
+    try{doc.addImage(logoUsado,logoFmt,logoX,logoY,logoW,logoH);}catch(e){}
   } else {
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
-    doc.text(empresa,mg,22);
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(24);
+    doc.text(empresa,W/2,32,{align:'center'});
   }
-  // Tag "PROPOSTA COMERCIAL"
-  doc.setFillColor(255,255,255); doc.setDrawColor(255,255,255);
-  doc.setTextColor(pcr,pcg,pcb); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-  doc.text('PROPOSTA COMERCIAL',W-mg,32,{align:'right'});
+  // Tag "PROPOSTA COMERCIAL" — fica no bloco branco, acima do título (antes
+  // ficava dentro da faixa colorida e colidia com a logo maior/centralizada).
+  var tagY=80;
+  doc.setFillColor(pcrL,pcgL,pcbL); doc.roundedRect(mg,tagY,66,9,4.5,4.5,'F');
+  doc.setFillColor(pcr,pcg,pcb); doc.circle(mg+7,tagY+4.5,1.1,'F');
+  doc.setTextColor(pcrM,pcgM,pcbM); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+  doc.text('PROPOSTA COMERCIAL',mg+11,tagY+5.7);
   // Título principal (fundo branco, texto escuro + cor)
   doc.setTextColor(35,40,35); doc.setFont('helvetica','bold'); doc.setFontSize(46);
   doc.text('Proposta',mg,100);
@@ -6501,6 +6587,11 @@ function gerarPDFProposta(modo){
   addFooter(doc,pgAtual);
 
   // ═══ PÁG SEGUINTE — INVESTIMENTO ═══
+  // Extraída em função porque, no modo Avançada, o usuário quer o valor
+  // total (e a página de pagamento/assinaturas) só depois de Materiais/
+  // Termos/Cases/Portfólio — no Convencional continua sendo a última página,
+  // logo após o Financeiro, como sempre foi.
+  function _desenharPaginaInvestimento(){
   doc.addPage(); pgAtual++;
   addHeader(doc,'Investimento & Pagamento',pgAtual);
   y=26;
@@ -6604,16 +6695,11 @@ function gerarPDFProposta(modo){
   doc.text(nome,mg+sigW+30+sigW/2,y+5,{align:'center'});
   y+=14;
   addFooter(doc,pgAtual);
-
-  // Proposta Avançada — Materiais / Termos / Cases (páginas extras)
-  if(_tipoProposta==='avancada'){
-    _desenharPaginasMateriais();
-    _desenharPaginasTermos();
-    _desenharPaginasCases();
-  }
+  } // fim _desenharPaginaInvestimento
 
   // Portfólio (página extra, se houver imagens)
-  if(_portfolioImgs&&_portfolioImgs.length>0){
+  function _desenharPaginaPortfolio(){
+    if(!(_portfolioImgs&&_portfolioImgs.length>0)) return;
     doc.addPage(); pgAtual++;
     addHeader(doc,'Portfólio de Instalações',pgAtual);
     var py=26, px=mg, pCols=3, pGap=4, pW=(W-mg*2-(pCols-1)*pGap)/pCols, pH=pW*0.75;
@@ -6624,6 +6710,21 @@ function gerarPDFProposta(modo){
       try{ doc.addImage(img.base64,img.type||'JPEG',ix,iy,pW,pH); }catch(e){}
     });
     addFooter(doc,pgAtual);
+  }
+
+  // Ordem das páginas finais:
+  // Convencional (inalterado): Investimento → Portfólio.
+  // Avançada: Materiais → Termos → Cases → Portfólio → Investimento (por
+  // último), para o cliente ver escopo/cases/prova social ANTES do valor.
+  if(_tipoProposta==='avancada'){
+    _desenharPaginasMateriais();
+    _desenharPaginasTermos();
+    _desenharPaginasCases();
+    _desenharPaginaPortfolio();
+    _desenharPaginaInvestimento();
+  } else {
+    _desenharPaginaInvestimento();
+    _desenharPaginaPortfolio();
   }
 
   // Save / Share / View
@@ -6769,6 +6870,14 @@ function salvarCorPropostaPadrao(){
   u.config.corPropostaPadrao=hex;
   salvarCfg();
   toast('✅ Cor salva como padrão para novas propostas!');
+}
+function salvarLogoTamanhoPadrao(){
+  var u=usuarioAtual; if(!u) return;
+  var val=parseInt((document.getElementById('p-logo-tamanho')||{}).value)||100;
+  if(!u.config) u.config={};
+  u.config.logoTamanhoPadrao=val;
+  salvarCfg();
+  toast('✅ Tamanho do logo salvo como padrão!');
 }
 function toggleRodapaoPadrao(){ atualizarRodapePreview(); }
 function atualizarRodapePreview(){
@@ -6930,7 +7039,7 @@ function salvarProposta(){
       garModDesemp:gv('p-gar-mod-desemp','25'), garModDefeito:gv('p-gar-mod-defeito','12'), garInversor:gv('p-gar-inversor','10'),
       rodapaoPadrao:gc('p-rodape-padrao'),
       rodCnpj:gv('p-rod-cnpj',''), rodTel:gv('p-rod-tel',''), rodEmail:gv('p-rod-email',''), rodEnd:gv('p-rod-end',''),
-      nomeEmpresa:gv('p-nome-empresa',''), propLogo:_propLogoBase64||'',
+      nomeEmpresa:gv('p-nome-empresa',''), propLogo:_propLogoBase64||'', logoTamanho:gv('p-logo-tamanho','100'),
       incEq:gc('inc-eq'), incCabo:gc('inc-cabo'), incCa:gc('inc-ca'), incProj:gc('inc-proj'),
       incInst:gc('inc-inst'), incHom:gc('inc-hom'), incMon:gc('inc-mon'), incPad:gc('inc-pad'),
       cobrarICMS:!!(document.getElementById('p-cobrar-icms')||{}).checked,
@@ -7025,6 +7134,10 @@ function cancelarEdicao(){
   _propMateriais=[]; _propCases=[];
   _seedTermosDefaults();
   setTipoProposta('convencional');
+  // Resetar tamanho do logo para o padrão salvo (ou 100%)
+  var cfgRst=(typeof getCfg==='function')?getCfg():{};
+  var ltRst=document.getElementById('p-logo-tamanho');
+  if(ltRst){ ltRst.value=cfgRst.logoTamanhoPadrao||100; var ltvRst=document.getElementById('p-logo-tam-val'); if(ltvRst) ltvRst.textContent=ltRst.value+'%'; }
 }
 function _setBannerEdicao(cliente){
   _editandoPropostaId=null; // será redefinido depois
@@ -7066,6 +7179,8 @@ function editarProposta(id){
   sv('p-gar-mod-desemp',s.garModDesemp||'25'); sv('p-gar-mod-defeito',s.garModDefeito||'12'); sv('p-gar-inversor',s.garInversor||'10');
   sv('p-nome-empresa',s.nomeEmpresa||'');
   _propLogoBase64=s.propLogo||null;
+  sv('p-logo-tamanho',s.logoTamanho||'100');
+  var ltvEl=document.getElementById('p-logo-tam-val'); if(ltvEl) ltvEl.textContent=(s.logoTamanho||'100')+'%';
   // Restaurar rodapé — usar valores salvos ou fallback para perfil
   var _u=usuarioAtual||{};
   var cnpjEl=document.getElementById('p-rod-cnpj'); if(cnpjEl) cnpjEl.value=s.rodCnpj||_u.cnpj||'';
