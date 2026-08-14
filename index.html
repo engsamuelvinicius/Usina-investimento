@@ -6442,7 +6442,22 @@ function gerarPDFProposta(modo){
         doc.setFillColor(235,235,230); doc.roundedRect(cx,cy,cW,cH,2,2,'F');
         var foto=cs.fotos[0];
         if(foto){ try{ doc.addImage(foto.base64,foto.type||'JPEG',cx,cy,cW,cH); }catch(e){} }
-        doc.setFillColor(20,20,18); doc.rect(cx,cy+cH-26,cW,26,'F');
+        // Degradê translúcido na base da foto (em vez de um bloco preto
+        // sólido cobrindo boa parte da imagem) — a foto continua visível
+        // por baixo do texto, só escurecida o suficiente pra legibilidade.
+        try{
+          var gradH=26, gradSteps=8;
+          for(var gsI=0; gsI<gradSteps; gsI++){
+            var gsFrac=gsI/(gradSteps-1);
+            doc.setGState(new doc.GState({opacity:0.12+gsFrac*0.63}));
+            doc.setFillColor(8,10,8);
+            var gsStepH=gradH/gradSteps;
+            doc.rect(cx, cy+cH-gradH+gsI*gsStepH, cW, gsStepH+0.4, 'F');
+          }
+          doc.setGState(new doc.GState({opacity:1}));
+        }catch(e){
+          doc.setFillColor(20,20,18); doc.rect(cx,cy+cH-22,cW,22,'F');
+        }
         doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(7);
         doc.text('+1 PROJETO CONCLUÍDO',cx+3,cy+cH-20);
         if(cs.economia){
