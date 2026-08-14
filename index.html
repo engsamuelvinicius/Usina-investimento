@@ -1839,7 +1839,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}.row-prev 
             Cases de sucesso / Projeto referência <span style="font-size:10px;color:var(--text2)">(fotos + cliente + observação)</span>
           </div>
           <div id="prop-cases-list"></div>
-          <button type="button" class="btn-s" onclick="caseAdicionar()">+ Adicionar case</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn-s" onclick="caseAdicionar()">+ Adicionar case</button>
+            <button type="button" class="btn-s" onclick="salvarCasesPadrao()" title="Usar estes cases em todas as novas propostas">💾 Salvar cases como padrão</button>
+          </div>
         </div>
 
       </div>
@@ -5239,6 +5242,7 @@ function setTipoProposta(tipo){
     invWrap.style.order = tipo==='avancada' ? '2' : '0';
   }
   if(tipo==='avancada' && _propTermos.length===0) _seedTermosDefaults();
+  if(tipo==='avancada' && _propCases.length===0) _seedCasesDefaults();
   matRenderLista(); termosRender(); casesRender();
   atualizarPreviewProposta();
 }
@@ -5391,6 +5395,17 @@ function caseFotoAdd(input, caseIdx){
 function caseFotoRemove(caseIdx, fotoIdx){ _propCases[caseIdx].fotos.splice(fotoIdx,1); casesRender(); }
 function caseAdicionar(){ _propCases.push({fotos:[],cliente:'',cidade:'',potencia:'',economia:'',obs:''}); casesRender(); }
 function caseRemover(i){ _propCases.splice(i,1); casesRender(); }
+function _seedCasesDefaults(){
+  var cfg=(typeof getCfg==='function')?getCfg():{};
+  if(cfg.casesPadrao&&cfg.casesPadrao.length) _propCases=JSON.parse(JSON.stringify(cfg.casesPadrao));
+}
+function salvarCasesPadrao(){
+  var u=usuarioAtual; if(!u) return;
+  if(!u.config) u.config={};
+  u.config.casesPadrao=JSON.parse(JSON.stringify(_propCases));
+  salvarCfg();
+  toast('✅ Cases de sucesso salvos como padrão para novas propostas!');
+}
 function _caseIsCompacta(c){ return c.fotos.length<=1 && (!c.obs || c.obs.length<=140); }
 function casesRender(){
   var list=document.getElementById('prop-cases-list'); if(!list) return;
@@ -7133,6 +7148,7 @@ function cancelarEdicao(){
   // Limpar dados da Proposta Avançada (não vazar cliente anterior)
   _propMateriais=[]; _propCases=[];
   _seedTermosDefaults();
+  _seedCasesDefaults();
   setTipoProposta('convencional');
   // Resetar tamanho do logo para o padrão salvo (ou 100%)
   var cfgRst=(typeof getCfg==='function')?getCfg():{};
