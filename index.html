@@ -5440,7 +5440,7 @@ function _renderPreviewCases(){
       +'<div class="a4-footer"><span id="prev-p7-empresa">Proposta Comercial</span><span id="a4num-7f">Página 7 de 7</span></div></div>';
   }
   detalhadas.forEach(function(c,idx){
-    var fotosHtml=c.fotos.map(function(f){ return '<img src="'+f.base64+'" alt="foto" style="width:calc(33.33% - 6px);border-radius:6px;object-fit:cover;aspect-ratio:4/3">'; }).join('');
+    var fotosHtml=c.fotos.map(function(f){ return '<img src="'+f.base64+'" alt="foto" style="width:calc(50% - 4px);border-radius:6px;object-fit:cover;aspect-ratio:4/3">'; }).join('');
     html+='<div class="a4-label">Projeto Referência</div><div class="a4-page"><div class="a4-header"><div class="a4-header-title">Projeto Referência</div><div class="a4-header-pg">–</div></div>'
       +'<div class="a4-body">'
         +'<div style="font-size:11px;line-height:2;margin-bottom:10px">'
@@ -6334,7 +6334,7 @@ function gerarPDFProposta(modo){
       }
       y+=4;
       var fotos=cs.fotos||[];
-      var fCols=Math.min(3,fotos.length)||1, fGap=4, fW=(W-mg*2-(fCols-1)*fGap)/fCols, fH=fW*0.75;
+      var fCols=Math.min(2,fotos.length)||1, fGap=4, fW=(W-mg*2-(fCols-1)*fGap)/fCols, fH=fW*0.75;
       fotos.forEach(function(f,fi){
         var col=fi%fCols, row=Math.floor(fi/fCols);
         var fx=mg+col*(fW+fGap), fy=y+row*(fH+fGap);
@@ -6702,7 +6702,7 @@ function gerarPDFProposta(modo){
     if(!(_portfolioImgs&&_portfolioImgs.length>0)) return;
     doc.addPage(); pgAtual++;
     addHeader(doc,'Portfólio de Instalações',pgAtual);
-    var py=26, px=mg, pCols=3, pGap=4, pW=(W-mg*2-(pCols-1)*pGap)/pCols, pH=pW*0.75;
+    var py=26, px=mg, pCols=2, pGap=4, pW=(W-mg*2-(pCols-1)*pGap)/pCols, pH=pW*0.75;
     _portfolioImgs.forEach(function(img,idx){
       var col=idx%pCols, row=Math.floor(idx/pCols);
       var ix=mg+col*(pW+pGap), iy=py+row*(pH+pGap+6);
